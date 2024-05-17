@@ -1392,6 +1392,9 @@
       "name": "client_country",
       "label": "Client Country",
       "doc": {
+        "constraints": {
+          "type": "country"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1401,6 +1404,9 @@
       "name": "client_super_administrative_area",
       "label": "Client Super Administrative Area",
       "doc": {
+        "constraints": {
+          "type": "super_administrative_area"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1410,6 +1416,9 @@
       "name": "client_administrative_area",
       "label": "Client Administrative Area",
       "doc": {
+        "constraints": {
+          "type": "administrative_area"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1528,6 +1537,9 @@
       "name": "server_country",
       "label": "Server Country",
       "doc": {
+        "constraints": {
+          "type": "country"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1537,6 +1549,9 @@
       "name": "server_super_administrative_area",
       "label": "Server Super Administrative Area",
       "doc": {
+        "constraints": {
+          "type": "super_administrative_area"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1546,6 +1561,9 @@
       "name": "server_administrative_area",
       "label": "Server Administrative Area",
       "doc": {
+        "constraints": {
+          "type": "administrative_area"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1588,6 +1606,9 @@
       "name": "server_domain",
       "label": "Server Domain",
       "doc": {
+        "constraints": {
+          "type": "domain"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1990,6 +2011,9 @@
       "name": "http_url",
       "label": "HTTP.URL",
       "doc": {
+        "constraints": {
+          "type": "url"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2153,7 +2177,8 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, COUNT_DISTINCT",
+          "type": "http_code"
         },
         "ttl": null
       },

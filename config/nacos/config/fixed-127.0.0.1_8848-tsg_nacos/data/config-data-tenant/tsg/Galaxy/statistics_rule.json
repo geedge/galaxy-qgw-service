@@ -287,6 +287,9 @@
       "name": "client_country",
       "label": "Client Country",
       "doc": {
+        "constraints": {
+          "type": "country"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -295,6 +298,9 @@
       "name": "server_country",
       "label": "Server Country",
       "doc": {
+        "constraints": {
+          "type": "country"
+        },
         "visibility": "enabled"
       },
       "type": "string"
