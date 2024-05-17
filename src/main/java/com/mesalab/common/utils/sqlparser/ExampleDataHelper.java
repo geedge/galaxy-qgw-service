@@ -326,6 +326,9 @@ public class ExampleDataHelper {
         } else if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
             buildEnumDataList(canRepeat, size, result, list);
+        } else if (ExampleDataModeConst.SEQUENCE.equalsIgnoreCase(mode.toString())) {
+            List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
+            result.addAll(list.subList(0, size));
         }
         return result;
     }
@@ -351,6 +354,9 @@ public class ExampleDataHelper {
         String path = "$." + dataType;
         Object mode = JSONPath.extract(exampleJsonData, path + ".mode");
         if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
+            List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
+            return list.size();
+        }else if (ExampleDataModeConst.SEQUENCE.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
             return list.size();
         }

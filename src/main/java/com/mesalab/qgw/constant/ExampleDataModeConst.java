@@ -10,4 +10,5 @@ package com.mesalab.qgw.constant;
 public class ExampleDataModeConst {
     public static final String RANGE = "range";
     public static final String ENUM = "enum";
+    public static final String SEQUENCE = "sequence";
 }

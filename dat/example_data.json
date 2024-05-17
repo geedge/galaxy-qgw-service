@@ -4,6 +4,72 @@
     "start": 0,
     "end": 65535
   },
+  "http_code": {
+    "mode": "range",
+    "start": 100,
+    "end": 599
+  },
+  "country": {
+    "mode": "sequence",
+    "values": [
+      "China",
+      "United States",
+      "Russia",
+      "American Samoa",
+      "Nauru",
+      "Italy",
+      "South Africa",
+      "Afghanistan",
+      "Germany",
+      "Canada",
+      "Myanmar",
+      "Kazakhsta",
+      "Pakistan",
+      "Japan",
+      "France"
+    ]
+  },
+  "super_administrative_area": {
+    "mode": "sequence",
+    "values": [
+      "Beijing",
+      "New York",
+      "Moscow Oblast",
+      "Eastern District",
+      "Meneng District",
+      "Piedmont",
+      "Gauteng",
+      "Nangarhar",
+      "Baden-Wurttemberg",
+      "Ontario",
+      "Yangon",
+      "Qostanay Oblysy",
+      "Punjab",
+      "Tokyo",
+      "Nouvelle-Aquitaine"
+    ]
+  },
+  "administrative_area": {
+    "mode": "sequence",
+    "random": true,
+    "values": [
+      "Beijing",
+      "Blossvale",
+      "Vlasikha",
+      "Utulei",
+      "Menen",
+      "Bruno",
+      "Irene",
+      "Jalalabad",
+      "Keltern",
+      "Southampton",
+      "San Chaung",
+      "Tenizovskiy",
+      "Chiniot",
+      "Sendagaya",
+      "Balzac"
+    ]
+  },
   "fqdn": {
     "mode": "enum",
     "values": [
