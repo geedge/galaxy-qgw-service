@@ -120,6 +120,7 @@
         "proxy_rule_id"
       ],
       "metrics": [
+        "log_id",
         "client_ip",
         "client_port",
         "client_geolocation",
@@ -717,6 +718,9 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
         "visibility": "enabled",
         "ttl": null
       },

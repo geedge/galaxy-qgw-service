@@ -229,6 +229,7 @@
         "sc_rule_id"
       ],
       "metrics": [
+        "log_id",
         "c2s_ttl",
         "s2c_ttl",
         "client_ip",
@@ -1186,6 +1187,9 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
         "visibility": "enabled",
         "ttl": null
       },

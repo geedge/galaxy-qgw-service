@@ -94,6 +94,7 @@
         "sip_bye"
       ],
       "metrics": [
+        "log_id",
         "address_type",
         "decoded_as",
         "vsys_id",
@@ -519,6 +520,9 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
         "visibility": "enabled",
         "ttl": null
       },

@@ -106,6 +106,9 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
         "visibility": "enabled",
         "ttl": null
       },
