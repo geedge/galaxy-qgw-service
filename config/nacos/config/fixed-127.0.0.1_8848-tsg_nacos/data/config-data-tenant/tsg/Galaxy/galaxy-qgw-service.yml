@@ -101,6 +101,8 @@ engine:
   defaultResultNum: 100000
   fieldDiscovery:
     topK: 100
+  packetCombine:
+    delaySeconds: 5
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529

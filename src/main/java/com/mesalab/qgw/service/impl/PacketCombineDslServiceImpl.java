@@ -15,9 +15,11 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.DSLQueryContext;
 import com.mesalab.qgw.model.basic.DSLQueryRequestParam;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.service.*;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -54,14 +56,23 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
     private DatabaseService databaseService;
     private SQLSyncQueryService sqlSyncQueryService;
     private HosService hosService;
+    private EngineConfigSource engineConfigSource;
 
     @Override
     public BaseResult run(DSLQueryRequestParam dslQueryRequestParam) {
+        if (engineConfigSource.getPacketCombineDelaySeconds() > 0) {
+            threadBlock(engineConfigSource.getPacketCombineDelaySeconds());
+        }
         String sql = buildSQL(dslQueryRequestParam);
         List<Map<String, Object>> packets = getPackets(sql);
         byte[] bytes = packetCombine(packets);
         InputStream inputStream = new ByteArrayInputStream(bytes);
         return uploadFile(dslQueryRequestParam.getId(), inputStream);
+    }
+
+    @SneakyThrows
+    private void threadBlock(int delaySeconds) {
+        Thread.sleep(delaySeconds * 1000L);
     }
 
     @Override
@@ -237,5 +248,10 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
     @Autowired
     public void setHosService(HosService hosService) {
         this.hosService = hosService;
+    }
+
+    @Autowired
+    public void setEngineConfigSource(EngineConfigSource engineConfigSource) {
+        this.engineConfigSource = engineConfigSource;
     }
 }
