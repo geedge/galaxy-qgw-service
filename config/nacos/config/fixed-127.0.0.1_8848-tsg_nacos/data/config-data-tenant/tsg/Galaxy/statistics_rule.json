@@ -364,7 +364,7 @@
     },
     {
       "name": "s2c_link_id",
-      "label": "S2c Link ID",
+      "label": "S2C Link ID",
       "doc": {
         "visibility": "enabled"
       },
