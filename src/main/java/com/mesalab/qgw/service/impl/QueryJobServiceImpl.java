@@ -118,6 +118,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 return BaseResultGenerator.error(baseResult.getMessage());
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
                 return jobExecuteService.addDslExecutorPacketCombineWithoutCache(request);
+            } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                return jobExecuteService.addDslExecutorTrafficSpectrumWithoutCache(request);
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
@@ -132,6 +138,13 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addExecutorDslPacketCombineWithCache(request, null);
+            } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, null);
             } else {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addExecutorDsl(request);
@@ -146,6 +159,22 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
+                try {
+                    countDownLatch.await();
+                } catch (InterruptedException e) {
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                }
+                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+            } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
+                    || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                QueryCache queryCache = new QueryCache(request.getId());
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                CountDownLatch countDownLatch = new CountDownLatch(1);
+                jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
                 try {
                     countDownLatch.await();
                 } catch (InterruptedException e) {

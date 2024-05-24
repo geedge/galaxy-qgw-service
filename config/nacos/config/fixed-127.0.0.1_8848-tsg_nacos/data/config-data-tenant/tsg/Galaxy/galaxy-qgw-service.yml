@@ -103,6 +103,8 @@ engine:
     topK: 100
   packetCombine:
     delaySeconds: 5
+  trafficSpectrum:
+    cIpConnectAppTopK: 1000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529

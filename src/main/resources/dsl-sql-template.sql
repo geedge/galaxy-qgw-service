@@ -34,3 +34,21 @@ SELECT account AS SUBSCRIBER_ID, framed_ip AS IP, first_found_time AS FIRST_FOUN
 #sql("DATAPATH_TELEMETRY_RECORD")
 SELECT * FROM $table WHERE $intervals_and_filter ORDER BY timestamp_us ASC
 #end
+#sql("TRAFFIC_SPECTRUM_SUMMARY")
+SELECT direction, SUM(bytes) AS total_bytes, SUM(sessions) AS total_sessions, SUM(pkts) AS total_packets, SUM(IF(application = 'unknow', bytes, 0)) AS unknown_app_bytes, SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets FROM $table WHERE $intervals_and_filter GROUP BY direction
+#end
+#sql("TRAFFIC_SPECTRUM_UNIQ_IP")
+SELECT COUNT(DISTINCT(IF(direction = 'Outbound', client_ip, NULL))) AS internal_uniq_client_ip, COUNT(DISTINCT(IF(direction = 'Outbound', server_ip, NULL))) AS external_uniq_server_ip, COUNT(DISTINCT(IF(direction = 'Inbound', server_ip, NULL))) AS internal_uniq_server_ip, COUNT(DISTINCT(IF(direction = 'Inbound', client_ip, NULL))) AS external_uniq_client_ip FROM $table WHERE $intervals_and_filter
+#end
+#sql("TRAFFIC_SPECTRUM_APP_DISTRIBUTION_SERVER_IP")
+SELECT server_ip as value, SUM(bytes) as bytes, SUM(sessions) as sessions, SUM(pkts) as packets FROM $table WHERE $intervals_and_filter GROUP BY server_ip ORDER BY bytes DESC $limit
+#end
+#sql("TRAFFIC_SPECTRUM_APP_DISTRIBUTION_SERVER_DOMAIN")
+SELECT server_domain as value, SUM(bytes) as bytes, SUM(sessions) as sessions, SUM(pkts) as packets FROM $table WHERE $intervals_and_filter AND notEmpty(server_domain) GROUP BY server_domain ORDER BY bytes DESC $limit
+#end
+#sql("TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE")
+SELECT direction, SUM(temp_sessions) AS sessions, SUM(temp_bytes) AS bytes, SUM(temp_packets) AS packets, MAX(temp_rate) AS max_rate, MIN(temp_rate) AS min_rate, client_ip AS client_ip, client_country AS client_country, app AS app, app_category AS app_category FROM( SELECT toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(recv_time), INTERVAL $granularity_seconds SECOND))) AS stat_time, IF(client_ip IN ( SELECT client_ip FROM $table WHERE $intervals_and_filter AND notEmpty(app) GROUP BY client_ip,app ORDER BY SUM(bytes) DESC $limit), client_ip, 'Other') AS client_ip, IF(client_ip IN ( SELECT client_ip FROM $table WHERE $intervals_and_filter AND notEmpty(app) GROUP BY client_ip,app ORDER BY SUM(bytes) DESC $limit), client_country, 'Other') AS client_country, IF(app IN ( SELECT app FROM $table WHERE $intervals_and_filter AND notEmpty(app) GROUP BY client_ip,app ORDER BY SUM(bytes) DESC $limit), app, 'Other') AS app, IF(app IN ( SELECT app FROM $table WHERE $intervals_and_filter AND notEmpty(app) GROUP BY client_ip,app ORDER BY SUM(bytes) DESC $limit), app_category, 'Other') AS app_category, direction, SUM(sessions) AS temp_sessions, SUM(bytes) AS temp_bytes, SUM(pkts) AS temp_packets, ROUND(SUM(bytes) * 8 / $granularity_seconds) AS temp_rate FROM $table WHERE $intervals_and_filter GROUP BY stat_time, client_ip, client_country, app, app_category, direction) GROUP BY client_ip, client_country, app, app_category, direction ORDER BY bytes DESC
+#end
+#sql("TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND")
+SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(recv_time, '$granularity', 'zero')) AS stat_time, ROUND(RATE(bytes,$granularity_seconds,1)) * 8 AS avg_bits_per_sec, ROUND(RATE(bytes,$granularity_seconds,1)) AS avg_bytes_per_sec, ROUND(RATE(pkts,$granularity_seconds,1)) AS avg_pkts_per_sec, ROUND(RATE(sessions,$granularity_seconds,1)) AS avg_sessions_per_sec FROM $table WHERE $intervals_and_filter GROUP BY stat_time ORDER BY stat_time ASC $limit
+#end

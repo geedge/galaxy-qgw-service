@@ -24,10 +24,7 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.DSLService;
-import com.mesalab.qgw.service.PacketCombineDslService;
-import com.mesalab.qgw.service.SQLSyncQueryService;
-import com.mesalab.qgw.service.DatabaseService;
+import com.mesalab.qgw.service.*;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.DateUtils;
@@ -81,12 +78,15 @@ public class JobExecuteService implements EnvironmentAware {
     private DatabaseService databaseService;
     private DSLService dslService;
     private PacketCombineDslService packetCombineDslService;
+    private TrafficSpectrumDslService trafficSpectrumDslService;
     private EngineConfigSource engineConfigSource;
     private JobConfig jobCfg;
     private final ThreadPoolTaskExecutor heavyResourceThreadPool;
+    private final ThreadPoolTaskExecutor lightWeightThreadPool;
 
-    public JobExecuteService(ThreadPoolTaskExecutor heavyResourceThreadPool) {
+    public JobExecuteService(ThreadPoolTaskExecutor heavyResourceThreadPool, ThreadPoolTaskExecutor lightWeightThreadPool) {
         this.heavyResourceThreadPool = heavyResourceThreadPool;
+        this.lightWeightThreadPool = lightWeightThreadPool;
     }
 
     @Async("lightWeightThreadPool")
@@ -175,6 +175,33 @@ public class JobExecuteService implements EnvironmentAware {
         } catch (InterruptedException | ExecutionException | RuntimeException e) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+        }
+    }
+
+    public BaseResult addDslExecutorTrafficSpectrumWithoutCache(DSLQueryRequestParam request) {
+        try {
+            CompletableFuture<BaseResult> future = CompletableFuture.supplyAsync(() -> trafficSpectrumDslService.run(request), lightWeightThreadPool);
+            return future.get();
+        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+        }
+    }
+    @Async("lightWeightThreadPool")
+    public void addDslExecutorTrafficSpectrumWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
+        try {
+            markJobBegin(request.getId());
+            updateJobResultOnQueryCache(request.getId(), trafficSpectrumDslService.run(request));
+        } catch (RuntimeException e) {
+            markJobFailure(request.getId(), e.getMessage());
+        } finally {
+            try {
+                markJobCompletion(request.getId());
+            } finally {
+                if (countDownLatch != null) {
+                    countDownLatch.countDown();
+                }
+            }
         }
     }
 
@@ -812,6 +839,11 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     public void setPacketCombineDslService(PacketCombineDslService packetCombineDslService) {
         this.packetCombineDslService = packetCombineDslService;
+    }
+
+    @Autowired
+    public void setTrafficSpectrumDslService(TrafficSpectrumDslService trafficSpectrumDslService) {
+        this.trafficSpectrumDslService = trafficSpectrumDslService;
     }
 
     @Autowired

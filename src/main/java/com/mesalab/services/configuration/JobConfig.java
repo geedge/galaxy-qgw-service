@@ -52,8 +52,13 @@ public class JobConfig {
     public static final String FILTER = "filter";
     public static final String QUERY_DATA_SOURCE = "query.data_source";
     public static final String SAVED_QUERY = "saved_query";
-    public static final String FIELD_DISCOVERY= "field_discovery";
-    public static final String DATAPATH_PACKET_COMBINE= "datapath_telemetry_packet_combine";
+    public static final String FIELD_DISCOVERY = "field_discovery";
+    public static final String DATAPATH_PACKET_COMBINE = "datapath_telemetry_packet_combine";
+    public static final String TRAFFIC_SPECTRUM_SUMMARY ="traffic-spectrum-summary";
+    public static final String TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS ="traffic-spectrum-unique-client-and-server-ips";
+    public static final String TRAFFIC_SPECTRUM_APP_DISTRIBUTION ="traffic-spectrum-app-distribution";
+    public static final String TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE ="traffic-spectrum-client-ip-connect-application-usage";
+    public static final String TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND ="traffic-spectrum-network-throughput-trend";
     public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
 
     public static final String DELIMIT = "-";
@@ -77,11 +82,11 @@ public class JobConfig {
     private int responseTimeout;
     @NacosValue(value = "${job.execution.timeout}", autoRefreshed = true)
     private int executionTimeout;
-    @NacosValue(value="${job.longPolling.enabled}", autoRefreshed = true)
+    @NacosValue(value = "${job.longPolling.enabled}", autoRefreshed = true)
     private boolean longPollingEnabled;
-    @NacosValue(value="${job.timeSlicing.enabled}", autoRefreshed = true)
+    @NacosValue(value = "${job.timeSlicing.enabled}", autoRefreshed = true)
     private boolean timeSlicingEnabled;
-    @NacosValue(value="${job.timeSlicing.interval}", autoRefreshed = true)
+    @NacosValue(value = "${job.timeSlicing.interval}", autoRefreshed = true)
     private int timeSlicingInterval;
 
     @NacosValue(value = "${job.threadPool.lightWeight.corePoolSize}", autoRefreshed = true)
@@ -90,10 +95,10 @@ public class JobConfig {
     private int lightWeightMaxPoolSize;
     @NacosValue(value = "${job.threadPool.lightWeight.queueCapacity}", autoRefreshed = true)
     private int lightWeightQueueCapacity;
-    @NacosValue(value="${job.threadPool.heavyResource.corePoolSize}", autoRefreshed = true)
+    @NacosValue(value = "${job.threadPool.heavyResource.corePoolSize}", autoRefreshed = true)
     private int heavyResourceCorePoolSize;
-    @NacosValue(value="${job.threadPool.heavyResource.maxPoolSize}", autoRefreshed = true)
+    @NacosValue(value = "${job.threadPool.heavyResource.maxPoolSize}", autoRefreshed = true)
     private int heavyResourceMaxPoolSize;
-    @NacosValue(value="${job.threadPool.heavyResource.queueCapacity}", autoRefreshed = true)
+    @NacosValue(value = "${job.threadPool.heavyResource.queueCapacity}", autoRefreshed = true)
     private int heavyResourceQueueCapacity;
 }

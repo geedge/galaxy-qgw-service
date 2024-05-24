@@ -18,5 +18,6 @@ public class EngineConfigSource implements Serializable {
     private int fieldDiscoveryTopK;
     @NacosValue(value = "${engine.packetCombine.delaySeconds}", autoRefreshed = true)
     private int packetCombineDelaySeconds;
-
+    @NacosValue(value = "${engine.trafficSpectrum.cIpConnectAppTopK}", autoRefreshed = true)
+    private int trafficSpectrumCIpConnectAppTopK;
 }
