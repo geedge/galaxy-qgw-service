@@ -12,7 +12,8 @@
         "dos_event",
         "assessment_event",
         "monitor_event",
-        "datapath_telemetry_record"
+        "datapath_telemetry_record",
+        "traffic_sketch_metric"
       ]
     },
     {
