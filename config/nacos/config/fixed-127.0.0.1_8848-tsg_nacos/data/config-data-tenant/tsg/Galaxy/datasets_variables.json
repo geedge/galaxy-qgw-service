@@ -166,5 +166,9 @@
   {
     "key": "job_id",
     "default": "0b30c0db-e0e0-4679-9cde-fe62b44b29a7"
+  },
+  {
+    "key": "app",
+    "default": "unknown"
   }
 ]
