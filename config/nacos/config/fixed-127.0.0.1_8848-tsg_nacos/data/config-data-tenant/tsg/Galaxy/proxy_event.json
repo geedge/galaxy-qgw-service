@@ -1640,6 +1640,15 @@
       "type": "string"
     },
     {
+      "name": "app_category",
+      "label": "Application Category",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "app_debug_info",
       "label": "Application Debug Info",
       "doc": {

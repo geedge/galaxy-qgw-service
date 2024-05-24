@@ -77,6 +77,7 @@
         "out_dest_mac",
         "app_transition",
         "app",
+        "app_category",
         "app_debug_info",
         "app_content",
         "app_extra_info",
@@ -246,6 +247,7 @@
         "in_dest_mac",
         "out_dest_mac",
         "app",
+        "app_category",
         "decoded_path",
         "sent_pkts",
         "received_pkts",
@@ -375,6 +377,7 @@
         "app_transition",
         "app_debug_info",
         "app",
+        "app_category",
         "app_content",
         "app_extra_info",
         "dup_traffic_flag",
@@ -2039,6 +2042,15 @@
         "constraints": {
           "type": "app"
         },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_category",
+      "label": "Application Category",
+      "doc": {
         "visibility": "enabled",
         "ttl": null
       },
