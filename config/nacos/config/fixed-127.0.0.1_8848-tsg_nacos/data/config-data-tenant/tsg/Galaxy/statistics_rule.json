@@ -28,12 +28,17 @@
         "c2s_ttl",
         "s2c_ttl",
         "c2s_link_id",
-        "s2c_link_id"
+        "s2c_link_id",
+        "client_port",
+        "server_port"
       ],
       "metrics": [
         "in_bytes",
         "out_bytes",
         "bytes",
+        "in_pkts",
+        "out_pkts",
+        "pkts",
         "new_c2s_flows",
         "new_s2c_flows",
         "new_in_sessions",
@@ -46,7 +51,10 @@
         "server_ip_sketch",
         "in_latency_ms_sketch",
         "out_latency_ms_sketch",
-        "latency_ms_sketch"
+        "latency_ms_sketch",
+        "in_pkt_length_sketch",
+        "out_pkt_length_sketch",
+        "pkt_length_sketch"
       ],
       "filters": [
         "device_id",
@@ -69,6 +77,9 @@
           "in_bytes": "bytes",
           "out_bytes": "bytes",
           "bytes": "bytes",
+          "in_pkts": "bytes",
+          "out_pkts": "bytes",
+          "pkts": "bytes",
           "new_c2s_flows": "flows",
           "new_s2c_flows": "flows",
           "new_in_sessions": "sessions",
@@ -81,6 +92,9 @@
           "in_bytes": "Bps",
           "out_bytes": "Bps",
           "bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps",
+          "pkts": "pps",
           "new_c2s_flows": "fps",
           "new_s2c_flows": "fps",
           "new_in_sessions": "sps",
@@ -102,22 +116,34 @@
         "MEDIAN_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms"
+          "latency_ms_sketch": "ms",
+          "in_pkt_length_sketch": "bytes",
+          "out_pkt_length_sketch": "bytes",
+          "pkt_length_sketch": "bytes"
         },
         "P95_PERCENTILE_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms"
+          "latency_ms_sketch": "ms",
+          "in_pkt_length_sketch": "bytes",
+          "out_pkt_length_sketch": "bytes",
+          "pkt_length_sketch": "bytes"
         },
         "P99_PERCENTILE_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms"
+          "latency_ms_sketch": "ms",
+          "in_pkt_length_sketch": "bytes",
+          "out_pkt_length_sketch": "bytes",
+          "pkt_length_sketch": "bytes"
         },
         "PERCENTILES_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms"
+          "latency_ms_sketch": "ms",
+          "in_pkt_length_sketch": "bytes",
+          "out_pkt_length_sketch": "bytes",
+          "pkt_length_sketch": "bytes"
         }
       }
     }
@@ -371,6 +397,22 @@
       "type": "long"
     },
     {
+      "name": "client_port",
+      "label": "Client Port",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_port",
+      "label": "Server Port",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
       "name": "in_bytes",
       "label": "Incoming Bytes",
       "doc": {
@@ -401,6 +443,42 @@
         "constraints": {
           "metric_type": "counter",
           "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "pkts",
+      "label": "Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -558,6 +636,45 @@
     {
       "name": "latency_ms_sketch",
       "label": "Latency",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge",
+          "metric_type": "histogram",
+          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "in_pkt_length_sketch",
+      "label": "Incoming Packet Length",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge",
+          "metric_type": "histogram",
+          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "out_pkt_length_sketch",
+      "label": "Outgoing Packet Length",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge",
+          "metric_type": "histogram",
+          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "pkt_length_sketch",
+      "label": "Packet Length",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
