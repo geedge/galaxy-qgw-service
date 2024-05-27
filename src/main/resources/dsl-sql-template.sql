@@ -35,7 +35,7 @@ SELECT account AS SUBSCRIBER_ID, framed_ip AS IP, first_found_time AS FIRST_FOUN
 SELECT * FROM $table WHERE $intervals_and_filter ORDER BY timestamp_us ASC
 #end
 #sql("TRAFFIC_SPECTRUM_SUMMARY")
-SELECT direction, SUM(bytes) AS total_bytes, SUM(sessions) AS total_sessions, SUM(pkts) AS total_packets, SUM(IF(application = 'unknow', bytes, 0)) AS unknown_app_bytes, SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets FROM $table WHERE $intervals_and_filter GROUP BY direction
+SELECT direction, SUM(bytes) AS total_bytes, SUM(sessions) AS total_sessions, SUM(pkts) AS total_packets, SUM(IF(app = 'unknow', bytes, 0)) AS unknown_app_bytes, SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets FROM $table WHERE $intervals_and_filter GROUP BY direction
 #end
 #sql("TRAFFIC_SPECTRUM_UNIQ_IP")
 SELECT COUNT(DISTINCT(IF(direction = 'Outbound', client_ip, NULL))) AS internal_uniq_client_ip, COUNT(DISTINCT(IF(direction = 'Outbound', server_ip, NULL))) AS external_uniq_server_ip, COUNT(DISTINCT(IF(direction = 'Inbound', server_ip, NULL))) AS internal_uniq_server_ip, COUNT(DISTINCT(IF(direction = 'Inbound', client_ip, NULL))) AS external_uniq_client_ip FROM $table WHERE $intervals_and_filter
