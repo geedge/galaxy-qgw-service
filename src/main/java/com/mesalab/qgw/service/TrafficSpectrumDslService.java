@@ -21,7 +21,7 @@ public interface TrafficSpectrumDslService {
 
     List<Map<String, Object>> topServerIpAndServerDomain(DSLQueryRequestParam dslQueryRequestParam);
 
-    Map<String, Object> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam);
+    List<Map<String, Object>> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam);
 
     List<Map<String, Object>> networkThroughputTrend(DSLQueryRequestParam dslQueryRequestParam);
 

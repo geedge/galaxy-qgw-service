@@ -178,6 +178,9 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                         .option(QueryOption.REAL_TIME.getValue())
                         .build());
         if (baseResultIp.isSuccess() && baseResultDomain.isSuccess()) {
+            if ((baseResultIp.getData() == null || baseResultIp.getData().isEmpty()) && (baseResultDomain.getData() == null || baseResultDomain.getData().isEmpty())) {
+                return Lists.newArrayList();
+            }
             Map<String, Object> map = Maps.newHashMap();
             map.put(TrafficSpectrumConstants.TOP_SERVER_IP, baseResultIp.getData());
             map.put(TrafficSpectrumConstants.TOP_SERVER_DOMAIN, baseResultDomain.getData());
@@ -188,7 +191,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
     }
 
     @Override
-    public Map<String, Object> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam) {
+    public List<Map<String, Object>> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam) {
         DSLQueryContext dslQueryContext = BeanUtil.copyProperties(dslQueryRequestParam, DSLQueryContext.class);
         if (StrUtil.isBlank(dslQueryContext.getLimit())) {
             dslQueryContext.setLimit(String.valueOf(engineConfigSource.getTrafficSpectrumCIpConnectAppTopK()));
@@ -207,6 +210,9 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                         .option(QueryOption.REAL_TIME.getValue())
                         .build());
         if (baseResult.isSuccess()) {
+            if (baseResult.getData() == null || baseResult.getData().isEmpty()) {
+                return Lists.newArrayList();
+            }
             List<Map<String, Object>> data = baseResult.getData();
             Map<String, Object> nodes = Maps.newHashMap();
             Map<String, Map<String, Object>> internalNodes = Maps.newHashMap();
@@ -279,7 +285,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
             Map<String, Object> result = Maps.newHashMap();
             result.put(TrafficSpectrumConstants.NODES, nodes);
             result.put(TrafficSpectrumConstants.LINKS, links);
-            return result;
+            return Lists.newArrayList(result);
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                 String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
