@@ -50,6 +50,9 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
     private static final String FILED_PACKET = "packet";
     private static final String FILED_TIMESTAMP_US = "timestamp_us";
     private static final String FILED_PACKET_LENGTH = "packet_length";
+    private static final String SLED_IP = "sled_ip";
+    private static final String DEVICE_GROUP = "device_group";
+    private static final String TRAFFIC_LINK_ID = "traffic_link_id";
 
     private static final Log log = LogFactory.get();
     private Environment environment;
@@ -94,11 +97,18 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         List<byte[]> packetList = new ArrayList<>();
         for (Map<String, Object> map : records) {
             String measurements = JSONUtil.toJsonStr(map.get(FILED_MEASUREMENTS));
+            Object sledIp = map.get(SLED_IP);
+            Object deviceGroup = map.get(DEVICE_GROUP);
+            Object trafficLinkId = map.get(TRAFFIC_LINK_ID);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.set(SLED_IP, sledIp);
+            jsonObject.set(DEVICE_GROUP, deviceGroup);
+            jsonObject.set(TRAFFIC_LINK_ID, trafficLinkId);
             int packetLen = Integer.parseInt(String.valueOf(map.get(FILED_PACKET_LENGTH)));
             long timestampUS = Long.parseLong(String.valueOf(map.get(FILED_TIMESTAMP_US)));
             String base64EncodedString = String.valueOf(map.get(FILED_PACKET));
             byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedString);
-            byte[] bytes = generatePacketBlock(timestampUS, decodedBytes, packetLen, measurements);
+            byte[] bytes = generatePacketBlock(timestampUS, decodedBytes, packetLen, measurements, jsonObject);
             packetList.add(bytes);
         }
         return mergeByte(packetList);
@@ -138,12 +148,13 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         return ArrayUtil.addAll(newBytes);
     }
 
-    private static byte[] generatePacketBlock(long timestamp, byte[] blockData, int packetLen, String measurements) {
+    private static byte[] generatePacketBlock(long timestamp, byte[] blockData, int packetLen, String measurements, JSONObject jsonObject) {
         //计算注释的长度
         List<byte[]> commentsList = new ArrayList<>();
         int commentsLength = 0;
         //获取注释的json数组
         JSONArray measurementsJsonArray = JSONUtil.parseArray(measurements);
+        measurementsJsonArray.add(0, jsonObject);
         for (Object measurement : measurementsJsonArray) {
             byte[] comment = ((JSONObject) measurement).toJSONString(2).getBytes();
             if (comment.length > 65535) {
