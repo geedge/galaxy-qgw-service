@@ -225,7 +225,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 long bytes = Long.parseLong(String.valueOf(x.get("bytes") == null ? 0 : x.get("bytes")));
                 long packets = Long.parseLong(String.valueOf(x.get("packets") == null ? 0 : x.get("packets")));
                 long maxRate = Long.parseLong(String.valueOf(x.get("max_rate") == null ? 0 : x.get("max_rate")));
-                long minRate = Long.parseLong(String.valueOf(x.get("min_rate") == null ? 0 : x.get("min_rate")));
+                long avgRate = Long.parseLong(String.valueOf(x.get("avg_rate") == null ? 0 : x.get("avg_rate")));
                 String clientIp = String.valueOf(x.get("client_ip"));
                 String app = String.valueOf(x.get("app"));
                 String clientCountry = String.valueOf(x.get("client_country"));
@@ -276,7 +276,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 link.put(TrafficSpectrumConstants.BYTES, bytes);
                 link.put(TrafficSpectrumConstants.PACKETS, packets);
                 link.put(TrafficSpectrumConstants.MAX_RATE, maxRate);
-                link.put(TrafficSpectrumConstants.MIN_RATE, minRate);
+                link.put(TrafficSpectrumConstants.AVG_RATE, avgRate);
                 links.add(link);
 
             });

@@ -27,7 +27,7 @@ public class TrafficSpectrumConstants {
     public static final String TOP_SERVER_IP = "top_server_ip";
     public static final String TOP_SERVER_DOMAIN = "top_server_domain";
     public static final String MAX_RATE = "max_rate";
-    public static final String MIN_RATE = "min_rate";
+    public static final String AVG_RATE = "avg_rate";
     public static final String INTERNAL_NODE = "internal_node";
     public static final String EXTERNAL_NODE = "external_node";
     public static final String NODES = "nodes";
