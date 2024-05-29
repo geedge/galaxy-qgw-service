@@ -52,12 +52,7 @@ public class SQLDatasetController
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CANNOT_BE_EMPTY));
         }
-        String queryId;
-        if (resultId != null) {
-            queryId = sqlDatasetService.getCustomQueryId(resultId.toString(), query.toString());
-        } else {
-            queryId = sqlDatasetService.getCustomQueryId("", query.toString());
-        }
+        String queryId = sqlDatasetService.getCustomQueryId(resultId == null ? null : resultId.toString(), query.toString());
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);
         map.put("queryId", queryId);
