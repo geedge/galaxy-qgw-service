@@ -182,8 +182,8 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 return Lists.newArrayList();
             }
             Map<String, Object> map = Maps.newHashMap();
-            map.put(TrafficSpectrumConstants.TOP_SERVER_IP, baseResultIp.getData());
-            map.put(TrafficSpectrumConstants.TOP_SERVER_DOMAIN, baseResultDomain.getData());
+            map.put(TrafficSpectrumConstants.TOP_SERVER_IPS, baseResultIp.getData());
+            map.put(TrafficSpectrumConstants.TOP_SERVER_DOMAINS, baseResultDomain.getData());
             return Lists.newArrayList(map);
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
