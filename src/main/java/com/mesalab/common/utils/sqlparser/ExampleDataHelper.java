@@ -74,7 +74,7 @@ public class ExampleDataHelper {
      */
     public static List<Object> buildExampleData(@NotNull String queryType, List<Map<String, String>> meta, Long sqlRowCount, Map<String, List<Object>> schemaDataDict, Object queryTypeParameters) {
         int rowCount = (sqlRowCount == null) ? RandomNumberGenerator.generateRangeRandomInt(10, 50) : Math.min(sqlRowCount.intValue(), 50);
-        List<Map<String, Object>> result;
+        List<LinkedHashMap<String, Object>> result;
         switch (queryType) {
             case QUERY_TYPE_TIMESERIES:
                 result = buildExampleDataOfTimeseries(queryTypeParameters.toString(), meta, sqlRowCount, schemaDataDict);
@@ -94,12 +94,12 @@ public class ExampleDataHelper {
                 .collect(Collectors.toList());
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfTimeseries(String timeGranLabel, List<Map<String, String>> meta, Long sqlRowCount, Map<String, List<Object>> schemaDataDict) {
+    private static List<LinkedHashMap<String, Object>> buildExampleDataOfTimeseries(String timeGranLabel, List<Map<String, String>> meta, Long sqlRowCount, Map<String, List<Object>> schemaDataDict) {
         Map<String, String> timeGranMeta = meta.stream()
                 .filter(item -> timeGranLabel.equals(item.get(MetaConst.META_NAME)))
                 .findFirst()
                 .orElse(Maps.newHashMap());
-        List<Map<String, Object>> timeseriesList = new ArrayList<>();
+        List<LinkedHashMap<String, Object>> timeseriesList = new ArrayList<>();
         if (!timeGranMeta.isEmpty()) {
             String timeGranDataType = timeGranMeta.get(MetaConst.META_DATA_TYPE);
             timeGranDataType = timeGranDataType == null ? timeGranMeta.get(MetaConst.META_TYPE) : timeGranDataType;
@@ -107,14 +107,14 @@ public class ExampleDataHelper {
             int iteratorRowCount = (sqlRowCount == null) ? RandomNumberGenerator.generateRangeRandomInt(10, 50) : Math.min(sqlRowCount.intValue(), 50);
             while (iteratorRowCount-- > 0) {
                 Object value = getDateTimeValue(timeGranDataType, iteratorRowCount, currentDate);
-                Map<String, Object> timeseries = Maps.newHashMap();
+                LinkedHashMap<String, Object> timeseries = Maps.newLinkedHashMap();
                 timeseries.put(timeGranLabel, value);
                 timeseriesList.add(timeseries);
             }
         }
 
         int counter = 0;
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<LinkedHashMap<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < meta.size(); i++) {
             Map<String, String> item = meta.get(i);
             if (MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)) && !timeGranLabel.equals(item.get(MetaConst.META_NAME))) {
@@ -125,9 +125,9 @@ public class ExampleDataHelper {
                 counter++;
                 List exampleValue = getExampleValue(item, null, null, false, RandomNumberGenerator.generateRangeRandomInt(1, 5), schemaDataDict);
                 for (int i1 = 0; i1 < exampleValue.size(); i1++) {
-                    List<Map<String, Object>> maps = new ArrayList<>();
+                    List<LinkedHashMap<String, Object>> maps = new ArrayList<>();
                     for (int j = 0; j < timeseriesList.size(); j++) {
-                        Map<String, Object> copiedMap = new HashMap<>(timeseriesList.get(j));
+                        LinkedHashMap<String, Object> copiedMap = new LinkedHashMap<>(timeseriesList.get(j));
                         copiedMap.put(item.get(MetaConst.META_NAME), exampleValue.get(i1));
                         maps.add(copiedMap);
                     }
@@ -136,7 +136,7 @@ public class ExampleDataHelper {
             }
         }
 
-        List<Map<String, Object>> finalResult = result.isEmpty() ? timeseriesList : result;
+        List<LinkedHashMap<String, Object>> finalResult = result.isEmpty() ? timeseriesList : result;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     List exampleValue = getExampleValue(item, null, null, true, finalResult.size(), schemaDataDict);
@@ -147,16 +147,16 @@ public class ExampleDataHelper {
         return (sqlRowCount == null) ? finalResult : finalResult.subList(0, Math.min(sqlRowCount.intValue(), finalResult.size()));
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfGroupBy(List<Map<String, String>> meta, Integer rowCount, boolean isDesc, Map<String, List<Object>> schemaDataDict) {
+    private static List<LinkedHashMap<String, Object>> buildExampleDataOfGroupBy(List<Map<String, String>> meta, Integer rowCount, boolean isDesc, Map<String, List<Object>> schemaDataDict) {
         for (Map<String, String> item : meta) {
             if (inExampleData(item, schemaDataDict)) {
                 Integer exampleDataSize = getExampleDataSize(item, schemaDataDict);
                 rowCount = exampleDataSize == null ? rowCount : Math.min(rowCount, exampleDataSize);
             }
         }
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<LinkedHashMap<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < rowCount; i++) {
-            result.add(Maps.newHashMap());
+            result.add(Maps.newLinkedHashMap());
         }
         Integer finalRowCount = rowCount;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)))
@@ -177,9 +177,9 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfMergeAggregation(List<Map<String, String>> meta, Map<String, List<Object>> schemaDataDict) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        result.add(Maps.newHashMap());
+    private static List<LinkedHashMap<String, Object>> buildExampleDataOfMergeAggregation(List<Map<String, String>> meta, Map<String, List<Object>> schemaDataDict) {
+        List<LinkedHashMap<String, Object>> result = new ArrayList<>();
+        result.add(Maps.newLinkedHashMap());
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     List exampleValue = getExampleValue(item, null, null, true, 1, schemaDataDict);
@@ -190,16 +190,16 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfScan(List<Map<String, String>> meta, int rowCount, Map<String, List<Object>> schemaDataDict) {
+    private static List<LinkedHashMap<String, Object>> buildExampleDataOfScan(List<Map<String, String>> meta, int rowCount, Map<String, List<Object>> schemaDataDict) {
         for (Map<String, String> item : meta) {
             if (inExampleData(item, schemaDataDict)) {
                 Integer exampleDataSize = getExampleDataSize(item, schemaDataDict);
                 rowCount = exampleDataSize == null ? rowCount : Math.min(rowCount, exampleDataSize);
             }
         }
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<LinkedHashMap<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < rowCount; i++) {
-            result.add(Maps.newHashMap());
+            result.add(Maps.newLinkedHashMap());
         }
         int finalRowCount = rowCount;
         meta.forEach(item -> {
