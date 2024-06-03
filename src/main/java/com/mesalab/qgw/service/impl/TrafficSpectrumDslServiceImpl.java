@@ -57,7 +57,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
     private static final String TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND = "TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND";
     private static final String TABLE_TRAFFIC_SKETCH_METRIC = "traffic_sketch_metric";
     private static final String TIME_FIELD_TYPE = "unix_timestamp";
-    private static final String GRANULARITY_DEFAULT = "PT15S";
+    private static final String GRANULARITY_DEFAULT = "PT60S";
 
     @Override
     public BaseResult run(DSLQueryRequestParam dslQueryRequestParam) {
