@@ -13,6 +13,7 @@ public class DataTypeConst {
     public static final String TIMESTAMP_MS_FORMAT = "timestamp_ms_format";
     public static final String UNIX_TIMESTAMP = "unix_timestamp";
     public static final String UNIX_TIMESTAMP_MS = "unix_timestamp_ms";
+    public static final String DATE_TIME_64 = "datetime64";
     public static final String DATE = "date";
     public static final String IP = "ip";
     public static final String DOMAIN = "domain";

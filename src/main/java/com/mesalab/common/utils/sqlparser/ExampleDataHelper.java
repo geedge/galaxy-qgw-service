@@ -231,6 +231,7 @@ public class ExampleDataHelper {
                 || DataTypeConst.TIMESTAMP_FORMAT.equals(dataType)
                 || DataTypeConst.TIMESTAMP_MS_FORMAT.equals(dataType) || DataTypeConst.UNIX_TIMESTAMP.equals(dataType)
                 || DataTypeConst.UNIX_TIMESTAMP_MS.equals(dataType)
+                || DataTypeConst.DATE_TIME_64.equals(dataType)
         ) {
             return getExampleDateTimeValues(dataType, size);
         }
@@ -263,6 +264,9 @@ public class ExampleDataHelper {
                 break;
             case DataTypeConst.DATE:
                 value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATE_PATTERN);
+                break;
+            case DataTypeConst.DATE_TIME_64:
+                value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATETIME_MS_FORMAT);
                 break;
             default:
                 value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATETIME_FORMAT);
