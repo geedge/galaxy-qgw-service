@@ -77,9 +77,9 @@
           "in_bytes": "bytes",
           "out_bytes": "bytes",
           "bytes": "bytes",
-          "in_pkts": "bytes",
-          "out_pkts": "bytes",
-          "pkts": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets",
+          "pkts": "packets",
           "new_c2s_flows": "flows",
           "new_s2c_flows": "flows",
           "new_in_sessions": "sessions",
@@ -117,33 +117,33 @@
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
           "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "bytes",
-          "out_pkt_length_sketch": "bytes",
-          "pkt_length_sketch": "bytes"
+          "in_pkt_length_sketch": "packets",
+          "out_pkt_length_sketch": "packets",
+          "pkt_length_sketch": "packets"
         },
         "P95_PERCENTILE_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
           "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "bytes",
-          "out_pkt_length_sketch": "bytes",
-          "pkt_length_sketch": "bytes"
+          "in_pkt_length_sketch": "packets",
+          "out_pkt_length_sketch": "packets",
+          "pkt_length_sketch": "packets"
         },
         "P99_PERCENTILE_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
           "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "bytes",
-          "out_pkt_length_sketch": "bytes",
-          "pkt_length_sketch": "bytes"
+          "in_pkt_length_sketch": "packets",
+          "out_pkt_length_sketch": "packets",
+          "pkt_length_sketch": "packets"
         },
         "PERCENTILES_HDR": {
           "in_latency_ms_sketch": "ms",
           "out_latency_ms_sketch": "ms",
           "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "bytes",
-          "out_pkt_length_sketch": "bytes",
-          "pkt_length_sketch": "bytes"
+          "in_pkt_length_sketch": "packets",
+          "out_pkt_length_sketch": "packets",
+          "pkt_length_sketch": "packets"
         }
       }
     }
