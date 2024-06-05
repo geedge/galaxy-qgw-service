@@ -1954,7 +1954,7 @@ public class SQLFunctionUtil {
                     double probability = Double.parseDouble(fun.getParamsList().get(1));
                     return String.format("APPROX_QUANTILE_HDR(%s,%s)", hdrSketchExpr, probability);
                 case PERCENTILES_HDR:
-                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 2)", hdrSketchExpr);
+                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 5)", hdrSketchExpr);
                 case APPROX_COUNT_DISTINCT_HLLD:
                     return String.format("APPROX_COUNT_DISTINCT_HLLD#[%s#]", hdrSketchExpr);
             }
