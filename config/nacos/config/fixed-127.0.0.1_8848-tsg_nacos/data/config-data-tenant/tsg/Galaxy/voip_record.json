@@ -637,7 +637,7 @@
       "label": "Decoded AS",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -811,7 +811,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -828,7 +828,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -871,6 +871,9 @@
       "name": "direction",
       "label": "Direction",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
         "data": {
           "$ref": "public_schema_info.json#/fields/direction/data"
         },
@@ -1131,6 +1134,9 @@
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
         "data": {
           "$ref": "public_schema_info.json#/fields/ip_protocol/data"
         },

@@ -533,7 +533,7 @@
       "label": "Decoded AS",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {

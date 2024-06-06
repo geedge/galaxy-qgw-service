@@ -1132,7 +1132,7 @@
       "label": "Decoded AS",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -1346,7 +1346,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -1363,7 +1363,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -1406,6 +1406,9 @@
       "name": "direction",
       "label": "Direction",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
         "data": {
           "$ref": "public_schema_info.json#/fields/direction/data"
         },
@@ -1508,7 +1511,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/security_action/data"
@@ -1635,7 +1638,7 @@
       "doc": {
         "visibility": "hidden",
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -1655,6 +1658,9 @@
       "name": "proxy_pinning_status",
       "label": "Proxy Pinning Status",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
         "data": {
           "$ref": "public_schema_info.json#/fields/proxy_pinning_status/data"
         },
@@ -1667,6 +1673,9 @@
       "name": "proxy_intercept_status",
       "label": "Proxy Intercept Status",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
         "data": {
           "$ref": "public_schema_info.json#/fields/proxy_intercept_status/data"
         },
@@ -2092,6 +2101,9 @@
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
         "data": {
           "$ref": "public_schema_info.json#/fields/ip_protocol/data"
         },

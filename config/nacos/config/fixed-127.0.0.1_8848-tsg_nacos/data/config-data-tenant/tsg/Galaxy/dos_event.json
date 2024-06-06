@@ -147,7 +147,7 @@
       "label": "Attack Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -185,7 +185,7 @@
       "label": "Severity",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {

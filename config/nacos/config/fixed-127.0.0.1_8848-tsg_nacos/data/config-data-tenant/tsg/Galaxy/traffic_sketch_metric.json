@@ -182,7 +182,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -199,7 +199,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": {
           "$ref": "device_tag.json#",
