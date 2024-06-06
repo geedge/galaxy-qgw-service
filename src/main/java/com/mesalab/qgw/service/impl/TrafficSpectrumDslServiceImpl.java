@@ -194,7 +194,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
     public List<Map<String, Object>> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam) {
         DSLQueryContext dslQueryContext = BeanUtil.copyProperties(dslQueryRequestParam, DSLQueryContext.class);
         if (StrUtil.isBlank(dslQueryContext.getLimit())) {
-            dslQueryContext.setLimit(String.valueOf(engineConfigSource.getTrafficSpectrumCIpConnectAppTopK()));
+            dslQueryContext.setLimit(String.valueOf(engineConfigSource.getTrafficSpectrumClientIPAppResultNum()));
         }
         if (StrUtil.isBlank(dslQueryContext.getGranularity())) {
             dslQueryContext.setGranularity(GRANULARITY_DEFAULT);
