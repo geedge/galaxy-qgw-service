@@ -1,7 +1,7 @@
 {
   "namespace": "system",
   "type": "record",
-  "name": "processes",
+  "name": "processes_cluster",
   "fields": [
     {
       "name": "query_id",

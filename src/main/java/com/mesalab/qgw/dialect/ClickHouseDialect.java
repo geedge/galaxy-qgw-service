@@ -146,15 +146,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
     @Override
     public BaseResult executeKillQuery(String queryId) {
-        String killSql = StrUtil.format("kill query where query_id ='{}'", queryId);
+        String killSql = StrUtil.format("kill query on cluster ck_cluster where is_initial_query = 1 and query_id ='{}'", queryId);
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryParamBuilder = new StringBuilder(getLongTermAccount()).append("&")
-                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
-                .append("query=").append(killSql)
-                .append(" FORMAT ").append(OutputMode.JSON.getValue().toUpperCase()).append(" ;");
+                .append("database=").append(clickHouseHttpSource.getDbName());
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), StandardCharsets.UTF_8);
 
-        HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, StandardCharsets.UTF_8.toString()));
+        HttpResponseResult responseResult = httpClientService.post(queryURL + URLEncodedUtils.format(values, StandardCharsets.UTF_8.toString()), killSql);
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
             return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, true,"ok", null, null, null, null);
         } else {
@@ -166,9 +164,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public BaseResult getProcesses(String queryId) {
         List<String> tableNames = Lists.newArrayList();
         SelectStatement selectStatement = new SelectStatement();
-        String tableName = "processes";
+        String tableName = "processes_cluster";
         tableNames.add(tableName);
-        String sql = StrUtil.format("select elapsed,total_rows_approx,read_rows from system.{} where query_id='{}'", tableName, queryId);
+        String sql = StrUtil.format("select elapsed,total_rows_approx,read_rows from system.{} where is_initial_query = 1 and query_id='{}'", tableName, queryId);
         sqlQueryContext.setOriginalSQL(sql);
         selectStatement.setExecSQL(sqlQueryContext.getOriginalSQL());
         selectStatement.setTableNames(tableNames);
@@ -701,8 +699,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     return true;
                 }
             }
-                return false;
-            }
+            return false;
+        }
 
         public String build() {
             return sql;

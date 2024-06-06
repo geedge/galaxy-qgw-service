@@ -25,7 +25,7 @@
         "columns_cluster",
         "disks_cluster",
         "parts_cluster",
-        "processes",
+        "processes_cluster",
         "query_log",
         "tables",
         "clusters",
