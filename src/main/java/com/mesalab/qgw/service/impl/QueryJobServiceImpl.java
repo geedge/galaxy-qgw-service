@@ -227,6 +227,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryResultById(String id) {
         QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+        if(queryCache == null){
+            return BaseResultGenerator.success(Lists.newArrayList());
+        }
         if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         }
@@ -242,6 +245,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryStatusById(String id) {
         QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+        if(queryCache == null){
+            return BaseResultGenerator.success(Lists.newArrayList());
+        }
         return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null, null);
     }
 
@@ -262,6 +268,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         for (String id : ids) {
             BaseResult<Object> baseResult;
             QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+            if(queryCache == null){
+                continue;
+            }
             if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
                 queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
             }
@@ -287,6 +296,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+            if(queryCache == null){
+                continue;
+            }
             results.add(queryCache.getBaseResult().getJob());
         }
         return BaseResultGenerator.success(results);
@@ -346,8 +358,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             HazelcastInstanceMapUtil.retrieveMap().lock(id);
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
             if (queryCache == null) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
+                return null;
             }
             queryCache.setLatestQueryTimeMs(System.currentTimeMillis());
             HazelcastInstanceMapUtil.put(id, queryCache);
