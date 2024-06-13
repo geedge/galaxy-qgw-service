@@ -28,7 +28,7 @@ public class IP_TO_ASN_DETAIL implements  UDF {
     }
 
     @Override
-    public Object execute(SelectStatement selectStatement, BaseResult baseResult) {
+    public Object execute(SelectStatement selectStatement, boolean isDryRun, BaseResult baseResult) {
         List<Object> results = (List<Object>)baseResult.getData();
         List<Map<String, Object>>  targetResult = Lists.newArrayList();
         String addressLabel = StringUtil.EMPTY;

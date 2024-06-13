@@ -123,25 +123,11 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         try {
             baseResult.setMeta(buildExampleMeta());
             baseResult.setData(buildExampleData());
-            removeTimeFloorWithFill();
         } catch (Exception e) {
             log.error("Build Example Data Error: {} ", e.toString());
         }
         return baseResult;
     }
-
-    // 待优化：样例数据根据实际sql时间范围 和 粒度生成数据时，需要移除该代码
-    private void removeTimeFloorWithFill() {
-        Set<UDF> udfSet = sqlQueryContext.getDbSelectStatement().getUdfSet();
-        Iterator<UDF> iterator = udfSet.iterator();
-        while (iterator.hasNext()) {
-            UDF udf = iterator.next();
-            if (udf instanceof TIME_FLOOR_WITH_FILL) {
-                iterator.remove();
-            }
-        }
-    }
-
     @Override
     final public BaseResult executeAdministrativeQuery() {
         init();

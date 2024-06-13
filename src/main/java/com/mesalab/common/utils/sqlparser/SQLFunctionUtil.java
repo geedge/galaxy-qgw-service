@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author wangwei
@@ -49,6 +50,7 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN = "IP_TO_ASN";
     public static final String IP_TO_ASN_DETAIL = "IP_TO_ASN_DETAIL";
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
+    public static final String ROLLUP = "ROLLUP";
     public static final String RATE = "RATE";
     public static final String MAX_DURATION = "MAX_DURATION";
     public static final String MEDIAN_HDR = "MEDIAN_HDR";
@@ -106,6 +108,7 @@ public class SQLFunctionUtil {
         federationUDFFunctions.put(IP_TO_ASN, null);
         federationUDFFunctions.put(IP_TO_ASN_DETAIL, null);
         federationUDFFunctions.put(IP_TO_ASN_ORG, null);
+        federationUDFFunctions.put(ROLLUP, null);
         distributedGroupByFunction.put("count", "sum");
         distributedGroupByFunction.put("sum", "sum");
         distributedGroupByFunction.put("avg", "avg");
@@ -147,6 +150,7 @@ public class SQLFunctionUtil {
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
     //other
+    public static final Pattern pRollUp = Pattern.compile("\\Wrollup\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
     public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
     public static final Pattern pCast = Pattern.compile("\\WCAST\\s*\\(");
@@ -182,6 +186,44 @@ public class SQLFunctionUtil {
         sql = timeZoneFunc(sql, dbType);
         sql = replaceMark(sql);
         return sql;
+    }
+
+    public static String replaceRollup(String sql) {
+        sql = parseRollup(sql);
+        return sql;
+    }
+
+    public static String parseRollup(String sql) {
+        while (true) {
+            Matcher matcher = pRollUp.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = translateRollup(sqlParse, bracketsMatch[0], null);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    public static String translateRollup(String sqlParse, int num, String dbType) {
+        Pattern pDateFormatMark = Pattern.compile("(ROLLUP)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        Matcher mDateFormatMark = pDateFormatMark.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (mDateFormatMark.find()) {
+            String group2 = mDateFormatMark.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = mDateFormatMark.group(2);
+            }
+            mDateFormatMark.appendReplacement(sb, replaceValue);
+        }
+        mDateFormatMark.appendTail(sb);
+        return sb.toString();
     }
 
     public static String timeZoneFunc(String sql, String dbType) {

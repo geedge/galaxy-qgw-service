@@ -203,12 +203,11 @@ public class FederationDialect extends AbstractEngineDialect {
     }
 
     @Override
-    public void executeUDF() {
+    public void executeUDF(boolean isDryRun) {
         SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
-            List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
-                    baseResult);
+            List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, isDryRun, baseResult);
             baseResult.setData(targetResult);
         }
     }

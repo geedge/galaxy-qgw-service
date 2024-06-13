@@ -20,6 +20,8 @@ import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
+import com.mesalab.qgw.model.basic.udf.ROLLUP;
+import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.model.basic.udf.UDFElements;
 import com.mesalab.qgw.service.SQLSyncQueryService;
@@ -41,6 +43,7 @@ import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.hbase.thirdparty.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -221,9 +224,9 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
     /**
      * Parse a nested SQL statement into dbSelectStatement and FederationStatement object
-     * @param sqlQueryContext query context
-     * @param originalSelectStatement original SQL statement
      *
+     * @param sqlQueryContext         query context
+     * @param originalSelectStatement original SQL statement
      */
     public void buildSelectStatement(SQLQueryContext sqlQueryContext, SelectStatement originalSelectStatement) {
         SelectStatement federationSelectStatement = null;
@@ -270,7 +273,6 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     private boolean isEmptySubSelect(SelectStatement selectStatement) {
         return selectStatement == null || StringUtil.isEmpty(selectStatement.getSubSelect());
     }
-
 
 
     /**
@@ -338,6 +340,10 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 GroupByElement groupBy;
                 if (StringUtil.isNotEmpty(groupBy = select.getGroupBy())) {
                     sqlQuerySource.setGroupByElement(groupBy);
+                    if (isDrilldown(select, sqlQuerySource.getAliasFields())) {
+                        addRollUpToUDF(sqlQuerySource.getUdfSet(), (Function) groupBy.getGroupByExpressionList().getExpressions().get(0));
+                        sqlQuerySource.getUdfSet().removeIf(udf -> udf instanceof TIME_FLOOR_WITH_FILL);
+                    }
                 }
                 sqlQuerySource.setOrderByElements(select.getOrderByElements());
                 FromItem subItem = select.getFromItem();
@@ -386,6 +392,63 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         return sqlQuerySource;
     }
 
+    private static boolean isDrilldown(PlainSelect select, Map<String, String> aliasFields) {
+        if (select.getGroupBy() == null) {
+            return false;
+        }
+        List<Expression> groupByExpressionsList = select.getGroupBy().getGroupByExpressionList().getExpressions();
+        if (groupByExpressionsList.size() != 1) {
+            return false;
+        }
+        Expression groupByExpression = groupByExpressionsList.get(0);
+        if (!(groupByExpression instanceof Function)) {
+            return false;
+        }
+        Function groupByFunction = (Function) groupByExpression;
+        if (!groupByFunction.getName().equalsIgnoreCase(SQLFunctionUtil.ROLLUP) || groupByFunction.getParameters() == null || groupByFunction.getParameters().getExpressions().size() != 2) {
+            return false;
+        }
+        if (select.getOrderByElements() == null || select.getOrderByElements().size() != 1 || select.getOrderByElements().get(0).isAsc()) {
+            return false;
+        }
+        Expression orderByExpr = select.getOrderByElements().get(0).getExpression();
+        if (orderByExpr instanceof Function) {
+            Function orderByFunction = (Function) orderByExpr;
+            if (orderByFunction.isDistinct()) {
+                return false;
+            }
+            if (!"count".equalsIgnoreCase(orderByFunction.getName()) && !"sum".equalsIgnoreCase(orderByFunction.getName())) {
+                return false;
+            }
+        } else {
+            String orderByKey = SQLHelper.removeQuotesAndBackticks(orderByExpr.toString());
+            if (!aliasFields.containsKey(orderByKey)) {
+                return false;
+            }
+            String orderByExprTmp = String.valueOf(aliasFields.get(orderByKey)).toLowerCase();
+            if (orderByExprTmp.startsWith("count(distinct")) {
+                return false;
+            }
+            if (!orderByExprTmp.startsWith("count(") && !orderByExprTmp.startsWith("sum(")) {
+                return false;
+            }
+        }
+        List<Expression> expressions = groupByFunction.getParameters().getExpressions();
+        for (Expression expression : expressions) {
+            String rollupArg = SQLHelper.removeQuotesAndBackticks(expression.toString());
+            if (!aliasFields.containsKey(rollupArg) && !aliasFields.containsValue(rollupArg)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void addRollUpToUDF(Set<UDF> udfSet, Function fun) {
+        List<Expression> expressions = fun.getParameters().getExpressions();
+        UDFElements udfElements = new UDFElements(fun.getName(), expressions);
+        ROLLUP rollup = new ROLLUP(udfElements);
+        udfSet.add(rollup);
+    }
 
     /**
      * 自定义函数封装

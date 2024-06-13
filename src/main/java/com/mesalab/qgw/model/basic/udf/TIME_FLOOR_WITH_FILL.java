@@ -90,8 +90,11 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
 
     @Override
-    public Object execute(SelectStatement selectStatement, BaseResult baseResult) {
+    public Object execute(SelectStatement selectStatement, boolean isDryRun, BaseResult baseResult) {
         List<Object> results = (List<Object>)baseResult.getData();
+        if(isDryRun) {
+            return results;
+        }
         List<Map<String, Object>> targetResult = Lists.newArrayList();
         List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;

@@ -15,12 +15,12 @@ public abstract class AbstractEngineDialect implements Dialect {
     /**
      * Desc: 执行自定义函数操作
      *
-     * @param
+     * @param isDryRun
      * @return
      * @created by wWei
      * @date 2022/4/27 5:25 下午
      */
-    abstract void executeUDF();
+    abstract void executeUDF(boolean isDryRun);
 
     /**
      * Desc: 获取联合查询SQL
@@ -62,14 +62,14 @@ public abstract class AbstractEngineDialect implements Dialect {
     @Override
     final public BaseResult executeQuery() {
         init();
-        executeUDF();
+        executeUDF(false);
         return generateBaseResult(getFederateQuery());
     }
 
     @Override
     final public BaseResult executeSampleQuery() {
         init();
-        executeUDF();
+        executeUDF(false);
         return generateBaseResult(getSampleQuery());
     }
 
@@ -81,7 +81,7 @@ public abstract class AbstractEngineDialect implements Dialect {
     @Override
     final public BaseResult executeSyntaxValidation() {
         init();
-        executeUDF();
+        executeUDF(true);
         return generateBaseResult(getSampleQuery());
     }
 

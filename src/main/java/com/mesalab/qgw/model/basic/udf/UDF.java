@@ -5,5 +5,5 @@ import com.mesalab.qgw.model.basic.SelectStatement;
 
 public interface UDF {
 
-    Object execute(SelectStatement selectStatement, BaseResult baseResult);
+    Object execute(SelectStatement selectStatement, boolean isDryRun, BaseResult baseResult);
 }

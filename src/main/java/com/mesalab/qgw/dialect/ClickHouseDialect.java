@@ -20,6 +20,7 @@ import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.udf.ROLLUP;
 import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.*;
@@ -284,6 +285,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         public Converter generateDateFunction() {
             sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.CLICKHOUSE.getValue());
+            if (sqlQueryContext.getDbSelectStatement().getUdfSet().stream().noneMatch(udf -> udf instanceof ROLLUP)) {
+                sql = SQLFunctionUtil.replaceRollup(sql);
+            }
             return this;
         }
 
@@ -886,7 +890,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, StandardCharsets.UTF_8);
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                 sqlQueryContext.getTimeout(),
-                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()).concat(" settings output_format_json_quote_64bit_integers=0"));
+                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()).concat(" settings output_format_json_quote_64bit_integers=0, group_by_use_nulls = 1, allow_experimental_analyzer = 1"));
     }
 
     private String enrichContextAndBuildQueryParameter() {
