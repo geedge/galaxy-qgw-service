@@ -32,7 +32,7 @@
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "processes",
+        "processes_cluster",
         "tables_cluster"
       ]
     },
