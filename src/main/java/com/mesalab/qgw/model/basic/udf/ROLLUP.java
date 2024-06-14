@@ -1,6 +1,5 @@
 package com.mesalab.qgw.model.basic.udf;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mesalab.common.entity.BaseResult;
@@ -14,6 +13,8 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 @Slf4j
 @Data
@@ -60,15 +61,18 @@ public class ROLLUP implements UDF {
         // TODO: 遍历data 将rollup数据集结果标记subtotal、并且删除total总计行
         Iterator<Map<String, Object>> iterator = data.iterator();
         HashSet<Object> drillDownDimensionSets = Sets.newHashSet();
-        boolean hasRemoveRegularDimension = false;
+        AtomicBoolean hasRemoveRegularDimension = new AtomicBoolean(false);
+
         while (iterator.hasNext()) {
             Map<String, Object> next = iterator.next();
-            if (!hasRemoveRegularDimension) {
-                iterator.remove();
-                hasRemoveRegularDimension = true;
-                continue;
+            if (!hasRemoveRegularDimension.get()) {
+                // TODO  删除total rows
+                if (meta.stream().filter(o -> MetaConst.META_CATEGORY_DIMENSION.equalsIgnoreCase(o.get(MetaConst.META_CATEGORY))).allMatch(o -> next.get(o.get(MetaConst.META_NAME)) == null)) {
+                    iterator.remove();
+                    hasRemoveRegularDimension.set(true);
+                    continue;
+                }
             }
-
             next.forEach((k, v) -> {
                 if (drillDownDimension.equals(k) || drillDownDimension.equals(selectStatement.getAliasFields().get(k))) {
                     Object regularDimensionValue = next.get(regularDimension);
