@@ -890,7 +890,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, StandardCharsets.UTF_8);
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                 sqlQueryContext.getTimeout(),
-                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()).concat(" settings output_format_json_quote_64bit_integers=0, group_by_use_nulls = 1, allow_experimental_analyzer = 1"));
+                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()).concat(" settings output_format_json_quote_64bit_integers=0"));
     }
 
     private String enrichContextAndBuildQueryParameter() {

@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.basic.udf;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mesalab.common.entity.BaseResult;
@@ -14,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
 
 @Slf4j
 @Data
@@ -67,7 +67,7 @@ public class ROLLUP implements UDF {
             Map<String, Object> next = iterator.next();
             if (!hasRemoveRegularDimension.get()) {
                 // TODO  删除total rows
-                if (meta.stream().filter(o -> MetaConst.META_CATEGORY_DIMENSION.equalsIgnoreCase(o.get(MetaConst.META_CATEGORY))).allMatch(o -> next.get(o.get(MetaConst.META_NAME)) == null)) {
+                if (meta.stream().filter(o -> MetaConst.META_CATEGORY_DIMENSION.equalsIgnoreCase(o.get(MetaConst.META_CATEGORY))).allMatch(o -> getRollupRowsDefaultValues().contains(next.get(o.get(MetaConst.META_NAME))))) {
                     iterator.remove();
                     hasRemoveRegularDimension.set(true);
                     continue;
@@ -76,25 +76,39 @@ public class ROLLUP implements UDF {
             next.forEach((k, v) -> {
                 if (drillDownDimension.equals(k) || drillDownDimension.equals(selectStatement.getAliasFields().get(k))) {
                     Object regularDimensionValue = next.get(regularDimension);
-                    if (regularDimensionValue == null) {
-                        Set<String> strings = selectStatement.getAliasFields().keySet();
-                        for (String string : strings) {
-                            if (selectStatement.getAliasFields().get(string).equals(regularDimension)) {
-                                regularDimensionValue = next.get(string);
+                    if (!next.containsKey(regularDimension)) {
+                        Set<String> aliasSet = selectStatement.getAliasFields().keySet();
+                        for (String alias : aliasSet) {
+                            if (selectStatement.getAliasFields().get(alias).equals(regularDimension)) {
+                                regularDimensionValue = next.get(alias);
                                 break;
                             }
                         }
                     }
-                    if (next.get(k) == null && (!drillDownDimensionSets.contains(regularDimensionValue))) {
+                    if (getRollupRowsDefaultValues().contains(next.get(k)) && (!drillDownDimensionSets.contains(regularDimensionValue))) {
                         next.put(k, "Subtotal");
                         drillDownDimensionSets.add(regularDimensionValue);
                     }
                 }
-                if (meta.stream().anyMatch(o -> o.get(MetaConst.META_NAME).equals(k) && MetaConst.META_CATEGORY_DIMENSION.equals(o.get(MetaConst.META_CATEGORY))) && next.get(k) != null) {
+                if (meta.stream().anyMatch(o -> o.get(MetaConst.META_NAME).equals(k)
+                        && MetaConst.META_CATEGORY_DIMENSION.equals(o.get(MetaConst.META_CATEGORY)))
+                        && next.get(k) != null
+                        && !(next.get(k) instanceof List)) {
                     next.put(k, String.valueOf(next.get(k)));
                 }
             });
         }
         return data;
+    }
+
+    private static List<Object> getRollupRowsDefaultValues() {
+        List<Object> rollupValues = new ArrayList<>();
+        rollupValues.add("");
+        rollupValues.add(0);
+        rollupValues.add(null);
+        rollupValues.add(Lists.newArrayList());
+        rollupValues.add("1970-01-01 00:00:00");
+        rollupValues.add("1970-01-01 00:00:00.000");
+        return rollupValues;
     }
 }
