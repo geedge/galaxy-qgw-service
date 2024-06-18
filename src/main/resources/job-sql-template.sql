@@ -20,7 +20,7 @@ UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."don
 SELECT %s AS value, %s(%s) AS %s%s FROM %s %s GROUP BY value ORDER BY %s%s DESC limit %s
 #end
 #sql("JOB_TOPK_ARRAY")
-SELECT value, %s(metric) AS %s%s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT %s AS items, %s AS metric FROM %s WHERE notEmpty(%s) %s GROUP BY items )) GROUP BY value ORDER BY %s%s DESC LIMIT %s
+SELECT value, %s(metric) AS %s%s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT IF(empty(%s), arrayPushBack(%s, NULL), %s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s%s DESC LIMIT %s
 #end
 #sql("JOB_TOPK_BIT")
 SELECT value, %s(metric) AS %s%s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT bitmaskToArray(%s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s%s DESC LIMIT %s
