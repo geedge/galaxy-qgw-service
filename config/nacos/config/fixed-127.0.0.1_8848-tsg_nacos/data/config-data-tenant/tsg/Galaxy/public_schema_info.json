@@ -252,6 +252,11 @@
         "name": "bitAnd",
         "label": "Bitwise AND",
         "function": "bitAnd(expr, value) = value"
+      },
+      {
+        "name": "isIPAddressInRange",
+        "label": "INCIDR",
+        "function": "isIPAddressInRange(expr, prefix)"
       }
     ]
   },

@@ -939,6 +939,7 @@
       "label": "Sled IP",
       "doc": {
         "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
           "type": "ip"
         },
         "visibility": "enabled",
@@ -1363,6 +1364,7 @@
       "label": "Client IP",
       "doc": {
         "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
           "type": "ip"
         },
         "visibility": "enabled",
@@ -1508,6 +1510,7 @@
       "label": "Server IP",
       "doc": {
         "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
           "type": "ip"
         },
         "visibility": "enabled",
