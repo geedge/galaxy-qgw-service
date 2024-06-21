@@ -35,7 +35,9 @@
       }
     },
     "measurements": {
-      "granularity": 1,
+      "ingestion_period": "PT1S",
+      "compaction_period": "PT1M",
+      "skip_compaction_offset_from_latest": "P7D",
       "ingestion_delay": 5,
       "aggregated_metric_unit": {
         "SUM": {

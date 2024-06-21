@@ -33,7 +33,7 @@
       }
     },
     "measurements": {
-      "granularity": 60,
+      "ingestion_period": "PT1M",
       "ingestion_delay": 5,
       "aggregated_metric_unit": {
         "SUM": {

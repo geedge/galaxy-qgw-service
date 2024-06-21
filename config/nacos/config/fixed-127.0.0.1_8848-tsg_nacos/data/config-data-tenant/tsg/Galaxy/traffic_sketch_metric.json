@@ -127,7 +127,7 @@
       ]
     },
     "measurements": {
-      "granularity": 60
+      "ingestion_period": "PT1M"
     }
   },
   "fields": [
