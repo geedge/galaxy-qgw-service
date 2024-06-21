@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.SchemaBase;
+import com.mesalab.common.utils.sqlparser.AutoPeriodHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
@@ -82,6 +83,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         }
         BaseResult baseResult;
         log.debug("Request SQL Statement: {}", queryContext.getOriginalSQL());
+        queryContext.setOriginalSQL(AutoPeriodHelper.buildSqlGranularity(statement).toString());
         if (statement instanceof Select) {
             baseResult = executeSelectStatement(queryContext);
         } else if (statement instanceof DescribeStatement) {

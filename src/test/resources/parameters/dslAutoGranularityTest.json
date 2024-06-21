@@ -1,0 +1,22 @@
+{
+  "application_and_protocol_summary_auto": {
+    "name": "application-and-protocol-summary",
+    "filter": "vsys_id = 1"
+  },
+  "application_and_protocol_summary_const": {
+    "name": "application-and-protocol-summary",
+    "granularity": "PT1S",
+    "filter": "vsys_id = 1",
+    "interval": [
+      "2019-01-01 00:00:00/2019-10-01 00:00:10"
+    ]
+  },
+  "application_and_protocol_summary_auto_const_range": {
+    "name": "application-and-protocol-summary",
+    "granularity": "CHART_GRANULARITY('2019-01-01 00:00:00', '2019-10-01 00:00:10')",
+    "filter": "vsys_id = 1",
+    "interval": [
+      "2019-01-01 00:00:00/2019-10-01 00:00:10"
+    ]
+  }
+}

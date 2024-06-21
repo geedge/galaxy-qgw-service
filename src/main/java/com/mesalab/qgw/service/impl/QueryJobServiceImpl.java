@@ -17,6 +17,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.common.utils.RandomUtil;
+import com.mesalab.common.utils.sqlparser.AutoPeriodHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -101,6 +102,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult createDSLAdHocQuery(DSLQueryRequestParam request) {
         initAndValidationID(request);
+        AutoPeriodHelper.buildDslGranularity(request);
         long start = System.currentTimeMillis();
         ExecutionMode execMode = request.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
