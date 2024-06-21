@@ -1,5 +1,7 @@
 package com.mesalab.common.utils.sqlparser;
 
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.Encodes;
@@ -24,6 +26,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.joda.time.Period;
 
 import javax.validation.constraints.NotNull;
 import java.nio.charset.Charset;
@@ -1968,11 +1971,19 @@ public class SQLFunctionUtil {
         List<String> paramsList = fun.paramsList;
         if (DBEngineType.DRUID.getValue().equals(dbType) || DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             if (paramsList.size() == 2) {
+                String durationParam = fun.getParamsList().get(1);
+                if (!NumberUtil.isNumber(durationParam) && durationParam.startsWith("'") && durationParam.endsWith("'")) {
+                    durationParam = String.valueOf(Period.parse(StrUtil.strip(durationParam, "'")).toStandardSeconds().getSeconds());
+                }
                 String formatString = "ROUND(SUM(%s) * 1.0 / %s, 2)";
-                return String.format(formatString, paramsList.get(0), paramsList.get(1));
+                return String.format(formatString, paramsList.get(0), durationParam);
             } else if (paramsList.size() == 3) {
+                String durationParam = fun.getParamsList().get(1);
+                if (!NumberUtil.isNumber(durationParam)) {
+                    durationParam = String.valueOf(Period.parse(StrUtil.strip(durationParam, "'")).toStandardSeconds().getSeconds());
+                }
                 String formatString = "ROUND(SUM(%s) / (%s * 1.0/%s), 2)";
-                return String.format(formatString, paramsList.get(0), paramsList.get(1), paramsList.get(2));
+                return String.format(formatString, paramsList.get(0), durationParam, paramsList.get(2));
             }
         }
         return fun.toString();
