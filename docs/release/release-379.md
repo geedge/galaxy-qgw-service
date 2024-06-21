@@ -9,3 +9,4 @@ Release 379 (TSG-24.06)
 * 优化TopN优化最内层SQL，Limit下限制设置为1000(TSG-21485)
 * 优化Drilldown查询，结果数据标识Subtotal rows(TSG-21477)
 * 完善字段发现，修正Array类型字段发现未统计空记录(TSG-21480)
+* 修改Schema，flags Asymmetric 标注已过期 Deprecated
