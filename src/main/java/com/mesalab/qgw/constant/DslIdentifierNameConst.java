@@ -30,7 +30,7 @@ public class DslIdentifierNameConst {
 
     static {
         IDENTIFIER_NAME_SOURCE_MAPPING = new HashMap<>();
-        IDENTIFIER_NAME_SOURCE_MAPPING.put(APPLICATION_AND_PROTOCOL_SUMMARY, new HashSet<>(List.of("application_protocol_stat", "traffic_general_stat")));
+        IDENTIFIER_NAME_SOURCE_MAPPING.put(APPLICATION_AND_PROTOCOL_SUMMARY, new HashSet<>(List.of("application_protocol_stat")));
         IDENTIFIER_NAME_SOURCE_MAPPING.put(APPLICATION_AND_PROTOCOL_TREE_COMPOSITION, new HashSet<>(List.of("application_protocol_stat")));
         IDENTIFIER_NAME_SOURCE_MAPPING.put(APPLICATION_AND_PROTOCOL_TREE_THROUGHPUT, new HashSet<>(List.of("application_protocol_stat")));
         IDENTIFIER_NAME_SOURCE_MAPPING.put(APPLICATION_AND_PROTOCOL_TOP_APPS, new HashSet<>(List.of("application_protocol_stat")));

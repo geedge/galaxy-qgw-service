@@ -253,8 +253,7 @@ public class AutoPeriodHelper {
 
             Expression where = plainSelect.getWhere();
             if (where != null) {
-                FunctionAdapter functionAdapter = new FunctionAdapter(now, measurements);
-                where.accept(functionAdapter);
+                where.accept(new ExpressionAdapter(now, measurements));
             }
 
             GroupByElement groupBy = plainSelect.getGroupBy();
@@ -264,8 +263,7 @@ public class AutoPeriodHelper {
 
             Expression having = plainSelect.getHaving();
             if (having != null) {
-                FunctionAdapter functionAdapter = new FunctionAdapter(now, measurements);
-                having.accept(functionAdapter);
+                having.accept(new ExpressionAdapter(now, measurements));
             }
 
             List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
@@ -318,6 +316,28 @@ public class AutoPeriodHelper {
         public void visit(SubSelect subSelect) {
             SelectBody selectBody = subSelect.getSelectBody();
             selectBody.accept(new SelectAdapter(now, measurements));
+        }
+    }
+
+    private static class ExpressionAdapter extends ExpressionVisitorAdapter {
+        private final DateTime now;
+        private final Map<String, Map<String, Object>> measurements;
+
+        public ExpressionAdapter(DateTime now, Map<String, Map<String, Object>> measurements) {
+            this.now = now;
+            this.measurements = measurements;
+        }
+
+        @Override
+        public void visit(SubSelect subSelect) {
+            SelectBody selectBody = subSelect.getSelectBody();
+            selectBody.accept(new SelectAdapter(now, measurements));
+        }
+
+        @Override
+        public void visit(Function function) {
+            FunctionAdapter functionAdapter = new FunctionAdapter(now, measurements);
+            function.accept(functionAdapter);
         }
     }
 
