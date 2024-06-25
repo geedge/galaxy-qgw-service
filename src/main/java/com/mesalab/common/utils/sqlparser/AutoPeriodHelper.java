@@ -97,9 +97,8 @@ public class AutoPeriodHelper {
     }
 
     private static void buildSelectStatement(DateTime now, Select select) {
-        TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-        List<String> tableList = tablesNamesFinder.getTableList(select);
         Map<String, Map<String, Object>> measurements = Maps.newHashMap();
+        List<String> tableList = SQLHelper.getTableName(select);
         for (String table : tableList) {
             String measurement = databaseService.getValueByKeyInSchemaDoc(table, SCHEMA_DOC_MEASUREMENTS_KEY);
             if (StrUtil.isNotEmpty(measurement)) {

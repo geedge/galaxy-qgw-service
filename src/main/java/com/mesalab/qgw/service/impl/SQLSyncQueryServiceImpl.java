@@ -300,11 +300,9 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             }
 
             sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
-            TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-            List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
+            List<String> tableList = SQLHelper.getTableName(selectStatement);
             tableList.forEach(o -> {
-                int i = o.lastIndexOf(".");
-                sqlQuerySource.getTableNames().add(i < 0 ? o : o.substring(i + 1));
+                sqlQuerySource.getTableNames().add(o);
             });
             sqlQuerySource.setPartitionKey(databaseService.getPartitionKey(sqlQuerySource.getTableNames().get(0)));
             SelectBody body = selectStatement.getSelectBody();
