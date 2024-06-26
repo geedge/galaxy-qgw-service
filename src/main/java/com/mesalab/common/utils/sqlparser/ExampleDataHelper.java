@@ -360,7 +360,7 @@ public class ExampleDataHelper {
         if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
             return list.size();
-        }else if (ExampleDataModeConst.SEQUENCE.equalsIgnoreCase(mode.toString())) {
+        } else if (ExampleDataModeConst.SEQUENCE.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
             return list.size();
         }
@@ -394,6 +394,9 @@ public class ExampleDataHelper {
      * @date 2024/3/9 15:02
      */
     private static boolean inExampleData(Map<String, String> meta, Map<String, List<Object>> schemaDataDict) {
+        if (schemaDataDict == null) {
+            return false;
+        }
         if (schemaDataDict.containsKey(meta.get(MetaConst.META_FIELD_NAME))) {
             return true;
         }
