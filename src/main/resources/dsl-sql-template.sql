@@ -23,13 +23,10 @@ SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX
 SELECT if(bitAnd(flags, 8) = 8, client_ip, server_ip) AS ip, SUM(sent_bytes + received_bytes) AS bytes FROM $table WHERE $intervals_and_filter GROUP BY ip ORDER BY bytes DESC $limit
 #end
 #sql("APPLICATION_AND_PROTOCOL_APP_THROUGHPUT")
-SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time),'$granularity','zero')) AS stat_time, app_name, SUM(c2s_bytes + s2c_bytes) AS bytes FROM $table WHERE $intervals_and_filter GROUP BY FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time),'$granularity','zero')), app_name ORDER BY  stat_time ASC
+SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time),'$granularity','zero')) AS stat_time, app_name, SUM(c2s_bytes + s2c_bytes) AS bytes, SUM(c2s_bytes + s2c_bytes) * 8 / $granularity_seconds AS bit_rate FROM $table WHERE $intervals_and_filter GROUP BY FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time),'$granularity','zero')), app_name ORDER BY  stat_time ASC
 #end
 #sql("APPLICATION_AND_PROTOCOL_APP_SUMMARY")
 SELECT app_name, SUM(sessions) AS sessions, SUM(c2s_bytes + s2c_bytes) AS bytes, SUM(s2c_bytes) AS received_bytes, SUM(c2s_bytes) AS sent_bytes, SUM(c2s_pkts + s2c_pkts) AS packets, SUM(c2s_pkts) AS sent_packets, SUM(s2c_pkts) AS received_packets FROM $table WHERE $intervals_and_filter GROUP BY app_name
-#end
-#sql("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP")
-SELECT account AS SUBSCRIBER_ID, framed_ip AS IP, first_found_time AS FIRST_FOUND_TIME, last_update_time AS LAST_FOUND_TIME, vsys_id as VSYS_ID FROM $table WHERE $intervals_and_filter AND acct_status_type != 2 $limit
 #end
 #sql("DATAPATH_TELEMETRY_RECORD")
 SELECT * FROM $table WHERE $intervals_and_filter ORDER BY timestamp_us ASC
