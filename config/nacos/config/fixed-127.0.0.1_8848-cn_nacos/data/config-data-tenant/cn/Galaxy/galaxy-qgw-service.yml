@@ -145,7 +145,7 @@ http:
 job:
   timeSlicing:
     enabled: true
-    interval: 1800 #单位: Second
+    interval: 3600 #单位: Second
   longPolling:
     enabled: true
   interactive:
@@ -163,3 +163,9 @@ job:
       corePoolSize: 1
       maxPoolSize: 2
       queueCapacity: 80
+## task cfg
+task:
+  pool:
+    corePoolSize: 8
+    maxPoolSize: 16
+    queueCapacity: 1000

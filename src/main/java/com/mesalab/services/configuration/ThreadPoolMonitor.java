@@ -26,6 +26,7 @@ public class ThreadPoolMonitor implements InitializingBean {
 
     ThreadPoolTaskExecutor lightWeightThreadPool;
     ThreadPoolTaskExecutor heavyResourceThreadPool;
+    ThreadPoolTaskExecutor taskThreadPool;
 
     private final Runnable monitor = () -> {
         try {
@@ -42,6 +43,13 @@ public class ThreadPoolMonitor implements InitializingBean {
             Metrics.gauge("heavy.resource.thread.pool.active.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getActiveCount);
             Metrics.gauge("heavy.resource.thread.pool.thread.count", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getPoolSize);
             Metrics.gauge("heavy.resource.thread.pool.queue.size", TAG, heavyResourceThreadPool, e -> e.getThreadPoolExecutor().getQueue().size());
+
+            Metrics.gauge("task.thread.pool.core.size", TAG, taskThreadPool, ThreadPoolTaskExecutor::getCorePoolSize);
+            Metrics.gauge("task.thread.pool.largest.size", TAG, taskThreadPool, e -> e.getThreadPoolExecutor().getLargestPoolSize());
+            Metrics.gauge("task.thread.pool.max.size", TAG, taskThreadPool, ThreadPoolTaskExecutor::getMaxPoolSize);
+            Metrics.gauge("task.thread.pool.active.size", TAG, taskThreadPool, ThreadPoolTaskExecutor::getActiveCount);
+            Metrics.gauge("task.thread.pool.thread.count", TAG, taskThreadPool, ThreadPoolTaskExecutor::getPoolSize);
+            Metrics.gauge("task.thread.pool.queue.size", TAG, taskThreadPool, e -> e.getThreadPoolExecutor().getQueue().size());
         } catch (RuntimeException e) {
             log.error("Collect thread pool status error:", e.getMessage());
         }
@@ -55,6 +63,7 @@ public class ThreadPoolMonitor implements InitializingBean {
     public void clearQueue() {
         lightWeightThreadPool.getThreadPoolExecutor().getQueue().clear();
         heavyResourceThreadPool.getThreadPoolExecutor().getQueue().clear();
+        taskThreadPool.getThreadPoolExecutor().getQueue().clear();
     }
 
     @Autowired
@@ -65,5 +74,10 @@ public class ThreadPoolMonitor implements InitializingBean {
     @Autowired
     private void setHeavyResourceThreadPool(ThreadPoolTaskExecutor heavyResourceThreadPool) {
         this.heavyResourceThreadPool = heavyResourceThreadPool;
+    }
+
+    @Autowired
+    private void setTaskThreadPool(ThreadPoolTaskExecutor taskThreadPool) {
+        this.taskThreadPool = taskThreadPool;
     }
 }

@@ -83,10 +83,12 @@ public class JobExecuteService implements EnvironmentAware {
     private JobConfig jobCfg;
     private final ThreadPoolTaskExecutor heavyResourceThreadPool;
     private final ThreadPoolTaskExecutor lightWeightThreadPool;
+    private final ThreadPoolTaskExecutor taskThreadPool;
 
-    public JobExecuteService(ThreadPoolTaskExecutor heavyResourceThreadPool, ThreadPoolTaskExecutor lightWeightThreadPool) {
+    public JobExecuteService(ThreadPoolTaskExecutor heavyResourceThreadPool, ThreadPoolTaskExecutor lightWeightThreadPool, ThreadPoolTaskExecutor taskThreadPool) {
         this.heavyResourceThreadPool = heavyResourceThreadPool;
         this.lightWeightThreadPool = lightWeightThreadPool;
+        this.taskThreadPool = taskThreadPool;
     }
 
     @Async("lightWeightThreadPool")
@@ -187,6 +189,7 @@ public class JobExecuteService implements EnvironmentAware {
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
         }
     }
+
     @Async("lightWeightThreadPool")
     public void addDslExecutorTrafficSpectrumWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
         try {
@@ -415,7 +418,7 @@ public class JobExecuteService implements EnvironmentAware {
             taskCallbackList.put(field, CompletableFuture.supplyAsync(() -> taskExecuteService.executeFieldDiscovery(id, request.getDataSource(), field
                     , request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC)
                     , request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)
-                    , segmentFilter)));
+                    , segmentFilter), taskThreadPool));
         }
         waitAsyncResultAndUpdateProcess(id, jobInfo, taskCallbackList, request, map);
     }
