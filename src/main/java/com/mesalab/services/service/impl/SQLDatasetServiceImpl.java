@@ -34,7 +34,7 @@ public class SQLDatasetServiceImpl
         implements SQLDatasetService {
     private static final Log log = LogFactory.get();
 
-    public final static String queryIdSeparator = ":";
+    public final static String QUERY_ID_SEPARATOR = ":";
 
     @Autowired
     private DatabaseService databaseService;
@@ -52,14 +52,6 @@ public class SQLDatasetServiceImpl
         return dialect.executeKillQuery(queryId);
     }
 
-    @Override
-    public String getCustomQueryId(String resultId, String query) {
-        String tableName = SQLHelper.getTableName(query).get(0);
-        String dbType = databaseService.getDBEngineByTableName(tableName);
-        return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
-    }
-
-
     public Dialect buildAndGetDialect(String queryId) {
         SQLQueryContext queryContext = new SQLQueryContext();
         queryContext.setDbEngine(parseDBEngineType(queryId));
@@ -68,11 +60,11 @@ public class SQLDatasetServiceImpl
 
     private String parseDBEngineType(String queryId) {
         for (DBEngineType dbTypeEnum : DBEngineType.values()) {
-            if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(queryIdSeparator))) {
+            if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(QUERY_ID_SEPARATOR))) {
                 return dbTypeEnum.getValue();
             }
         }
-        if (queryId.contains(queryIdSeparator)) {
+        if (queryId.contains(QUERY_ID_SEPARATOR)) {
             throw new QGWBusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
         }

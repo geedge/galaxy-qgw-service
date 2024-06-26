@@ -93,13 +93,11 @@ select SUM(sent_bytes + received_bytes) AS bytes, COUNT(1) AS sessions from %s w
 #end
 
 #sql("SYSTEM_STORAGE_QUOTA")
-SELECT type, SUM(used_size) as used_size, SUM(max_size) * 7 / 10 as max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(ANY_VALUE(last_storage) * 1000), 'YYYY-MM-dd') as first_storage FROM
-    (SELECT log_type as type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage FROM sys_storage_log WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' GROUP BY data_center, log_type)
-GROUP BY type
+SELECT log_type AS type, SUM(used_size) AS used_size, SUM(total_allocated_size) AS max_size, MIN(first_storage) AS first_storage FROM (SELECT log_type, used_size, total_allocated_size, DATE(FROM_UNIXTIME(since_time)) AS first_storage, ROW_NUMBER() OVER (PARTITION BY log_type ORDER BY generated_time DESC) AS row_num FROM sys_storage_event WHERE generated_time >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 WEEK)) ) AS subquery WHERE row_num = 1 GROUP BY log_type
 #end
 
 #sql("SYSTEM_DAILY_TREND_OF_STORAGE")
-select TIME_FORMAT(__time, 'YYYY-MM-dd') as stat_time, log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time, 'YYYY-MM-dd'), log_type
+SELECT DATE(FROM_UNIXTIME(generated_time)) AS stat_time, log_type AS type, sum( bytes ) AS used_size FROM sys_storage_event WHERE generated_time >= UNIX_TIMESTAMP('%s') AND generated_time < UNIX_TIMESTAMP('%s') GROUP BY stat_time, type ORDER BY stat_time ASC
 #end
 
 #sql("RELATION_SUBSCRIBER_ID")

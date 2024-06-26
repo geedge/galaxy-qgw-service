@@ -11,7 +11,6 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.nacos.api.config.ConfigService;
-import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.geedgenetworks.utils.DateUtils;
@@ -19,7 +18,10 @@ import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
@@ -56,6 +58,8 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.*;
+
+import static com.mesalab.services.service.impl.SQLDatasetServiceImpl.QUERY_ID_SEPARATOR;
 
 /**
  * @Date: 2021-03-11 15:48
@@ -97,7 +101,6 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     private final static String CODE = "code";
     private final static String INDEX_KEY = "index_key";
     private Environment env;
-    public final static String queryIdSeparator = ":";
 
     private Map<String, String> headers = Maps.newHashMap();
 
@@ -141,7 +144,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     public String getPartitionKey(String tableName) {
         String partitionKey = StringUtil.EMPTY;
         LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
-        if (schemaMap.containsKey("doc")){
+        if (schemaMap.containsKey("doc")) {
             LinkedHashMap<String, Object> doc = (LinkedHashMap<String, Object>) schemaMap.get("doc");
             Object partition_key = doc.get("partition_key");
             partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
@@ -163,7 +166,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public String getValueByKeyInSchemaDoc(String tableName, String key) {
         LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
-        if (schemaMap.containsKey("doc")){
+        if (schemaMap.containsKey("doc")) {
             LinkedHashMap<String, Object> docMap = (LinkedHashMap<String, Object>) schemaMap.get("doc");
             Object value = docMap.get(key);
             if (value instanceof Map) {
@@ -231,7 +234,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
                     CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),
-                    tableName + ":"+QGWMessageConst.TABLE_NOT_EXIST));
+                            tableName + ":" + QGWMessageConst.TABLE_NOT_EXIST));
         }
         LinkedHashMap<String, Object> map;
         if (!StrUtil.isBlankIfStr(map = (LinkedHashMap<String, Object>) schemaCache.get(tableName))) {
@@ -242,7 +245,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             if (StrUtil.isBlankIfStr(content)) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                         CommonErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),tableName + ":"+QGWMessageConst.QUERY_SCHEMA_ERROR));
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), tableName + ":" + QGWMessageConst.QUERY_SCHEMA_ERROR));
             }
             schemaCache.put(tableName, map = parseSchema(content));
             systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
@@ -281,31 +284,38 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     @Override
     public BaseResult getStorageQuota() {
-        SQLQueryContext param = new SQLQueryContext();
-        param.setOriginalSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
-        BaseResult storageData = sqlSyncQueryService.executeQuery(param);
+        List<Record> storageData = Db.find(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         List<Map> result = Lists.newArrayList();
-        for (SystemServiceImpl.LogType value : SystemServiceImpl.LogType.values()) {
-            if (value.getValue().equals(SystemServiceImpl.LogType.ALL.getValue())) {
+        BaseResult storageUsageStatus = getStorageUsageStatus();
+        List<Map<String, Object>> usageData = Lists.newArrayList();
+        if (storageUsageStatus.isSuccess()) {
+            usageData = (List<Map<String, Object>>) storageUsageStatus.getData();
+        }
+        for (LogType value : LogType.values()) {
+            if (value.getValue().equals(LogType.ALL.getValue())) {
                 continue;
             }
-            Map<String, Object> resultItem = new HashMap();
-            if (storageData.isSuccess()) {
-                List<Map> data = (List<Map>) storageData.getData();
-                for (Map map : data) {
-                    if (value.getValue().equals(map.get("type"))) {
-                        resultItem.putAll(map);
-                        break;
-                    }
+            Map<String, Object> resultItem = Maps.newHashMap();
+            storageData.forEach(record -> {
+                Map<String, Object> columns = record.getColumns();
+                if (value.getValue().equals(columns.get("type"))) {
+                    resultItem.putAll(columns);
                 }
-            }
+            });
+
             BaseResult deleteStorageStatus = getDeleteStorageStatus(value.getValue());
             if (deleteStorageStatus.isSuccess()) {
-                List<StorageDeletionInfo> data1 = (List<StorageDeletionInfo>) deleteStorageStatus.getData();
+                List<StorageDeletionInfo> data = (List<StorageDeletionInfo>) deleteStorageStatus.getData();
                 resultItem.put("type", value.getLabel());
-                resultItem.put("max_days", data1.get(0).getMaxDays());
-                resultItem.put("default_max_days", data1.get(0).getDefaultMaxDays());
+                resultItem.put("max_days", data.get(0).getMaxDays());
+                resultItem.put("default_max_days", data.get(0).getDefaultMaxDays());
             }
+            usageData.forEach(o -> {
+                Map<String, Object> map = JSON.parseObject(String.valueOf(o.get("executorParam")), Map.class);
+                if (value.getValue().equals(map.get("logType"))) {
+                    resultItem.put("max_usage", map.get("maxUsage"));
+                }
+            });
             result.add(resultItem);
 
         }
@@ -322,13 +332,15 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
-            SQLQueryContext param = new SQLQueryContext();
-            String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
-            param.setOriginalSQL(sql);
-            BaseResult result = sqlSyncQueryService.executeQuery(param);
-            List<Map> data = (List<Map>) result.getData();
-            data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));
-            return result;
+            String sql = String.format(Objects.requireNonNull(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE")), searchStartTime, searchEndTime);
+            List<Record> data = Db.find(sql);
+            List<Map<String, Object>> result = Lists.newArrayList();
+            data.forEach(record -> {
+                Map<String, Object> columns = record.getColumns();
+                columns.put("type", LogType.getLabelByValue(String.valueOf(columns.get("type"))));
+                result.add(columns);
+            });
+            return BaseResultGenerator.success(result);
         } else {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.START_TIME_AND_END_TIME_NOT_NULL));
@@ -339,14 +351,14 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
         if (!logTypeValid(list)) {
             return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"Match failed, please check log type!"));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Match failed, please check log type!"));
         }
 
         preProcessOfLogType(list);
 
         if (jobIsBusy(list)) {
-            return BaseResultGenerator.failure(HttpStatusCodeEnum.LOCKED.getCode(),  CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"The task is busy, please try later!"));
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.LOCKED.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "The task is busy, please try later!"));
         }
 
         BaseResult baseResult = null;
@@ -355,6 +367,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
         return baseResult;
     }
+
     @Override
     public BaseResult getDeleteStorageStatus(String logType) {
         setCookie();
@@ -364,7 +377,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(LogType.TRAFFIC_LOGS.getValue(), JobHandlerOption.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
             list.add(trafficInfo);
 
-            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(LogType.REPORT_AND_METRICS.getValue(), JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(LogType.METRICS.getValue(), JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
 
             StorageDeletionInfo fileInfo = getStorageDeletionInfoByHandler(LogType.FILES.getValue(), JobHandlerOption.DELETE_FILES_JOB_HANDLER.getValue());
@@ -372,7 +385,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         } else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
             StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(logType, JobHandlerOption.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
             list.add(trafficInfo);
-        } else if (LogType.REPORT_AND_METRICS.getValue().equalsIgnoreCase(logType)) {
+        } else if (LogType.METRICS.getValue().equalsIgnoreCase(logType)) {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
         } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
@@ -386,10 +399,17 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
+    public BaseResult getStorageUsageStatus() {
+        setCookie();
+        List<Map> trafficDate = getAllDataByHandler(JobHandlerOption.DELETE_OLD_DATA_JOB_HANDLER.getValue());
+        return BaseResultGenerator.success("ok", trafficDate);
+    }
+
+    @Override
     public String getCustomQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query).get(0);
         String dbType = getDBEngineByTableName(tableName);
-        return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
+        return DigestUtil.md5Hex(dbType) + QUERY_ID_SEPARATOR + DigestUtil.md5Hex(resultId + query.trim());
     }
 
     private boolean updateSchema(String name, Map<String, Object> paramMap, String content) throws NacosException {
@@ -413,12 +433,13 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.QUERY_SCHEMA_ERROR));
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), QGWMessageConst.QUERY_SCHEMA_ERROR));
         }
     }
 
     /**
      * Desc: 重写[tables |field].doc
+     *
      * @param key
      * @param original
      * @param param
@@ -550,10 +571,10 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     /**
-     * @param map       需操作对象
-     * @param cfgName   当前文件名称
+     * @param map     需操作对象
+     * @param cfgName 当前文件名称
      * @return void
-     * @Description     $ref实际引用部分赋值
+     * @Description $ref实际引用部分赋值
      * @author wanghao
      * @date 2021/9/1 17:02
      */
@@ -726,7 +747,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         } catch (JSONException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-       return schemaMap;
+        return schemaMap;
     }
 
     private boolean logTypeValid(List<StorageDeletionInfo> list) {
@@ -746,19 +767,19 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
      * @Created by wWei
      */
     private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
-        if (list.size() == 1){
+        if (list.size() == 1) {
             StorageDeletionInfo deletionInfo = list.get(0);
             Integer maxDays = deletionInfo.getMaxDays();
             Integer defaultMaxDays = deletionInfo.getDefaultMaxDays();
-            if (LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getType())){
+            if (LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getType())) {
                 list.clear();
                 list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays, defaultMaxDays));
-                list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays, defaultMaxDays));
+                list.add(new StorageDeletionInfo(LogType.METRICS.getValue(), maxDays, defaultMaxDays));
                 list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
                 return list;
-            }else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(list.get(0).getType()) |
+            } else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(list.get(0).getType()) |
                     LogType.FILES.getValue().equalsIgnoreCase(list.get(0).getType()) |
-                    LogType.REPORT_AND_METRICS.getLabel().equalsIgnoreCase(list.get(0).getType())) {
+                    LogType.METRICS.getLabel().equalsIgnoreCase(list.get(0).getType())) {
                 list.clear();
                 list.add(new StorageDeletionInfo(LogType.getValueByLabel(deletionInfo.getType()), maxDays, defaultMaxDays));
                 return list;
@@ -788,7 +809,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         String jobHandler = StringUtil.EMPTY;
         if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue();
-        } else if (LogType.REPORT_AND_METRICS.getValue().equalsIgnoreCase(logType)) {
+        } else if (LogType.METRICS.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue();
         } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_FILES_JOB_HANDLER.getValue();
@@ -804,7 +825,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             return true;
         } else if (!result.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),result.getMessage()));
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), result.getMessage()));
         }
         return false;
     }
@@ -863,7 +884,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"up schema error in storage set ", ex.getMessage()));
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "up schema error in storage set ", ex.getMessage()));
         }
     }
 
@@ -883,18 +904,41 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             Map<String, Object> maps = JSON.parseObject(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Get or package result exception: " + JSON.toJSONString(resultPageList)));
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get or package result exception: " + JSON.toJSONString(resultPageList)));
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"The scheduled task has no task information matching executorHandler (" + handlerValue + ")"));
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "The scheduled task has no task information matching executorHandler (" + handlerValue + ")"));
             }
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Get scheduled task exception: " + JSON.toJSONString(resultPageList)));
+                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get scheduled task exception: " + JSON.toJSONString(resultPageList)));
+    }
+
+    /**
+     * 通过Handler获取全量数据
+     *
+     * @param handlerValue
+     * @return
+     */
+    private List<Map> getAllDataByHandler(String handlerValue) {
+        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
+                append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
+                append(handlerValue);
+        Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
+        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()))) {
+            Map<String, Object> maps = JSON.parseObject(resultPageList.get("result"), Map.class);
+            if (StringUtil.isEmpty(maps)) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get or package result exception: " + JSON.toJSONString(resultPageList)));
+            }
+            return (List) maps.get("data");
+        }
+        throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get scheduled task exception: " + JSON.toJSONString(resultPageList)));
     }
 
     /**
@@ -921,7 +965,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         BaseResult baseResult;
         if (StringUtil.isEmpty(resultMap)) {
             baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"The service is busy, please contact the scheduling platform!"));
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "The service is busy, please contact the scheduling platform!"));
         } else {
             if (resultMap.get("status").equals(String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()))) {
                 Map result = JSON.parseObject(resultMap.get("result"), Map.class);
@@ -946,7 +990,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         String jobHandler = StringUtil.EMPTY;
         if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue();
-        } else if (LogType.REPORT_AND_METRICS.getValue().equalsIgnoreCase(logType)) {
+        } else if (LogType.METRICS.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue();
         } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_ALL_FILES_JOB_HANDLER.getValue();
@@ -960,7 +1004,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
      * @return
      */
     public void setCookie() {
-        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl());
+        String url = jobAdminHttpSource.getUrl();
         headers.put("Content-Type", "application/json");
         String urlParamsByMap = getUrlParamsByMap(getObjectToMap(jobAdminHttpSource));
         int socketTimeOut = httpConfig.getServerResponseTimeOut();
@@ -973,9 +1017,9 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         if (map == null) {
             return "";
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            sb.append(entry.getKey() + "=" + Encodes.urlEncode(String.valueOf(entry.getValue())));
+            sb.append(entry.getKey()).append("=").append(Encodes.urlEncode(String.valueOf(entry.getValue())));
             sb.append("&");
         }
         String s = sb.toString();
@@ -1041,7 +1085,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
         if (!baseResult.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.SCHEDULED_TASK_ERROR));
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), QGWMessageConst.SCHEDULED_TASK_ERROR));
         }
         return baseResult;
     }
@@ -1061,11 +1105,11 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
                 baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Update task failed:" + xxlJobInfo.getExecutorHandler()));
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Update task failed:" + xxlJobInfo.getExecutorHandler()));
             }
         } else {
             baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Failed to execute task:" + xxlJobInfo.getExecutorHandler()));
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Failed to execute task:" + xxlJobInfo.getExecutorHandler()));
         }
         return baseResult;
     }
@@ -1126,7 +1170,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @AllArgsConstructor
     enum LogType {
         TRAFFIC_LOGS("Traffic Logs", "Traffic Logs"),
-        REPORT_AND_METRICS("Report and Metrics", "Metrics"),
+        METRICS("Metrics", "Metrics"),
         FILES("Files", "Files"),
         ALL("All", "All");
         private final String value;

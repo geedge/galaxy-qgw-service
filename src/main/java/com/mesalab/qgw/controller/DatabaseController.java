@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson2.JSON;
 import com.clearspring.analytics.util.Lists;
+import com.google.common.collect.Sets;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,13 +35,13 @@ public class DatabaseController {
     @Autowired
     private DatabaseService databaseService;
 
-    private final static List<String> VISIBILITY = Arrays.asList("enabled", "hidden", "disabled");
+    private final static HashSet<String> VISIBILITY = Sets.newHashSet("enabled", "hidden", "disabled");
 
 
     @RequestMapping(value = "/table/{table_name}/schema", consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getSchemaByTable")
     public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
-        log.debug("SCHEMA信息获取,参数为{} {}", tableName);
+        log.debug("SCHEMA信息获取,参数为{}", tableName);
 
         if (StringUtil.isBlank(tableName)) {
             return BaseResultGenerator.success4Message("ok");
@@ -62,7 +64,7 @@ public class DatabaseController {
     @RequestMapping(value = "/{dbName}/table", consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getTableByDB")
     public BaseResult getTableByDB(@PathVariable String dbName) {
-        log.debug("SCHEMA信息获取,参数为{} {}", dbName);
+        log.debug("SCHEMA信息获取,参数为{}", dbName);
 
         if (StringUtil.isBlank(dbName)) {
 

@@ -4,6 +4,7 @@ package com.mesalab.qgw.service;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,6 @@ public interface DatabaseService {
     LinkedHashMap<String, Object> getSchemaByName(String name);
 
 
-
     /**
      * Desc: update schema
      *
@@ -103,12 +103,14 @@ public interface DatabaseService {
 
     /**
      * 系统存储配额
+     *
      * @return
      */
     BaseResult getStorageQuota();
 
     /**
      * 获取每天日志存储变化
+     *
      * @param searchStartTime
      * @param searchEndTime
      * @return
@@ -117,8 +119,9 @@ public interface DatabaseService {
 
     /**
      * 数据配额设置：
-     *  1. 调度任务
-     *  2. schema TTL设置
+     * 1. 调度任务
+     * 2. schema TTL设置
+     *
      * @param list
      * @return
      */
@@ -126,11 +129,18 @@ public interface DatabaseService {
 
     /**
      * 数据配额设置状态
+     *
      * @param logType
      * @return
      */
     BaseResult getDeleteStorageStatus(String logType);
 
+    /**
+     * 获取日志储存配额利用率
+     *
+     * @return
+     */
+    BaseResult getStorageUsageStatus();
 
     /**
      * 自定义查询ID: 由 Catalog（数据库类型): resultID+query 组成。

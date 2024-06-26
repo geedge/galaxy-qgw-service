@@ -27,7 +27,6 @@ import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.model.basic.udf.UDFElements;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.SystemService;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -54,13 +53,6 @@ import java.util.regex.Pattern;
 @Slf4j
 public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     private DatabaseService databaseService;
-    private SystemService systemService;
-
-    @Autowired
-    public void SQLSyncQueryServiceImpl(DatabaseService databaseService, SystemService systemService) {
-        this.databaseService = databaseService;
-        this.systemService = systemService;
-    }
 
     private final int MAX_PARSER_LEVEL = 5;
     private final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
@@ -173,7 +165,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         } else if (QueryOption.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(queryContext.getOption())) {
             return executeSyntaxValidation(queryContext);
         } else if (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) {
-            queryContext.setQueryId(systemService.getCustomQueryId(queryContext.getResultId(), queryContext.getOriginalSQL()));
+            queryContext.setQueryId(databaseService.getCustomQueryId(queryContext.getResultId(), queryContext.getOriginalSQL()));
             return executeLongTermQuery(queryContext);
         } else {
             return executeRealTimeQuery(queryContext);
@@ -664,6 +656,11 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         BaseResult<Map> baseResult = BaseResultGenerator.success("ok", null);
         baseResult.setData(date);
         return baseResult;
+    }
+
+    @Autowired
+    public void setDatabaseService(DatabaseService databaseService) {
+        this.databaseService = databaseService;
     }
 
 }

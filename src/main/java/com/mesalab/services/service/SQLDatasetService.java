@@ -1,11 +1,6 @@
 package com.mesalab.services.service;
 
-import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * SQL数据集市管理服务
@@ -34,14 +29,4 @@ public interface SQLDatasetService {
      */
     BaseResult deleteQueryTask(String queryId);
 
-    /**
-     * 自定义查询ID: 由 Catalog（数据库类型): resultID+query 组成。
-     *
-     * @param resultId
-     * @param query
-     * @return {@link String}
-     * @created by wWei
-     * @date 2021/1/7 6:48 下午
-     */
-    String getCustomQueryId(String resultId, String query);
 }
