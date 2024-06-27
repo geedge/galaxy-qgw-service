@@ -105,6 +105,8 @@ engine:
     delaySeconds: 5
   trafficSpectrum:
     clientIPAppResultNum: 100
+  highLatency:
+    threshold: 60000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.55:8529

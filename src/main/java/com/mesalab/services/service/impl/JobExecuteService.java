@@ -439,11 +439,10 @@ public class JobExecuteService implements EnvironmentAware {
             if ((completedTaskCount - updatedResult.size()) * 1.0 / taskCallbackList.size() < 0.01 && completedTaskCount < taskCallbackList.size()) {
                 continue;
             }
-            log.warn("id :{}, done size: {}, task size: {}", id, completedTaskCount, taskCallbackList.size());
+            log.info("id :{}, done size: {}, task size: {}", id, completedTaskCount, taskCallbackList.size());
             DecimalFormat format = getDecimalFormat();
             double jobCompletedProcess = Double.parseDouble(format.format(jobInfo.getCurrentTimes() * 1.0 / jobInfo.getTotalTimes() - ((1 - completedTaskCount * 1.0 / taskCallbackList.size()) / jobInfo.getTotalTimes())));
             List<String> queryDoneField = taskCallbackList.keySet().stream().filter(o -> taskCallbackList.get(o).isDone()).collect(Collectors.toList());
-
             for (String field : queryDoneField) {
                 if (updatedResult.contains(field)) {
                     continue;

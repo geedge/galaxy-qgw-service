@@ -162,7 +162,13 @@ public class DruidDialect extends AbstractDataSourceDialect {
             log.debug("DB engine is: {}, : {}", DBEngineType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
                     + ". body sql is:" + sql);
         }
-        return httpClientService.post(queryURL, sqlQueryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
+        long start = System.currentTimeMillis();
+        HttpResponseResult responseResult = httpClientService.post(queryURL, sqlQueryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
+        long elapsed = System.currentTimeMillis() - start;
+        if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
+            log.warn("DB engine is: {}, queryId: {}, elapsed: {} ms, sql: {}", DBEngineType.DRUID.getValue(), sqlQueryContext.getQueryId(), elapsed, sql);
+        }
+        return responseResult;
     }
 
     private DruidQueryParam enrichContextAndBuildQueryParameter(String sql) {

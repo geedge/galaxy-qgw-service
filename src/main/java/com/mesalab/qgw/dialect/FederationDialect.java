@@ -130,9 +130,12 @@ public class FederationDialect extends AbstractEngineDialect {
                 baseResult.setData(resultMap.get("data"));
                 baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             }
-            log.debug("Federation query elapsed time : {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
+            long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+            if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
+                log.warn("DB engine is: {}, elapsed: {} ms, sql: {}", DBEngineType.QGW.getValue(), elapsed, sql);
+            }
         } catch (RuntimeException ex) {
-            log.error("Federation query error:{}", ex);
+            log.error("Federation query error:{}", ex.getMessage());
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(), ex.getMessage()));

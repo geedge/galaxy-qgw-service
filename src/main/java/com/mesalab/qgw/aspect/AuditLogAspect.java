@@ -1,11 +1,13 @@
 package com.mesalab.qgw.aspect;
 
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.MDCUtil;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.model.basic.AuditServiceLog;
@@ -13,6 +15,7 @@ import com.geedgenetworks.utils.IPUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -29,6 +32,7 @@ public class AuditLogAspect {
     private ThreadLocal<Long> startTime = ThreadUtil.createThreadLocal(false);
     private ThreadLocal<AuditServiceLog> auditLog = ThreadUtil.createThreadLocal(false);
     private static final Log log = LogFactory.get();
+    private EngineConfigSource engineConfigSource;
 
 
     @Pointcut("@annotation(com.mesalab.qgw.model.basic.AuditLog)")
@@ -55,11 +59,9 @@ public class AuditLogAspect {
         MethodSignature sign = (MethodSignature) joinPoint.getSignature();
         Method method2 = sign.getMethod();
         AuditLog annotation = method2.getAnnotation(AuditLog.class);
-        if (log.isInfoEnabled()) {
-            auditServiceLog.setRequestParam(Arrays.toString(joinPoint.getArgs()));
-            auditServiceLog.setUrl(url);
-            auditServiceLog.setClassMethod(classMethod);
-        }
+        auditServiceLog.setRequestParam(Arrays.toString(joinPoint.getArgs()));
+        auditServiceLog.setUrl(url);
+        auditServiceLog.setClassMethod(classMethod);
         auditServiceLog.setAnnotation(annotation.value());
         auditServiceLog.setRequestId(MDCUtil.getTraceId());
         auditLog.set(auditServiceLog);
@@ -69,19 +71,24 @@ public class AuditLogAspect {
     public void doAfterThrowingAdvice(JoinPoint joinPoint, Throwable exception) {
         AuditServiceLog logAfter = auditLog.get();
         logAfter.setRequestParam(Arrays.toString(joinPoint.getArgs()));
-        log.error("Audit Log [error]:{}", JSON.toJSONString(logAfter));
+        log.error("Audit Log [error]: {}, reason {}", JSON.toJSONString(logAfter), exception.getMessage());
     }
 
 
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
+        AuditServiceLog logAfter = auditLog.get();
         Object[] args = joinPoint.getArgs();
-        if (args.length == 0) {
-            return;
-        }
-        if (args[0] instanceof SQLQueryContext) {
+        if (args != null && args.length > 0 && args[0] instanceof SQLQueryContext) {
             SQLQueryContext queryContext = (SQLQueryContext) joinPoint.getArgs()[0];
             auditLog.get().setDbEngine(queryContext.getDbEngine());
+        }
+        long elapsed = System.currentTimeMillis() - startTime.get();
+        logAfter.setElapsed(elapsed);
+        String logMessage = StrUtil.format("Audit Log [done]: {}", JSON.toJSONString(logAfter));
+        log.info(logMessage);
+        if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
+            log.warn(logMessage);
         }
     }
 
@@ -92,10 +99,12 @@ public class AuditLogAspect {
             BaseResult baseResult = (BaseResult) result;
             baseResult.setRequestId(logAfter.getRequestId());
         }
-        long elapsed = System.currentTimeMillis() - startTime.get();
-        logAfter.setElapsed(elapsed);
-        log.info("Audit Log [success]: {}", JSON.toJSONString(logAfter));
+        log.debug("Audit Log [success]: result {}", result);
     }
 
+    @Autowired
+    private void setEngineConfigSource(EngineConfigSource engineConfigSource) {
+        this.engineConfigSource = engineConfigSource;
+    }
 
 }

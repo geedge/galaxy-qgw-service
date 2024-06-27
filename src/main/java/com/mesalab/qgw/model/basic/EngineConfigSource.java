@@ -20,4 +20,6 @@ public class EngineConfigSource implements Serializable {
     private int packetCombineDelaySeconds;
     @NacosValue(value = "${engine.trafficSpectrum.clientIPAppResultNum}", autoRefreshed = true)
     private int trafficSpectrumClientIPAppResultNum;
+    @NacosValue(value = "${engine.highLatency.threshold}", autoRefreshed = true)
+    private int highLatencyThreshold;
 }

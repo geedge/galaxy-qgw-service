@@ -155,7 +155,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         HttpResponseResult responseResult = httpClientService.post(queryURL + URLEncodedUtils.format(values, StandardCharsets.UTF_8.toString()), killSql);
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, true,"ok", null, null, null, null);
+            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, true, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(responseResult.getStatusCode(), responseResult.getErrorMessage());
         }
@@ -888,9 +888,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     Encodes.urlDecode(queryParameter).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         }
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, StandardCharsets.UTF_8);
-        return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
+        long start = System.currentTimeMillis();
+        HttpResponseResult responseResult = httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                 sqlQueryContext.getTimeout(),
                 sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()).concat(" settings output_format_json_quote_64bit_integers=0"));
+        long elapsed = System.currentTimeMillis() - start;
+        if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
+            log.warn("DB engine is: {}, queryId: {}, elapsed: {} ms, sql: {}", DBEngineType.CLICKHOUSE.getValue(), sqlQueryContext.getQueryId(), elapsed, sql);
+        }
+        return responseResult;
     }
 
     private String enrichContextAndBuildQueryParameter() {
