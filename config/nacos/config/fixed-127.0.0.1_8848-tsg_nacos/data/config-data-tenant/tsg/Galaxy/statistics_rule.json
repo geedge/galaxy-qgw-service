@@ -46,6 +46,9 @@
         "sessions",
         "new_unestablished_sessions",
         "syn_pkts",
+        "c2s_ip_fragments",
+        "s2c_ip_fragments",
+        "ip_fragments",
         "session_identifier_sketch",
         "client_ip_sketch",
         "server_ip_sketch",
@@ -88,7 +91,10 @@
           "new_out_sessions": "sessions",
           "sessions": "sessions",
           "new_unestablished_sessions": "sessions",
-          "syn_pkts": "packets"
+          "syn_pkts": "packets",
+          "c2s_ip_fragments": "packets",
+          "s2c_ip_fragments": "packets",
+          "ip_fragments": "packets"
         },
         "RATE": {
           "in_bytes": "Bps",
@@ -103,7 +109,10 @@
           "new_out_sessions": "sps",
           "sessions": "sps",
           "new_unestablished_sessions": "sps",
-          "syn_pkts": "pps"
+          "syn_pkts": "pps",
+          "c2s_ip_fragments": "pps",
+          "s2c_ip_fragments": "pps",
+          "ip_fragments": "pps"
         },
         "BITRATE": {
           "in_bytes": "bps",
@@ -561,6 +570,42 @@
     {
       "name": "syn_pkts",
       "label": "SYN Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_ip_fragments",
+      "label": "Client-to-Server IP Fragments",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_ip_fragments",
+      "label": "Server-to-Client IP Fragments",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "ip_fragments",
+      "label": "IP Fragments",
       "doc": {
         "constraints": {
           "metric_type": "counter",
