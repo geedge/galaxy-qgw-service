@@ -69,6 +69,19 @@ public class AutoPeriodSQLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
+    public void testSQLLast5MinutesISO8601() throws JSQLParserException {
+        String endTime = DateUtil.format(now, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String startTime = DateUtil.format(DateUtil.offsetMinute(now, -5), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String afterReplaceSQL = originalSQL.replace("${start_time}", startTime);
+        afterReplaceSQL = afterReplaceSQL.replace("${end_time}", endTime);
+        Statement statement = CCJSqlParserUtil.parse(afterReplaceSQL);
+        afterReplaceSQL = AutoPeriodHelper.buildSqlGranularity(statement).toString();
+        log.info(afterReplaceSQL);
+        Assert.assertFalse("ERROR: contains CHART/SAMPLE_GRANULARITY", afterReplaceSQL.contains("CHART_GRANULARITY") || afterReplaceSQL.contains("SAMPLE_GRANULARITY"));
+        Assert.assertTrue("ERROR: not contains PT1S", afterReplaceSQL.contains("PT1S"));
+    }
+
+    @Test
     public void testSQLLast30Minutes() throws JSQLParserException {
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetMinute(now, -30), "yyyy-MM-dd HH:mm:ss");

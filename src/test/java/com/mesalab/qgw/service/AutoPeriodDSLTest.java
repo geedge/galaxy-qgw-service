@@ -29,7 +29,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast5Minutes() {
+    public void testDSLLast5Minutes() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetMinute(now, -5), "yyyy-MM-dd HH:mm:ss");
@@ -41,7 +41,19 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast30Minutes() {
+    public void testDSLLast5MinutesISO8601() {
+        DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
+        String endTime = DateUtil.format(now, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String startTime = DateUtil.format(DateUtil.offsetMinute(now, -5), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dslQueryRequestParam.setIntervals(Lists.newArrayList(startTime + "/" + endTime));
+        AutoPeriodHelper.buildDslGranularity(dslQueryRequestParam);
+        String granularity = dslQueryRequestParam.getGranularity();
+        log.info(granularity);
+        Assert.assertEquals("ERROR: don't expect period", "PT1S", granularity);
+    }
+
+    @Test
+    public void testDSLLast30Minutes() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetMinute(now, -30), "yyyy-MM-dd HH:mm:ss");
@@ -53,7 +65,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast1Hour() {
+    public void testDSLLast1Hour() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetHour(now, -1), "yyyy-MM-dd HH:mm:ss");
@@ -65,7 +77,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast6Hour() {
+    public void testDSLLast6Hour() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetHour(now, -6), "yyyy-MM-dd HH:mm:ss");
@@ -77,7 +89,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast12Hour() {
+    public void testDSLLast12Hour() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetHour(now, -12), "yyyy-MM-dd HH:mm:ss");
@@ -89,7 +101,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast1Day() {
+    public void testDSLLast1Day() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetDay(now, -1), "yyyy-MM-dd HH:mm:ss");
@@ -101,7 +113,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast2Day() {
+    public void testDSLLast2Day() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetDay(now, -2), "yyyy-MM-dd HH:mm:ss");
@@ -113,7 +125,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast3Day() {
+    public void testDSLLast3Day() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetDay(now, -3), "yyyy-MM-dd HH:mm:ss");
@@ -125,7 +137,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast1Week() {
+    public void testDSLLast1Week() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetWeek(now, -1), "yyyy-MM-dd HH:mm:ss");
@@ -137,7 +149,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast30Day() {
+    public void testDSLLast30Day() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetDay(now, -30), "yyyy-MM-dd HH:mm:ss");
@@ -149,7 +161,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLLast365Day() {
+    public void testDSLLast365Day() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto", DSLQueryRequestParam.class);
         String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
         String startTime = DateUtil.format(DateUtil.offsetDay(now, -365), "yyyy-MM-dd HH:mm:ss");
@@ -161,7 +173,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLConst() {
+    public void testDSLConst() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_const", DSLQueryRequestParam.class);
         AutoPeriodHelper.buildDslGranularity(dslQueryRequestParam);
         String granularity = dslQueryRequestParam.getGranularity();
@@ -170,7 +182,7 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testSQLAutoRange() {
+    public void testDSLAutoRange() {
         DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "application_and_protocol_summary_auto_const_range", DSLQueryRequestParam.class);
         AutoPeriodHelper.buildDslGranularity(dslQueryRequestParam);
         String granularity = dslQueryRequestParam.getGranularity();
