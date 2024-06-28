@@ -236,7 +236,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 String uuidInternal;
                 String uuidExternal;
                 if (TrafficSpectrumConstants.OUTBOUND.equalsIgnoreCase(direction)) {
-                    uuidInternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.INTERNAL_NODE, String.valueOf(clientIp), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
+                    uuidInternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.INTERNAL_NODE, String.valueOf(clientIp), String.valueOf(clientCountry), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
                     internalNode.put(TrafficSpectrumConstants.ID, uuidInternal);
                     internalNode.put(TrafficSpectrumConstants.OBJECT_TYPE, TrafficSpectrumConstants.OBJECT_TYPE_IP);
                     internalNode.put(TrafficSpectrumConstants.NAME, clientIp);
@@ -252,7 +252,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
 
                 } else if (TrafficSpectrumConstants.INBOUND.equalsIgnoreCase(direction)) {
                     uuidExternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.EXTERNAL_NODE, String.valueOf(clientIp), String.valueOf(clientCountry), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
-                    externalNode.put("id", uuidExternal);
+                    externalNode.put(TrafficSpectrumConstants.ID, uuidExternal);
                     externalNode.put(TrafficSpectrumConstants.OBJECT_TYPE, TrafficSpectrumConstants.OBJECT_TYPE_IP);
                     externalNode.put(TrafficSpectrumConstants.NAME, clientIp);
                     externalNode.put(TrafficSpectrumConstants.CATEGORY, getIpCategory(clientIp, clientCountry));
@@ -265,7 +265,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                     internalNode.put(TrafficSpectrumConstants.CATEGORY, getApplicationCategory(appCategory));
                     internalNodes.put(uuidInternal, internalNode);
                 } else {
-                    log.info("Unknown direction: {}", direction);
+                    log.warn("Unknown direction: {}", direction);
                     return;
                 }
                 Map<String, Object> link = Maps.newHashMap();
