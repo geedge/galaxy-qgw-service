@@ -1,5 +1,5 @@
 #sql("SYSTEM_STORAGE_QUOTA")
-SELECT log_type AS type, SUM(used_size) AS used_size, SUM(total_allocated_size) AS max_size, MIN(first_storage) AS first_storage FROM (SELECT log_type, used_size, total_allocated_size, DATE(FROM_UNIXTIME(since_time)) AS first_storage, ROW_NUMBER() OVER (PARTITION BY log_type ORDER BY generated_time DESC) AS row_num FROM sys_storage_event WHERE generated_time >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 WEEK)) ) AS subquery WHERE row_num = 1 GROUP BY log_type
+SELECT log_type AS type, SUM(used_size) AS used_size, SUM(total_allocated_size) AS total_allocated_size, MIN(since_time) AS since_time FROM (SELECT log_type, used_size, total_allocated_size, DATE(FROM_UNIXTIME(since_time)) AS since_time, ROW_NUMBER() OVER (PARTITION BY log_type ORDER BY generated_time DESC) AS row_num FROM sys_storage_event WHERE generated_time >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 WEEK)) ) AS subquery WHERE row_num = 1 GROUP BY log_type
 #end
 
 #sql("SYSTEM_DAILY_TREND_OF_STORAGE")
