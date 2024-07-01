@@ -189,4 +189,16 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
         log.info(granularity);
         Assert.assertEquals("ERROR: don't expect period", "P1D", granularity);
     }
+
+    @Test
+    public void testDSLTrafficSpectrumNetworkThroughputTrend() {
+        DSLQueryRequestParam dslQueryRequestParam = jsonToInParameter("parameters/dslAutoGranularityTest.json", "traffic_spectrum_network_throughput_trend_auto", DSLQueryRequestParam.class);
+        String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
+        String startTime = DateUtil.format(DateUtil.offsetHour(now, -1), "yyyy-MM-dd HH:mm:ss");
+        dslQueryRequestParam.setIntervals(Lists.newArrayList(startTime + "/" + endTime));
+        AutoPeriodHelper.buildDslGranularity(dslQueryRequestParam);
+        String granularity = dslQueryRequestParam.getGranularity();
+        log.info(granularity);
+        Assert.assertEquals("ERROR: don't expect period", "PT1M", granularity);
+    }
 }

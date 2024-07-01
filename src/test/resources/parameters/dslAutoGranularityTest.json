@@ -18,5 +18,10 @@
     "interval": [
       "2019-01-01 00:00:00/2019-10-01 00:00:10"
     ]
+  },
+  "traffic_spectrum_network_throughput_trend_auto": {
+    "name": "traffic-spectrum-network-throughput-trend",
+    "filter": "vsys_id in (1) ",
+    "execution_mode": "oneshot"
   }
 }

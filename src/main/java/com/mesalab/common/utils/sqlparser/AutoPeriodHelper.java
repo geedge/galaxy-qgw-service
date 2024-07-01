@@ -189,20 +189,19 @@ public class AutoPeriodHelper {
     }
 
     private static void setDefaultValues(Map<String, String> measurement) {
-        Arrays.asList(COMPACTION_PERIOD, INGESTION_PERIOD, SKIP_COMPACTION_OFFSET_FROM_LATEST)
-                .forEach(key -> measurement.putIfAbsent(key, getDefaultValue(key)));
-    }
+        String compactionPeriod = measurement.getOrDefault(COMPACTION_PERIOD, null);
+        String ingestionPeriod = measurement.getOrDefault(INGESTION_PERIOD, null);
+        measurement.putIfAbsent(SKIP_COMPACTION_OFFSET_FROM_LATEST, PT0S);
 
-    private static String getDefaultValue(String key) {
-        switch (key) {
-            case COMPACTION_PERIOD:
-            case INGESTION_PERIOD:
-                return PT1S;
-            case SKIP_COMPACTION_OFFSET_FROM_LATEST:
-                return PT0S;
-            default:
-                throw new IllegalArgumentException("Unknown key: " + key);
+        if (compactionPeriod == null && ingestionPeriod == null) {
+            measurement.put(COMPACTION_PERIOD, PT1S);
+            measurement.put(INGESTION_PERIOD, PT1S);
+        } else if (compactionPeriod == null) {
+            measurement.put(COMPACTION_PERIOD, ingestionPeriod);
+        } else if (ingestionPeriod == null) {
+            measurement.put(INGESTION_PERIOD, compactionPeriod);
         }
+
     }
 
     private static String getDataPeriod(Map<String, String> measurement, DateTime splitTime, DateTime startTime) {
