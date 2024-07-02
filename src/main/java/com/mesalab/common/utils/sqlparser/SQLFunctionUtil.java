@@ -160,6 +160,7 @@ public class SQLFunctionUtil {
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
     public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString\\(|CAST\\()", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIsIPAddressInRange = Pattern.compile("\\WisIPAddressInRange\\s*\\(", Pattern.CASE_INSENSITIVE);
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -171,6 +172,7 @@ public class SQLFunctionUtil {
     public static String generateDateFunction(String sql, String dbType) {
         sql = translateCommonFun(sql, dbType);
         sql = parseQuantile(sql, dbType);
+        sql = parseIsIPAddressInRange(sql, dbType);
         sql = parseMedian(sql, dbType);
         sql = parseCast(sql, dbType);
         sql = parseMergepFunction(sql, dbType);
@@ -498,6 +500,30 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * 匹配范围：isIPAddressInRange(
+     *
+     * @param sql    需要解析的sql
+     * @param dbType 数据库的类型
+     * @return
+     */
+    public static String parseIsIPAddressInRange(String sql, String dbType) {
+        while (true) {
+            Matcher matcher = pIsIPAddressInRange.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseIsIPAddressInRangeReplace(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    /**
      * 替换：QUANTILE(expr,level)、QUANTILE(expr)
      *
      * @param sqlParse
@@ -522,6 +548,30 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * 替换：isIPAddressInRange
+     *
+     * @param sqlParse
+     * @param num      包含括号的个数
+     * @param dbType
+     * @return
+     */
+    public static String parseIsIPAddressInRangeReplace(String sqlParse, int num, String dbType) {
+        Pattern pNumQuantile = Pattern.compile("(isIPAddressInRange)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
+        Matcher matcher = pNumQuantile.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (matcher.find()) {
+            String group2 = matcher.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = isIPAddressInRangeReplaceByDB(group2, dbType);
+            }
+            matcher.appendReplacement(sb, replaceValue);
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+    /**
      * 替换：匹配范围：QUANTILE(
      *
      * @param param  截取到的括号内的参数
@@ -538,6 +588,22 @@ public class SQLFunctionUtil {
             replaceValue = "quantile#[" + params.get(1) + "#]#[" + params.get(0) + "#]";
         } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + params.get(0) + "," + params.get(1) + "#]";
+        }
+        return replaceValue;
+    }
+
+    /**
+     * 替换：匹配范围：isIPAddressInRange(
+     *
+     * @param param  截取到的括号内的参数
+     * @param dbType
+     * @return
+     */
+    private static String isIPAddressInRangeReplaceByDB(String param, String dbType) {
+        List<String> params = diviParam(param, ",");
+        String replaceValue = null;
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+            replaceValue = "IF#[empty#[" + params.get(0) + "#], 0, isIPAddressInRange#[" + params.get(0) + "," + params.get(1) + "#]#]";
         }
         return replaceValue;
     }
