@@ -3459,7 +3459,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type(C2S)",
+      "label": "RTP.Payload Type(Client-to-Server)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3474,7 +3474,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type(S2C)",
+      "label": "RTP.Payload Type(Server-to-Client)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"

@@ -377,7 +377,7 @@
     },
     {
       "name": "c2s_ttl",
-      "label": "C2S TTL",
+      "label": "Client-to-Server TTL",
       "doc": {
         "visibility": "enabled"
       },
@@ -385,7 +385,7 @@
     },
     {
       "name": "s2c_ttl",
-      "label": "S2C TTL",
+      "label": "Server-to-Client TTL",
       "doc": {
         "visibility": "enabled"
       },
@@ -393,7 +393,7 @@
     },
     {
       "name": "c2s_link_id",
-      "label": "C2S Link ID",
+      "label": "Client-to-Server Link ID",
       "doc": {
         "visibility": "enabled"
       },
@@ -401,7 +401,7 @@
     },
     {
       "name": "s2c_link_id",
-      "label": "S2C Link ID",
+      "label": "Server-to-Client Link ID",
       "doc": {
         "visibility": "enabled"
       },
@@ -497,7 +497,7 @@
     },
     {
       "name": "new_c2s_flows",
-      "label": "New C2S Flows",
+      "label": "New Client-to-Server Flows",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -509,7 +509,7 @@
     },
     {
       "name": "new_s2c_flows",
-      "label": "New S2C Flows",
+      "label": "New Server-to-Client Flows",
       "doc": {
         "constraints": {
           "metric_type": "counter",
