@@ -345,7 +345,7 @@ public class ExampleDataHelper {
             }
         } else {
             Collections.shuffle(list);
-            result.addAll(list.subList(0, size));
+            result.addAll(list.subList(0, Math.min(size, list.size() )));
         }
     }
 
