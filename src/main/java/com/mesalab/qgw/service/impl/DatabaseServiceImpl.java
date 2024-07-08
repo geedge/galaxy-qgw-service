@@ -18,7 +18,6 @@ import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
@@ -401,7 +400,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public BaseResult getStorageUsageStatus() {
         setCookie();
-        List<Map> trafficDate = getAllDataByHandler(JobHandlerOption.DELETE_OLD_DATA_JOB_HANDLER.getValue());
+        List<Map> trafficDate = getAllDataByHandler(JobHandlerOption.DELETE_OLD_LOG_JOB_HANDLER.getValue());
         return BaseResultGenerator.success("ok", trafficDate);
     }
 
