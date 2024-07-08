@@ -42,4 +42,5 @@ public class TrafficSpectrumConstants {
     public static final String PRIVATE_IP = "Private IP";
     public static final String OUTBOUND = "Outbound";
     public static final String INBOUND = "Inbound";
+    public static final String SPLIT_HYPHEN = "-";
 }

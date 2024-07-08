@@ -4,6 +4,7 @@ package com.mesalab.services.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
@@ -21,6 +22,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.constant.DslIdentifierNameConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
@@ -149,7 +151,7 @@ public class JobExecuteService implements EnvironmentAware {
                     .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
                     .format(request.getOutputMode().getValue())
                     .build());
-            updateJobResultOnQueryCache(request.getId(), baseResult);
+            updateJobResultOnQueryCache(request.getId(), baseResult, null);
         } catch (RuntimeException e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -162,7 +164,7 @@ public class JobExecuteService implements EnvironmentAware {
         try {
             markJobBegin(request.getId());
             DSLQueryContext dslProfile = BeanUtil.copyProperties(request, DSLQueryContext.class);
-            updateJobResultOnQueryCache(request.getId(), dslService.execDsl(dslProfile, request.isDryRun()));
+            updateJobResultOnQueryCache(request.getId(), dslService.execDsl(dslProfile, request.isDryRun()), null);
         } catch (RuntimeException e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -194,7 +196,71 @@ public class JobExecuteService implements EnvironmentAware {
     public void addDslExecutorTrafficSpectrumWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
         try {
             markJobBegin(request.getId());
-            updateJobResultOnQueryCache(request.getId(), trafficSpectrumDslService.run(request));
+            Interval interval = buildDSLInterval(request);
+            if (DslIdentifierNameConst.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equalsIgnoreCase(request.getName())
+                    && jobCfg.isTimeSlicingEnabled()
+                    && interval.isValid()) {
+                JobInfo jobInfo = new JobInfo(request.getId());
+                Long end = interval.getEnd();
+                Long start = interval.getStart();
+                int timeSlicingInterval = jobCfg.getTimeSlicingInterval();
+                long endSlicing = end;
+                long startSlicing = start;
+                while (endSlicing > start) {
+                    if (jobInfo.isTimeout()) {
+                        log.error("execute job timeout: job-{}", jobInfo);
+                        markJobFailure(request.getId(), "execute job timeout");
+                        break;
+                    }
+                    QueryCache queryCache = HazelcastInstanceMapUtil.get(request.getId());
+                    if (StrUtil.isEmptyIfStr(queryCache)) {
+                        log.warn("cache expiration: job-{}", jobInfo);
+                        break;
+                    }
+                    Map<String, Object> job = queryCache.getBaseResult().getJob();
+                    if (BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))
+                            || BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                            || BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))) {
+                        log.warn("job done or interrupt: job obj-{}", job);
+                        break;
+                    }
+                    startSlicing = endSlicing - timeSlicingInterval;
+                    if (startSlicing < start) {
+                        startSlicing = start;
+                    }
+                    DecimalFormat format = getDecimalFormat();
+                    double doneProgress = Double.parseDouble(format.format((end - startSlicing) * 1.0 / (end - start)));
+                    DSLQueryRequestParam requestParamTemp = BeanUtil.copyProperties(request, DSLQueryRequestParam.class);
+                    requestParamTemp.setIntervals(Lists.newArrayList(
+                            DateUtil.format(new Date(startSlicing * 1000), DatePattern.UTC_PATTERN)
+                                    + "/"
+                                    + DateUtil.format(new Date(endSlicing * 1000), DatePattern.UTC_PATTERN)));
+                    int sqrt = (int) Math.sqrt(engineConfigSource.getMaxCacheNum());
+                    requestParamTemp.setLimit(String.valueOf(Math.max(sqrt, engineConfigSource.getTrafficSpectrumClientIPAppResultNum())));
+
+                    BaseResult baseResult = trafficSpectrumDslService.run(requestParamTemp);
+                    if (!baseResult.isSuccess()) {
+                        markJobFailure(request.getId(), baseResult.getMessage());
+                        break;
+                    }
+                    endSlicing = startSlicing;
+                    BaseResult<Object> baseResultCache = queryCache.getBaseResult();
+                    if (baseResultCache != null && StringUtil.isNotEmpty(baseResultCache.getData())) {
+                        if (StringUtil.isEmpty(baseResult.getData())) {
+                            continue;
+                        }
+                        List<Map<String, Object>> data1 = (List<Map<String, Object>>) baseResult.getData();
+                        List<Map<String, Object>> data2 = (List<Map<String, Object>>) baseResultCache.getData();
+                        Map<String, Object> map = trafficSpectrumDslService.mergeInternalExternalBipartiteGraph(data1.get(0), data2.get(0));
+                        baseResultCache.setData(Lists.newArrayList(map));
+                        updateJobResultOnQueryCache(request.getId(), baseResultCache, doneProgress);
+                    } else {
+                        updateJobResultOnQueryCache(request.getId(), baseResult, doneProgress);
+                    }
+                }
+            } else {
+                updateJobResultOnQueryCache(request.getId(), trafficSpectrumDslService.run(request), null);
+            }
         } catch (RuntimeException e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -208,11 +274,22 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
+    private Interval buildDSLInterval(DSLQueryRequestParam request) {
+        List<String> intervals = request.getIntervals();
+        Interval interval = new Interval();
+        if (intervals != null && intervals.size() == 1) {
+            String[] split = intervals.get(0).split("/");
+            interval.setStart(DateUtil.parse(split[0]).getTime() / 1000);
+            interval.setEnd(DateUtil.parse(split[1]).getTime() / 1000);
+        }
+        return interval;
+    }
+
     @Async("heavyResourceThreadPool")
     public void addExecutorDslPacketCombineWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
         try {
             markJobBegin(request.getId());
-            updateJobResultOnQueryCache(request.getId(), packetCombineDslService.run(request));
+            updateJobResultOnQueryCache(request.getId(), packetCombineDslService.run(request), null);
         } catch (RuntimeException e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -267,7 +344,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private static void updateJobResultOnQueryCache(String id, BaseResult baseResult) {
+    private static void updateJobResultOnQueryCache(String id, BaseResult baseResult, Double doneProgress) {
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
@@ -276,6 +353,9 @@ public class JobExecuteService implements EnvironmentAware {
             HazelcastInstanceMapUtil.retrieveMap().lock(id);
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
             Map<String, Object> job = queryCache.getBaseResult().getJob();
+            if (doneProgress != null) {
+                job.put(JobConfig.DONE_PROGRESS, doneProgress);
+            }
             baseResult.setJob(job);
             queryCache.setBaseResult(baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
@@ -695,7 +775,7 @@ public class JobExecuteService implements EnvironmentAware {
         return map;
     }
 
-    private DecimalFormat getDecimalFormat() {
+    private static DecimalFormat getDecimalFormat() {
         DecimalFormat format = new DecimalFormat("#0.####");
         format.applyPattern("0.0000");
         format.setRoundingMode(RoundingMode.FLOOR);

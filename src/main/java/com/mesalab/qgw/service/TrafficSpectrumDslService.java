@@ -15,6 +15,7 @@ import java.util.Map;
  */
 public interface TrafficSpectrumDslService {
     BaseResult run(DSLQueryRequestParam dslQueryRequestParam);
+
     List<Map<String, Object>> summary(DSLQueryRequestParam dslQueryRequestParam);
 
     List<Map<String, Object>> uniqIpsStat(DSLQueryRequestParam dslQueryRequestParam);
@@ -24,5 +25,15 @@ public interface TrafficSpectrumDslService {
     List<Map<String, Object>> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam);
 
     List<Map<String, Object>> networkThroughputTrend(DSLQueryRequestParam dslQueryRequestParam);
+
+    Map<String, Object> getInternalExternalBipartiteGraph(Map<String, Object> data, Integer clientIPAppResultNum);
+
+    Map<String, Object> mergeInternalExternalBipartiteGraph(Map<String, Object> data1, Map<String, Object> data2);
+
+    List<Map<String, Object>> mergeLinks(List<Map<String, Object>> links);
+
+
+    Map<String, List<Map<String, Object>>> distinctNodes(Map<String, List<Map<String, Object>>> nodes);
+
 
 }

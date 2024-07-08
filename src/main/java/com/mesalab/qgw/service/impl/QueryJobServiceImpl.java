@@ -22,10 +22,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.DSLService;
-import com.mesalab.qgw.service.PacketCombineDslService;
-import com.mesalab.qgw.service.QueryJobService;
-import com.mesalab.qgw.service.SQLSyncQueryService;
+import com.mesalab.qgw.service.*;
 import com.mesalab.services.common.enums.MetricFunction;
 import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -59,6 +56,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private JobService jobService;
     private JobExecuteService jobExecuteService;
     private DSLService dslService;
+    private TrafficSpectrumDslService trafficSpectrumDslService;
+    private EngineConfigSource engineConfigSource;
+    private JobConfig jobConfig;
 
 
     @Override
@@ -125,7 +125,30 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
-                return jobExecuteService.addDslExecutorTrafficSpectrumWithoutCache(request);
+                QueryCache queryCache = new QueryCache(request.getId());
+                queryCache.setType(request.getName());
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                CountDownLatch countDownLatch = new CountDownLatch(1);
+                jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
+                try {
+                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                    BaseResult baseResult = getAdHocQueryResultById(request.getId());
+                    HazelcastInstanceMapUtil.remove(request.getId());
+                    if (await) {
+                        Map<String, Object> job = baseResult.getJob();
+                        if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
+                                && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                                && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                            return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
+                        }
+                    }
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
+
+                } catch (InterruptedException e) {
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                }
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
@@ -145,6 +168,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                queryCache.setType(request.getName());
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, null);
             } else {
@@ -162,28 +186,37 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
                 try {
-                    countDownLatch.await();
+                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                    if (await) {
+                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+                    }
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
                 } catch (InterruptedException e) {
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
                 }
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
                 QueryCache queryCache = new QueryCache(request.getId());
+                queryCache.setType(request.getName());
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
                 try {
-                    countDownLatch.await();
+                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                    if (await) {
+                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+                    }
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
                 } catch (InterruptedException e) {
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
                 }
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());
@@ -229,11 +262,13 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryResultById(String id) {
         QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
-        if(queryCache == null){
+        if (queryCache == null) {
             return BaseResultGenerator.success(Lists.newArrayList());
         }
         if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
+        } else if (JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(queryCache.getType())) {
+            queryCache = rebuildTrafficSpectrumCIPConnectAppUsageQueryCache(queryCache);
         }
         BaseResult<Object> baseResult = queryCache.getBaseResult();
         return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
@@ -247,7 +282,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryStatusById(String id) {
         QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
-        if(queryCache == null){
+        if (queryCache == null) {
             return BaseResultGenerator.success(Lists.newArrayList());
         }
         return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null, null);
@@ -270,7 +305,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         for (String id : ids) {
             BaseResult<Object> baseResult;
             QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
-            if(queryCache == null){
+            if (queryCache == null) {
                 continue;
             }
             if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
@@ -298,7 +333,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
-            if(queryCache == null){
+            if (queryCache == null) {
                 continue;
             }
             results.add(queryCache.getBaseResult().getJob());
@@ -391,6 +426,18 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return queryCache;
     }
 
+    private QueryCache rebuildTrafficSpectrumCIPConnectAppUsageQueryCache(QueryCache queryCache) {
+        BaseResult<Object> baseResult = queryCache.getBaseResult();
+        Object dataObj = baseResult.getData();
+        if (StringUtil.isNotEmpty(baseResult.getData())) {
+            List<Map> dataList = (List<Map>) dataObj;
+            Map internalExternalBipartiteGraph = trafficSpectrumDslService.getInternalExternalBipartiteGraph(dataList.get(0), engineConfigSource.getTrafficSpectrumClientIPAppResultNum());
+            queryCache.getBaseResult().setData(Lists.newArrayList(internalExternalBipartiteGraph));
+            return queryCache;
+        }
+        return queryCache;
+    }
+
     private static void initAndValidationID(CommonRequestParam request) {
         String id = StrUtil.isBlank(request.getId()) ? generateJobId() : request.getId();
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
@@ -428,5 +475,20 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Autowired
     public void setDslService(DSLService dslService) {
         this.dslService = dslService;
+    }
+
+    @Autowired
+    public void setTrafficSpectrumDslService(TrafficSpectrumDslService trafficSpectrumDslService) {
+        this.trafficSpectrumDslService = trafficSpectrumDslService;
+    }
+
+    @Autowired
+    public void setEngineConfigSource(EngineConfigSource engineConfigSource) {
+        this.engineConfigSource = engineConfigSource;
+    }
+
+    @Autowired
+    public void setJobConfig(JobConfig jobConfig) {
+        this.jobConfig = jobConfig;
     }
 }

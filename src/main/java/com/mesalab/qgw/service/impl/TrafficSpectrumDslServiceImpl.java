@@ -4,11 +4,13 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.IPUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -25,6 +27,7 @@ import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.TrafficSpectrumDslService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -32,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO
@@ -193,9 +197,7 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
     @Override
     public List<Map<String, Object>> internalExternalDimensionMetricsStat(DSLQueryRequestParam dslQueryRequestParam) {
         DSLQueryContext dslQueryContext = BeanUtil.copyProperties(dslQueryRequestParam, DSLQueryContext.class);
-        if (StrUtil.isBlank(dslQueryContext.getLimit())) {
-            dslQueryContext.setLimit(String.valueOf(engineConfigSource.getTrafficSpectrumClientIPAppResultNum()));
-        }
+        dslQueryContext.setLimit(String.valueOf(engineConfigSource.getTrafficSpectrumClientIPAppResultNum()));
         if (StrUtil.isBlank(dslQueryContext.getGranularity())) {
             dslQueryContext.setGranularity(GRANULARITY_DEFAULT);
         }
@@ -280,8 +282,8 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 links.add(link);
 
             });
-            nodes.put(TrafficSpectrumConstants.INTERNAL_NODE, internalNodes.values());
-            nodes.put(TrafficSpectrumConstants.EXTERNAL_NODE, externalNodes.values());
+            nodes.put(TrafficSpectrumConstants.INTERNAL_NODE, new ArrayList<>(internalNodes.values()));
+            nodes.put(TrafficSpectrumConstants.EXTERNAL_NODE, new ArrayList<>(externalNodes.values()));
             Map<String, Object> result = Maps.newHashMap();
             result.put(TrafficSpectrumConstants.NODES, nodes);
             result.put(TrafficSpectrumConstants.LINKS, links);
@@ -312,6 +314,239 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                 String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
+    }
+
+    @Override
+    public Map<String, Object> getInternalExternalBipartiteGraph(Map<String, Object> data, Integer clientIPAppResultNum) {
+        Map<String, List<Map<String, Object>>> originalNodes = (Map<String, List<Map<String, Object>>>) data.get(TrafficSpectrumConstants.NODES);
+        List<Map<String, Object>> originalLinks = (List<Map<String, Object>>) data.get(TrafficSpectrumConstants.LINKS);
+        List<Map<String, Object>> originalExternalNodeList = originalNodes.get(TrafficSpectrumConstants.EXTERNAL_NODE);
+        List<Map<String, Object>> originalInternalNodeList = originalNodes.get(TrafficSpectrumConstants.INTERNAL_NODE);
+        // TODO 自动降序排序基于 bytes
+        originalLinks.sort((o1, o2) -> {
+            long bytes1 = Long.parseLong(String.valueOf(o1.get(TrafficSpectrumConstants.BYTES)));
+            long bytes2 = Long.parseLong(String.valueOf(o2.get(TrafficSpectrumConstants.BYTES)));
+            return Long.compare(bytes2, bytes1);
+        });
+        // TODO step1 原数据拆封 nodes、links
+        // TODO 从 internalNodeList 和 externalNodeList 过滤除 name 不为Other的元素列表 和是Other的元素列表
+        Map<String, Map<String, Object>> originalInternalOtherMap = Maps.newHashMap();
+        Map<String, Map<String, Object>> originalInternalNoOtherMap = Maps.newHashMap();
+        for (Map<String, Object> value : originalInternalNodeList) {
+            if (StrUtil.equals(String.valueOf(value.get(TrafficSpectrumConstants.NAME)), TrafficSpectrumConstants.OTHER)) {
+                originalInternalOtherMap.put(String.valueOf(value.get(TrafficSpectrumConstants.ID)), value);
+            } else {
+                originalInternalNoOtherMap.put(String.valueOf(value.get(TrafficSpectrumConstants.ID)), value);
+            }
+        }
+
+        Map<String, Map<String, Object>> originalExternalOtherMap = Maps.newHashMap();
+        Map<String, Map<String, Object>> originalExternalNoOtherMap = Maps.newHashMap();
+        for (Map<String, Object> value : originalExternalNodeList) {
+            if (StrUtil.equals(String.valueOf(value.get(TrafficSpectrumConstants.NAME)), TrafficSpectrumConstants.OTHER)) {
+                originalExternalOtherMap.put(String.valueOf(value.get(TrafficSpectrumConstants.ID)), value);
+            } else {
+                originalExternalNoOtherMap.put(String.valueOf(value.get(TrafficSpectrumConstants.ID)), value);
+            }
+        }
+
+        List<Map<String, Object>> originalOtherLinks = new ArrayList<>();
+        List<Map<String, Object>> originalNoOtherLinks = new ArrayList<>();
+        for (Map<String, Object> value : originalLinks) {
+            String source = String.valueOf(value.get(TrafficSpectrumConstants.SOURCE));
+            String target = String.valueOf(value.get(TrafficSpectrumConstants.TARGET));
+            if (originalExternalOtherMap.containsKey(source)
+                    || originalExternalOtherMap.containsKey(target)
+                    || originalInternalOtherMap.containsKey(source)
+                    || originalInternalOtherMap.containsKey(target)) {
+                originalOtherLinks.add(value);
+            } else {
+                originalNoOtherLinks.add(value);
+            }
+        }
+
+        if (clientIPAppResultNum == null || clientIPAppResultNum >= originalNoOtherLinks.size()) {
+            return data;
+        }
+
+        // TODO step2 结果封装
+        // TODO 生成结果 nods
+        Map<String, Map<String, Object>> resultNoOtherInternalNodeMap = Maps.newHashMap();
+        Map<String, Map<String, Object>> resultNoOtherExternalNodeMap = Maps.newHashMap();
+        Set<String> sourceSets = Sets.newHashSet();
+        Set<String> targetSets = Sets.newHashSet();
+        for (Map<String, Object> map : originalNoOtherLinks) {
+            String source = String.valueOf(map.get(TrafficSpectrumConstants.SOURCE));
+            sourceSets.add(source);
+            String target = String.valueOf(map.get(TrafficSpectrumConstants.TARGET));
+            targetSets.add(target);
+            if (sourceSets.size() > clientIPAppResultNum || targetSets.size() > clientIPAppResultNum) {
+                continue;
+            }
+            resultNoOtherInternalNodeMap.put(source, originalInternalNoOtherMap.get(source));
+            resultNoOtherExternalNodeMap.put(target, originalExternalNoOtherMap.get(target));
+        }
+        if (sourceSets.size() <= clientIPAppResultNum || targetSets.size() <= clientIPAppResultNum) {
+            return data;
+        }
+
+        Map<String, Map<String, Object>> resultOtherInternalNodeMap = Maps.newHashMap();
+        Map<String, Map<String, Object>> resultOtherExternalNodeMap = Maps.newHashMap();
+        for (Map<String, Object> originalItem : originalInternalNodeList) {
+            String originalId = String.valueOf(originalItem.get(TrafficSpectrumConstants.ID));
+            if (resultNoOtherInternalNodeMap.containsKey(originalId)) {
+                continue;
+            }
+            Map<String, Object> otherInternalNodeMapItem = Maps.newHashMap();
+            String category = String.valueOf(originalItem.get(TrafficSpectrumConstants.CATEGORY));
+            String objectType = String.valueOf(originalItem.get(TrafficSpectrumConstants.OBJECT_TYPE));
+            otherInternalNodeMapItem.put(TrafficSpectrumConstants.OBJECT_TYPE, objectType);
+            boolean presentCategory = resultNoOtherInternalNodeMap.values().stream().anyMatch(o -> objectType.equals(o.get(TrafficSpectrumConstants.OBJECT_TYPE)) && category.equals(o.get(TrafficSpectrumConstants.CATEGORY)));
+            if (presentCategory) {
+                otherInternalNodeMapItem.put(TrafficSpectrumConstants.CATEGORY, category);
+            } else {
+                otherInternalNodeMapItem.put(TrafficSpectrumConstants.CATEGORY, TrafficSpectrumConstants.OTHER);
+            }
+            otherInternalNodeMapItem.put(TrafficSpectrumConstants.NAME, TrafficSpectrumConstants.OTHER);
+            String unoriginalId = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.INTERNAL_NODE, String.valueOf(otherInternalNodeMapItem.get(TrafficSpectrumConstants.NAME)), String.valueOf(otherInternalNodeMapItem.get(TrafficSpectrumConstants.CATEGORY)), String.valueOf(otherInternalNodeMapItem.get(TrafficSpectrumConstants.OBJECT_TYPE))).getBytes()).toString();
+            otherInternalNodeMapItem.put(TrafficSpectrumConstants.ID, unoriginalId);
+            resultOtherInternalNodeMap.put(originalId, otherInternalNodeMapItem);
+        }
+
+        for (Map<String, Object> originalItem : originalExternalNodeList) {
+            String originalId = String.valueOf(originalItem.get(TrafficSpectrumConstants.ID));
+            if (resultNoOtherExternalNodeMap.containsKey(originalId)) {
+                continue;
+            }
+            Map<String, Object> otherExternalNodeMapItem = Maps.newHashMap();
+            String category = String.valueOf(originalItem.get(TrafficSpectrumConstants.CATEGORY));
+            String objectType = String.valueOf(originalItem.get(TrafficSpectrumConstants.OBJECT_TYPE));
+            otherExternalNodeMapItem.put(TrafficSpectrumConstants.OBJECT_TYPE, objectType);
+            boolean presentCategory = resultNoOtherExternalNodeMap.values().stream().anyMatch(o -> objectType.equals(o.get(TrafficSpectrumConstants.OBJECT_TYPE)) && category.equals(o.get(TrafficSpectrumConstants.CATEGORY)));
+            if (!presentCategory) {
+                otherExternalNodeMapItem.put(TrafficSpectrumConstants.CATEGORY, TrafficSpectrumConstants.OTHER);
+            } else {
+                otherExternalNodeMapItem.put(TrafficSpectrumConstants.CATEGORY, category);
+            }
+            otherExternalNodeMapItem.put(TrafficSpectrumConstants.NAME, TrafficSpectrumConstants.OTHER);
+            String unoriginalId = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.EXTERNAL_NODE, String.valueOf(otherExternalNodeMapItem.get(TrafficSpectrumConstants.NAME)), String.valueOf(otherExternalNodeMapItem.get(TrafficSpectrumConstants.CATEGORY)), String.valueOf(otherExternalNodeMapItem.get(TrafficSpectrumConstants.OBJECT_TYPE))).getBytes()).toString();
+            otherExternalNodeMapItem.put(TrafficSpectrumConstants.ID, unoriginalId);
+            resultOtherExternalNodeMap.put(originalId, otherExternalNodeMapItem);
+        }
+
+        // TODO 基于 originalLinks 生成结果 resultLinks
+        List<Map<String, Object>> resultLinks = Lists.newArrayList(originalLinks);
+        for (Map<String, Object> resultLink : resultLinks) {
+            String source = String.valueOf(resultLink.get(TrafficSpectrumConstants.SOURCE));
+            String target = String.valueOf(resultLink.get(TrafficSpectrumConstants.TARGET));
+            if (resultOtherInternalNodeMap.containsKey(source)) {
+                resultLink.put(TrafficSpectrumConstants.SOURCE, resultOtherInternalNodeMap.get(source).get(TrafficSpectrumConstants.ID));
+            }
+            if (resultOtherExternalNodeMap.containsKey(target)) {
+                resultLink.put(TrafficSpectrumConstants.TARGET, resultOtherExternalNodeMap.get(target).get(TrafficSpectrumConstants.ID));
+            }
+        }
+
+        Map<String, Object> result = Maps.newHashMap();
+        List<Map<String, Object>> links = mergeLinks(resultLinks);
+        Map<String, List<Map<String, Object>>> nodes = Maps.newHashMap();
+        List<Map<String, Object>> internalNode = Lists.newArrayList();
+        List<Map<String, Object>> externalNode = Lists.newArrayList();
+        internalNode.addAll(resultOtherInternalNodeMap.values());
+        internalNode.addAll(resultNoOtherInternalNodeMap.values());
+        externalNode.addAll(resultOtherExternalNodeMap.values());
+        externalNode.addAll(resultNoOtherExternalNodeMap.values());
+        nodes.put(TrafficSpectrumConstants.INTERNAL_NODE, internalNode);
+        nodes.put(TrafficSpectrumConstants.EXTERNAL_NODE, externalNode);
+        Map<String, List<Map<String, Object>>> distinctNodes = distinctNodes(nodes);
+        result.put(TrafficSpectrumConstants.NODES, distinctNodes);
+        result.put(TrafficSpectrumConstants.LINKS, links);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> mergeInternalExternalBipartiteGraph(Map<String, Object> data1, Map<String, Object> data2) {
+        Map<String, List<Map<String, Object>>> nodes1 = (Map<String, List<Map<String, Object>>>) data1.get(TrafficSpectrumConstants.NODES);
+        List<Map<String, Object>> links1 = (List<Map<String, Object>>) data1.get(TrafficSpectrumConstants.LINKS);
+        List<Map<String, Object>> externalNodeList1 = nodes1.get(TrafficSpectrumConstants.EXTERNAL_NODE);
+        List<Map<String, Object>> internalNodeList1 = nodes1.get(TrafficSpectrumConstants.INTERNAL_NODE);
+
+        Map<String, List<Map<String, Object>>> nodes2 = (Map<String, List<Map<String, Object>>>) data2.get(TrafficSpectrumConstants.NODES);
+        List<Map<String, Object>> links2 = (List<Map<String, Object>>) data2.get(TrafficSpectrumConstants.LINKS);
+        List<Map<String, Object>> externalNodeList2 = nodes2.get(TrafficSpectrumConstants.EXTERNAL_NODE);
+        List<Map<String, Object>> internalNodeList2 = nodes2.get(TrafficSpectrumConstants.INTERNAL_NODE);
+        // TODO 合并 data1、data2，并且去重
+        List<Map<String, Object>> lists = Lists.newArrayList();
+        lists.addAll(links1);
+        lists.addAll(links2);
+        List<Map<String, Object>> distinctLinks = mergeLinks(lists);
+
+        Map<String, List<Map<String, Object>>> nodes = Maps.newHashMap();
+        List<Map<String, Object>> externalNode = Lists.newArrayList();
+        externalNode.addAll(externalNodeList1);
+        externalNode.addAll(externalNodeList2);
+        List<Map<String, Object>> internalNode = Lists.newArrayList();
+        internalNode.addAll(internalNodeList1);
+        internalNode.addAll(internalNodeList2);
+        nodes.put(TrafficSpectrumConstants.INTERNAL_NODE, internalNode);
+        nodes.put(TrafficSpectrumConstants.EXTERNAL_NODE, externalNode);
+        Map<String, List<Map<String, Object>>> distinctNodes = distinctNodes(nodes);
+        Map<String, Object> data = Maps.newHashMap();
+        data.put(TrafficSpectrumConstants.NODES, distinctNodes);
+        data.put(TrafficSpectrumConstants.LINKS, distinctLinks);
+        int sqrt = (int) Math.sqrt(engineConfigSource.getMaxCacheNum());
+        return getInternalExternalBipartiteGraph(data, Math.max(sqrt, engineConfigSource.getTrafficSpectrumClientIPAppResultNum()));
+    }
+
+    @Override
+    public List<Map<String, Object>> mergeLinks(List<Map<String, Object>> links) {
+        Map<String, Map<String, Object>> resultLinksMap = Maps.newHashMap();
+        links.forEach(o -> {
+            String uniqueKey = DigestUtil.md5Hex(o.get(TrafficSpectrumConstants.SOURCE)
+                    + TrafficSpectrumConstants.SPLIT_HYPHEN + o.get(TrafficSpectrumConstants.DIRECTION)
+                    + TrafficSpectrumConstants.SPLIT_HYPHEN + o.get(TrafficSpectrumConstants.TARGET));
+            if (resultLinksMap.containsKey(uniqueKey)) {
+                Map<String, Object> map = resultLinksMap.get(uniqueKey);
+                map.put(TrafficSpectrumConstants.SESSIONS, Long.parseLong(String.valueOf(map.get(TrafficSpectrumConstants.SESSIONS))) + Long.parseLong(String.valueOf(o.get(TrafficSpectrumConstants.SESSIONS))));
+                Long bytes1 = Long.parseLong(String.valueOf(map.get(TrafficSpectrumConstants.BYTES)));
+                Long bytes2 = Long.parseLong(String.valueOf(o.get(TrafficSpectrumConstants.BYTES)));
+                map.put(TrafficSpectrumConstants.BYTES, bytes1 + bytes2);
+                map.put(TrafficSpectrumConstants.PACKETS, Long.parseLong(String.valueOf(map.get(TrafficSpectrumConstants.PACKETS))) + Long.parseLong(String.valueOf(o.get(TrafficSpectrumConstants.PACKETS))));
+                map.put(TrafficSpectrumConstants.MAX_RATE, Math.max(Long.parseLong(String.valueOf(map.get(TrafficSpectrumConstants.MAX_RATE))), Long.parseLong(String.valueOf(o.get(TrafficSpectrumConstants.MAX_RATE)))));
+
+                //TODO 计算 avg_rate 时，通过 bytes 权重，计算加权平均值
+                Long avgRate1 = Long.parseLong(String.valueOf(map.get(TrafficSpectrumConstants.AVG_RATE)));
+                Long avgRate2 = Long.parseLong(String.valueOf(o.get(TrafficSpectrumConstants.AVG_RATE)));
+                if (bytes1 + bytes2 == 0) {
+                    map.put(TrafficSpectrumConstants.AVG_RATE, (avgRate1 + avgRate2) / 2);
+                } else {
+                    long avg = (long) (avgRate1 * (bytes1 * 1.0 / (bytes1 + bytes2)) + avgRate2 * (bytes2 * 1.0 / (bytes1 + bytes2)));
+                    map.put(TrafficSpectrumConstants.AVG_RATE, avg);
+                }
+                resultLinksMap.put(uniqueKey, map);
+            } else {
+                resultLinksMap.put(uniqueKey, o);
+            }
+        });
+        List<Map<String, Object>> result = new ArrayList<>(resultLinksMap.values());
+        result.sort((o1, o2) -> {
+            long bytes1 = Long.parseLong(String.valueOf(o1.get(TrafficSpectrumConstants.BYTES)));
+            long bytes2 = Long.parseLong(String.valueOf(o2.get(TrafficSpectrumConstants.BYTES)));
+            return Long.compare(bytes2, bytes1);
+        });
+        return result;
+    }
+
+    @Override
+    public Map<String, List<Map<String, Object>>> distinctNodes(Map<String, List<Map<String, Object>>> nodes) {
+        Map<String, List<Map<String, Object>>> resultNode = Maps.newHashMap();
+        List<Map<String, Object>> internalNodes = nodes.get(TrafficSpectrumConstants.INTERNAL_NODE);
+        List<Map<String, Object>> externalNodes = nodes.get(TrafficSpectrumConstants.EXTERNAL_NODE);
+        List<Map<String, Object>> resultInternalNodes = internalNodes.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.get(TrafficSpectrumConstants.ID).toString()))), ArrayList::new));
+        List<Map<String, Object>> resultExternalNodes = externalNodes.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.get(TrafficSpectrumConstants.ID).toString()))), ArrayList::new));
+        resultNode.put(TrafficSpectrumConstants.INTERNAL_NODE, resultInternalNodes);
+        resultNode.put(TrafficSpectrumConstants.EXTERNAL_NODE, resultExternalNodes);
+        return resultNode;
     }
 
     private String getApplicationCategory(String appCategory) {
