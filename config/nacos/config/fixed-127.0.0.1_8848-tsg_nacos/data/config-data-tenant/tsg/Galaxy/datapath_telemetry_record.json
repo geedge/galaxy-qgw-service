@@ -68,6 +68,26 @@
       }
     },
     {
+      "name": "egress_action",
+      "label": "Egress Action",
+      "doc": {
+        "visibility": "enabled",
+        "data": [
+          {
+            "code": 0,
+            "value": "send"
+          },
+          {
+            "code": 1,
+            "value": "drop"
+          }
+        ]
+      },
+      "type": {
+        "type": "int"
+      }
+    },
+    {
       "name": "job_id",
       "label": "Job ID",
       "doc": {
