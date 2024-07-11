@@ -160,7 +160,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -172,7 +172,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -184,7 +184,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -196,7 +196,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -208,7 +208,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -220,7 +220,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"

@@ -5,7 +5,7 @@
         "name": "COUNT",
         "label": "COUNT",
         "function": "count(expr)",
-        "metric_type": "counter",
+        "metric_type": "count",
         "unit": "short"
       },
       {
@@ -26,7 +26,7 @@
         "name": "SUM",
         "label": "SUM",
         "function": "sum(expr)",
-        "metric_type": "counter",
+        "metric_type": "count",
         "unit": "short"
       },
       {

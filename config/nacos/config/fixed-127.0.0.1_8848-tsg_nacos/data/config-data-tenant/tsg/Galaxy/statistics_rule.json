@@ -428,7 +428,7 @@
       "label": "Incoming Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -440,7 +440,7 @@
       "label": "Outgoing Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -452,7 +452,7 @@
       "label": "Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -464,7 +464,7 @@
       "label": "Incoming Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -476,7 +476,7 @@
       "label": "Outgoing Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -488,7 +488,7 @@
       "label": "Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -500,7 +500,7 @@
       "label": "New Client-to-Server Flows",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -512,7 +512,7 @@
       "label": "New Server-to-Client Flows",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -524,7 +524,7 @@
       "label": "New Incoming Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -536,7 +536,7 @@
       "label": "New Outgoing Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -548,7 +548,7 @@
       "label": "Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -560,7 +560,7 @@
       "label": "New Unestablished Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -572,7 +572,7 @@
       "label": "SYN Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -584,7 +584,7 @@
       "label": "Client-to-Server IP Fragments",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -596,7 +596,7 @@
       "label": "Server-to-Client IP Fragments",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -608,7 +608,7 @@
       "label": "IP Fragments",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"

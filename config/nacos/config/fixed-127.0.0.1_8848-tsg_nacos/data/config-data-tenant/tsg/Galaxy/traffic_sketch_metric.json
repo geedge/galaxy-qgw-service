@@ -423,7 +423,7 @@
       "label": "Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled",
@@ -436,7 +436,7 @@
       "label": "Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE",
           "type": "bytes"
         },
@@ -450,7 +450,7 @@
       "label": "Bytes Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE",
           "type": "bytes"
         },
@@ -464,7 +464,7 @@
       "label": "Bytes Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE",
           "type": "bytes"
         },
@@ -478,7 +478,7 @@
       "label": "Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE",
           "type": "decimal"
         },
@@ -492,7 +492,7 @@
       "label": "Packets Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE",
           "type": "decimal"
         },
@@ -506,7 +506,7 @@
       "label": "Packets Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE",
           "type": "decimal"
         },
@@ -520,7 +520,7 @@
       "label": "Client-to-Server Asymmetric Flows",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled",
@@ -533,7 +533,7 @@
       "label": "Server-to-Client Asymmetric Flows",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled",
@@ -546,7 +546,7 @@
       "label": "Client-to-Server Fragments",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled",
@@ -559,7 +559,7 @@
       "label": "Server-to-Client Fragments",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled",
@@ -572,7 +572,7 @@
       "label": "Client-to-Server Lost Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -584,7 +584,7 @@
       "label": "Server-to-Client Lost Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -596,7 +596,7 @@
       "label": "Client-to-Server Retransmission Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -608,7 +608,7 @@
       "label": "Server-to-Client Retransmission Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"

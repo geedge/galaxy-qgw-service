@@ -166,7 +166,7 @@
       "label": "Hit Count",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -178,7 +178,7 @@
       "label": "Incoming Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -190,7 +190,7 @@
       "label": "Outgoing Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -202,7 +202,7 @@
       "label": "Incoming Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -214,7 +214,7 @@
       "label": "Outgoing Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"

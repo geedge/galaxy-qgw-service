@@ -159,7 +159,7 @@
       "label": "Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -171,7 +171,7 @@
       "label": "Packets Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -183,7 +183,7 @@
       "label": "Packets Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -195,7 +195,7 @@
       "label": "Bytes Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -207,7 +207,7 @@
       "label": "Bytes Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -219,7 +219,7 @@
       "label": "Fragmentation Packets(c2s)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -231,7 +231,7 @@
       "label": "Fragmentation Packets(s2c)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -243,7 +243,7 @@
       "label": "Sequence Gap Loss(c2s)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -255,7 +255,7 @@
       "label": "Sequence Gap Loss(s2c)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -267,7 +267,7 @@
       "label": "TCP out-of-order Packets(c2s)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -279,7 +279,7 @@
       "label": "TCP out-of-order Packets(s2c)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -291,7 +291,7 @@
       "label": "TCP Retransmission Packets(c2s)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -303,7 +303,7 @@
       "label": "TCP Retransmission Packets(s2c)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -315,7 +315,7 @@
       "label": "TCP Retransmission Bytes(c2s)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -327,7 +327,7 @@
       "label": "TCP Retransmission Bytes(s2c)",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -339,7 +339,7 @@
       "label": "Incoming Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -351,7 +351,7 @@
       "label": "Incoming Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -363,7 +363,7 @@
       "label": "Outgoing Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -375,7 +375,7 @@
       "label": "Outgoing Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"

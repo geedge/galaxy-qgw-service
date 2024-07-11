@@ -154,7 +154,7 @@
       "label": "Bytes Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -166,7 +166,7 @@
       "label": "Bytes Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
@@ -178,7 +178,7 @@
       "label": "Packets Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
@@ -190,7 +190,7 @@
       "label": "Packets Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter",
+          "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
