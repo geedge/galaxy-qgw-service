@@ -33,6 +33,13 @@
           "unit": "short"
         },
         {
+          "name": "UNIQUE_COUNT",
+          "label": "UNIQUE_COUNT",
+          "function": "UNIQUE_COUNT(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
           "name": "AVG",
           "label": "AVG",
           "function": "avg(expr)",
@@ -760,47 +767,47 @@
         "aggregation": [
           {
             "type": "int",
-            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+            "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
           },
           {
             "type": "long",
-            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+            "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
           },
           {
             "type": "float",
-            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+            "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
           },
           {
             "type": "double",
-            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+            "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
           },
           {
             "type": "string",
-            "functions": "COUNT,COUNT_DISTINCT"
+            "functions": "COUNT,UNIQUE_COUNT"
           },
           {
             "type": "date",
-            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+            "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
           },
           {
             "type": "datetime",
-            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+            "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
           },
           {
             "type": "timestamp",
-            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+            "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
           },
           {
             "type": "unix_timestamp",
-            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+            "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
           },
           {
             "type": "array",
-            "functions": "COUNT,COUNT_DISTINCT"
+            "functions": "COUNT,UNIQUE_COUNT"
           },
           {
             "type": "bit",
-            "functions": "COUNT,COUNT_DISTINCT"
+            "functions": "COUNT,UNIQUE_COUNT"
           }
         ],
         "operator": [
@@ -4107,7 +4114,7 @@
       "type": "int",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": 2592000,
@@ -4140,7 +4147,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": 2592000,
@@ -4216,7 +4223,7 @@
       "type": "int",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": 2592000,
@@ -4249,7 +4256,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": 2592000,
@@ -4875,7 +4882,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "ttl": 2592000,
         "size": 0
@@ -5111,7 +5118,7 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "data": [
           {
@@ -5143,7 +5150,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "ttl": 2592000,
         "size": 0
@@ -5257,7 +5264,7 @@
         "visibility": "enabled",
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "ttl": 2592000,
         "size": 0
@@ -5332,7 +5339,7 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "data": [
           {
@@ -5669,7 +5676,7 @@
         "visibility": "enabled",
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "ttl": 2592000,
         "size": 0

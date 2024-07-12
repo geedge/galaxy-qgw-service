@@ -908,7 +908,7 @@
       "label": "HTTP.Status Code",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT",
           "type": "http_code"
         },
         "visibility": "enabled",
@@ -1255,7 +1255,7 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/dns_qtype/data"

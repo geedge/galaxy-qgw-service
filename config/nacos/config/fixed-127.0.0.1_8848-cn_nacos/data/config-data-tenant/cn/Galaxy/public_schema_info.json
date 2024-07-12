@@ -16,6 +16,13 @@
         "unit": "short"
       },
       {
+        "name": "UNIQUE_COUNT",
+        "label": "UNIQUE_COUNT",
+        "function": "UNIQUE_COUNT(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
         "name": "AVG",
         "label": "AVG",
         "function": "avg(expr)",
@@ -250,47 +257,47 @@
       "aggregation": [
         {
           "type": "int",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
         },
         {
           "type": "long",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
         },
         {
           "type": "float",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
         },
         {
           "type": "double",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
         },
         {
           "type": "string",
-          "functions": "COUNT,COUNT_DISTINCT"
+          "functions": "COUNT,UNIQUE_COUNT"
         },
         {
           "type": "date",
-          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
         },
         {
           "type": "datetime",
-          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
         },
         {
           "type": "timestamp",
-          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
         },
         {
           "type": "unix_timestamp",
-          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
         },
         {
           "type": "array",
-          "functions": "COUNT,COUNT_DISTINCT"
+          "functions": "COUNT,UNIQUE_COUNT"
         },
         {
           "type": "bit",
-          "functions": "COUNT,COUNT_DISTINCT"
+          "functions": "COUNT,UNIQUE_COUNT"
         }
       ],
       "operator": [

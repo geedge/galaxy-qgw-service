@@ -60,6 +60,7 @@ public class SQLFunctionUtil {
     public static final String QUANTILE_HDR = "QUANTILE_HDR";
     public static final String PERCENTILES_HDR = "PERCENTILES_HDR";
     public static final String COUNT_DISTINCT = "COUNT_DISTINCT";
+    public static final String UNIQUE_COUNT = "UNIQUE_COUNT";
     public static final String APPROX_COUNT_DISTINCT_HLLD = "APPROX_COUNT_DISTINCT_HLLD";
 
     public static final String CONCAT = "concat";
@@ -94,6 +95,7 @@ public class SQLFunctionUtil {
     public static final Pattern pPercentilesHdr = Pattern.compile("\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pCountDistinct = Pattern.compile("\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pUniqueCount = Pattern.compile("\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
 
@@ -130,7 +132,7 @@ public class SQLFunctionUtil {
      * 标准函数
      */
     //time functions
-    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|APPROX_COUNT_DISTINCT_HLLD)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|UNIQUE_COUNT|APPROX_COUNT_DISTINCT_HLLD)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -354,6 +356,7 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pQuantileHdr);
         resultSql = translateByPattern(resultSql, dbType, pPercentilesHdr);
         resultSql = translateByPattern(resultSql, dbType, pCountDistinct);
+        resultSql = translateByPattern(resultSql, dbType, pUniqueCount);
         resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
         return resultSql;
     }
@@ -1875,6 +1878,7 @@ public class SQLFunctionUtil {
                 data = translateHdrHistogram(fun, dbType);
                 break;
             case COUNT_DISTINCT:
+            case UNIQUE_COUNT:
                 data = translateCountDistinct(fun, dbType);
                 break;
             case IP_TO_GEO:
@@ -2082,7 +2086,7 @@ public class SQLFunctionUtil {
     }
 
     /**
-     * Desc 转义 COUNT_DISTINCT
+     * Desc 转义 COUNT_DISTINCT、UNIQUE_COUNT
      *
      * @param fun
      * @param dbType

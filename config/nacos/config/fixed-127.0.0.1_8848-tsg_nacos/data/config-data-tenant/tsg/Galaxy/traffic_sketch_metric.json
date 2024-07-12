@@ -312,7 +312,7 @@
       "label": "Client ASN",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": null
@@ -324,7 +324,7 @@
       "label": "Server ASN",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": null
@@ -381,7 +381,7 @@
       "label": "Client-to-Server TTL",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": null
@@ -393,7 +393,7 @@
       "label": "Server-to-Client TTL",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT"
         },
         "visibility": "enabled",
         "ttl": null
