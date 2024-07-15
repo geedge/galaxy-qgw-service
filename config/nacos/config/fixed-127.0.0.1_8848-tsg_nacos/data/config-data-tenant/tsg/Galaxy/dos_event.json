@@ -4,16 +4,24 @@
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "log_id",
-    "partition_key": "start_time",
+    "partition_key": "recv_time",
     "ttl": null,
     "default_ttl": 2592000,
-    "index_key": {
-      "$ref": "public_schema_info.json#/dos_event/index_key"
-    },
+    "index_key": [
+      "vsys_id",
+      "destination_ip",
+      "recv_time",
+      "log_id"
+    ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "recv_time",
+        "start_time",
+        "end_time"
+      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
@@ -31,11 +39,39 @@
       "session_rate"
     ],
     "internal_columns": [
-      "start_time",
+      "recv_time",
       "log_id"
-    ]
+    ],
+    "measurements": {
+      "field_discovery_metric": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "log_id",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ]
+      }
+    }
   },
   "fields": [
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
     {
       "name": "start_time",
       "label": "Start Time",
@@ -67,29 +103,12 @@
       }
     },
     {
-      "name": "recv_time",
-      "label": "Receive Time",
-      "doc": {
-        "constraints": {
-          "type": "unix_timestamp"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": {
-        "type": "long",
-        "logicalType": "unix_timestamp"
-      }
-    },
-    {
       "name": "log_id",
       "label": "Log ID",
       "doc": {
-        "format": [
-          {
-            "function": "snowflake_id"
-          }
-        ],
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -97,7 +116,16 @@
     },
     {
       "name": "profile_id",
-      "label": "Profile ID",
+      "label": "Profile ID(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "rule_id",
+      "label": "Rule ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -119,7 +147,7 @@
       "label": "Attack Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -137,6 +165,14 @@
           {
             "code": "DNS Flood",
             "value": "DNS Flood"
+          },
+          {
+            "code": "NTP Flood",
+            "value": "NTP Flood"
+          },
+          {
+            "code": "Custom Network Attack",
+            "value": "Custom Network Attack"
           }
         ],
         "visibility": "enabled",
@@ -149,7 +185,7 @@
       "label": "Severity",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -191,6 +227,10 @@
       "name": "destination_ip",
       "label": "Destination IP",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
+          "type": "ip"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -207,7 +247,7 @@
     },
     {
       "name": "source_ip_list",
-      "label": "Source IPs",
+      "label": "Source IP List",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -216,12 +256,21 @@
     },
     {
       "name": "source_country_list",
-      "label": "Source Countries",
+      "label": "Source Country List",
       "doc": {
         "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
     },
     {
       "name": "session_rate",
@@ -236,12 +285,30 @@
       "type": "long"
     },
     {
+      "name": "packets",
+      "label": "Packets",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
       "name": "packet_rate",
       "label": "Packets/s",
       "doc": {
         "constraints": {
           "type": "packets/sec"
         },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
         "visibility": "enabled",
         "ttl": null
       },

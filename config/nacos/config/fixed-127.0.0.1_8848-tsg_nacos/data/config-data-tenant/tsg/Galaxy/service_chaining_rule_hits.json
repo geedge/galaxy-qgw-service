@@ -8,48 +8,54 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "__time"
+      ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "sff_profile_id",
-        "sf_profile_id"
+        "sf_profile_id",
+        "device_group",
+        "data_center"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "rule_id",
-        "sff_profile_id",
-        "sf_profile_id",
-        "sent_pkts",
         "sent_bytes",
-        "recv_pkts",
-        "recv_bytes"
+        "recv_bytes",
+        "sent_pkts",
+        "recv_pkts"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "sff_profile_id",
         "sf_profile_id",
-        "sent_pkts",
-        "sent_bytes",
-        "recv_pkts",
-        "recv_bytes"
+        "device_group",
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
-      "granularity": 1,
-      "ingestion_delay": 5
+      "ingestion_period": "PT1S",
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sent_bytes": "bytes",
+          "recv_bytes": "bytes",
+          "sent_pkts": "packets",
+          "recv_pkts": "packets"
+        },
+        "RATE": {
+          "sent_bytes": "Bps",
+          "recv_bytes": "Bps",
+          "sent_pkts": "pps",
+          "recv_pkts": "pps"
+        },
+        "BITRATE": {
+          "sent_bytes": "bps",
+          "recv_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -113,7 +119,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -125,7 +131,7 @@
         },
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "sff_profile_id",
@@ -133,7 +139,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "sf_profile_id",
@@ -141,12 +147,16 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "recv_bytes",
       "label": "Bytes Received",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -155,6 +165,10 @@
       "name": "sent_bytes",
       "label": "Bytes Sent",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -163,6 +177,10 @@
       "name": "recv_pkts",
       "label": "Packets Received",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -171,6 +189,10 @@
       "name": "sent_pkts",
       "label": "Packets Sent",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"

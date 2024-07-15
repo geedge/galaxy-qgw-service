@@ -7,20 +7,21 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.ColumnCategoryHelper;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
-import com.mesalab.qgw.model.basic.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SelectStatement;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -40,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class HbaseDialect extends AbstractDataSourceDialect {
-    public QueryProfile param;
     public BaseResult baseResult;
     private Stopwatch watch = Stopwatch.createUnstarted();
     private static final String URL_PREFIX = "jdbc:phoenix:";
@@ -48,6 +48,10 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private final static Map<String, String> metaMap = Maps.newHashMap();
     public static Properties PROPERTIES = new Properties();
+
+    public HbaseDialect(SQLQueryContext sqlQueryContext) {
+        super(sqlQueryContext);
+    }
 
     static {
         try {
@@ -75,55 +79,47 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         metaMap.put("VARCHAR", DataTypeMapping.STRING);
     }
 
-    public HbaseDialect(QueryProfile param) {
-        this.param = param;
-    }
 
     @Override
     void init() {
-        if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbSelectStatement())) {
+            sqlQueryContext.getDbSelectStatement().setExecSQL(sqlQueryContext.getDbSelectStatement().getSqlBody());
         } else {
-            SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(param.getQuery());
-            param.setDbQuerySource(sqlQuerySource);
+            SelectStatement dbSelectStatement = new SelectStatement();
+            dbSelectStatement.setExecSQL(sqlQueryContext.getOriginalSQL());
+            sqlQueryContext.setDbSelectStatement(dbSelectStatement);
         }
         baseResult = BaseResultGenerator.success();
     }
 
     @Override
     String convertQuery(String sql) {
-        sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.HBASE.getValue());
+        sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.HBASE.getValue());
         try {
             Select select = (Select) CCJSqlParserUtil.parse(sql);
             select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
     }
 
     @Override
-    String getBestQuery() {
+    String generateRuleBaseOptimizedQuery() {
         return new Optimizer().generateQueryLimit().generateSQL().build();
     }
 
     @Override
-    String getOriginalQuery() {
-        return param.getQuery();
-    }
-
-    @Override
     String getSampleQuery() {
-        return convertQuery(param.getQuery());
+        return convertQuery(sqlQueryContext.getOriginalSQL());
     }
 
     @Override
     String getExplainQuery() {
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.HBASE_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
+        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.HBASE_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
     }
 
     @Override
@@ -136,17 +132,28 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
+    List<Map<String, String>> buildExampleMeta() {
+        return baseResult.getMeta() != null ? (List<Map<String, String>>) baseResult.getMeta() : null;
+    }
+
+    @Override
+    List<Object> buildExampleData() {
+        return baseResult.getData() != null ? (List<Object>) baseResult.getData() : null;
+    }
+
+    @Override
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
         watch.start();
         Map<String, Object> results = executeQuery(sql);
         int status = Integer.parseInt(String.valueOf(results.get("status")));
-        if (status == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), QueryFormatEnum.JSON.getValue());
+        if (status == HttpStatusCodeEnum.SUCCESS.getCode()) {
+            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), true, message.get(),
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), OutputMode.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(status, QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.valueOf(results.get("message")),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());
+            baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), false, String.valueOf(results.get("message")),
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), sqlQueryContext.getFormat());
         }
+        baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine()));
         return baseResult;
     }
 
@@ -155,7 +162,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         java.sql.Statement statement = null;
         ResultSet resultSet = null;
         try {
-            log.info("{} engine execute query: {}", DBTypeEnum.HBASE.getValue(), sql);
+            log.info("{} engine execute query: {}", DBEngineType.HBASE.getValue(), sql);
             PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
@@ -165,9 +172,9 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             resultSet = statement.executeQuery(sql);
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
-            log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
+            log.error("{} engine error: {}", DBEngineType.HBASE.getValue(), e);
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), simplyErrorMessage(e.getMessage())));
         } finally {
             close(resultSet, statement, conn);
         }
@@ -197,7 +204,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
         statistics.put("result_bytes", dataList.toString().getBytes().length);
         statistics.put("result_rows", dataList.size());
-        result.put("status", ResultStatusEnum.SUCCESS.getCode());
+        result.put("status", HttpStatusCodeEnum.SUCCESS.getCode());
         result.put("statistics", statistics);
         result.put("meta", metaDataList);
         result.put("data", dataList);
@@ -211,12 +218,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     public BaseResult executeKillQuery(String queryId) {
-        return BaseResultGenerator.failure(ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "not support"));
     }
 
     @Override
     public BaseResult getProcesses(String queryId) {
-        return BaseResultGenerator.failure(ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "not support"));
     }
 
     class Optimizer {
@@ -229,11 +236,11 @@ public class HbaseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateQueryLimit() {
 
-            setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+            setDefaultResultRows(StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) ? sqlQueryContext.getDbSelectStatement() : sqlQueryContext.getFederationSelectStatement(), engineConfigSource.getDefaultResultNum());
             return this;
         }
 
-        private void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+        private void setDefaultResultRows(SelectStatement sqlQuerySource, int defaultResultRows) {
             if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
                 sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
                 sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
@@ -242,7 +249,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+            SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }

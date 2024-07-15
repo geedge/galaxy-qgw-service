@@ -1,22 +1,25 @@
 package com.mesalab.services.controller;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.geedgenetworks.utils.StringUtil;
-import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.utils.sqlparser.AutoPeriodHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.services.service.SQLDatasetService;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.AuditLog;
+import com.mesalab.qgw.service.DatabaseService;
 
+import com.mesalab.services.service.SQLDatasetService;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.parser.JJTCCJSqlParserState;
+import net.sf.jsqlparser.statement.Statement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,15 +34,15 @@ import java.util.*;
  */
 @RestController
 @RequestMapping(value = "/v1")
-public class SQLDatasetController
-{
+public class SQLDatasetController {
     private static final Log log = LogFactory.get();
-    @Autowired
-    SQLDatasetService sqlDatasetService;
+    private DatabaseService databaseService;
+    private SQLDatasetService sqlDatasetService;
 
     @DeleteMapping(value = "sql/query/{query_id}")
+    @AuditLog("DatabaseController.killQuery")
     public BaseResult killQuery(@PathVariable("query_id") String queryId) {
-        log.warn("停止查询, 参数: queryId is {}", queryId);
+        log.warn("skill query, param: queryId is {}", queryId);
         if (StringUtil.isBlank(queryId)) {
             return BaseResultGenerator.success4Message("ok");
         }
@@ -48,18 +51,22 @@ public class SQLDatasetController
 
 
     @RequestMapping(value = "sql/query/query_id", method = RequestMethod.POST)
+    @AuditLog("DatabaseController.getQueryId")
     public BaseResult getQueryId(@RequestParam String query, @RequestParam(value = "result_id", required = false) Integer resultId) {
-        log.info("获取当前SQL Query ID, 参数: query ={}，result_id ={}", query, resultId);
+        log.info("get current SQL Query ID, parma: query ={}，result_id ={}", query, resultId);
         if (StringUtil.isEmpty(query)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CANNOT_BE_EMPTY));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CANNOT_BE_EMPTY));
         }
-        String queryId;
-        if (resultId != null) {
-            queryId = sqlDatasetService.getCustomQueryId(resultId.toString(), query.toString());
-        } else {
-            queryId = sqlDatasetService.getCustomQueryId("", query.toString());
+        Statement statement;
+        try {
+            statement = CCJSqlParserUtil.parse(query);
+        } catch (JSQLParserException e) {
+            log.error("Error Parsing SQL: {}", ExceptionUtil.getRootCauseMessage(e));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
+        String queryId = databaseService.getCustomQueryId(resultId == null ? null : resultId.toString(), AutoPeriodHelper.buildSqlGranularity(statement).toString());
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);
         map.put("queryId", queryId);
@@ -68,35 +75,21 @@ public class SQLDatasetController
     }
 
     @GetMapping(value = "sql/query/{query_id}/progress")
+    @AuditLog("DatabaseController.getProcessesByQueryId")
     public BaseResult getProcessesByQueryId(@PathVariable("query_id") String queryId) {
-        log.info("查询SQL任务执行状态, 参数: queryId is {}", queryId);
+        log.info("get query status, param: queryId is {}", queryId);
         return sqlDatasetService.getProcessesByQueryId(queryId);
     }
 
-    @GetMapping(value = "/dataset")
-    public BaseResult getDatasets(@RequestParam(value = "identifier_names",required = false) String datasetIds, @RequestParam(required = false) String category, @RequestParam(required = false) String title)
-    {
-        log.info("Get Datasets. IDs is: {}, category is: {}, title is: {}", datasetIds, category, title);
-        return BaseResultGenerator.success(sqlDatasetService.getDatasets(Arrays.asList(StrUtil.split(datasetIds, ",")), category, title));
+
+    @Autowired
+    public void setDatabaseService(DatabaseService databaseService) {
+        this.databaseService = databaseService;
     }
 
-    @GetMapping(value = "/dataset/{identifier_name}")
-    public BaseResult getDataset(@PathVariable("identifier_name") String identifierName)
-    {
-        log.info("Get Dataset, ID is: {}", identifierName);
-        return BaseResultGenerator.success(sqlDatasetService.getDataset(identifierName));
+    @Autowired
+    public void setSQLDatasetService(SQLDatasetService sqlDatasetService) {
+        this.sqlDatasetService = sqlDatasetService;
     }
 
-
-    @GetMapping(value = "/dataset/{identifier_name}/preview")
-    public BaseResult getPreview(@PathVariable("identifier_name") String identifierName,@RequestParam(required = false) String option)
-    {
-        return sqlDatasetService.getPreview(identifierName,option);
-    }
-
-    @GetMapping(value = "/dataset/global_variable")
-    public BaseResult getVariable()
-    {
-        return BaseResultGenerator.success(sqlDatasetService.getVariable());
-    }
 }

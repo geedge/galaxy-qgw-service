@@ -1,0 +1,44 @@
+{
+  "type": "record",
+  "name": "metric_tag",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time",
+      "tag"
+    ]
+  },
+  "fields": [
+    {
+      "name":"tag",
+      "label":"Tag",
+      "type":"string"
+    },
+    {
+      "name":"stat_time",
+      "label":"Stat Time",
+      "type":"long"
+    },
+    {
+      "name":"ip_sketch",
+      "label":"IP Sketch",
+      "type":"string"
+    },
+    {
+      "name":"domain_sketch",
+      "label":"Domain Sketch",
+      "type":"string"
+    },
+    {
+      "name":"ip_sketch_agg_state",
+      "label":"IP Sketch Aggregation State",
+      "type":"string"
+    },
+    {
+      "name":"domain_sketch_agg_state",
+      "label":"Domain Sketch Aggregation State",
+      "type":"string"
+    }
+  ]
+}

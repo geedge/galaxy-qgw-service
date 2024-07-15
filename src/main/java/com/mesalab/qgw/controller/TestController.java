@@ -29,7 +29,7 @@ import java.util.List;
 public class TestController {
 
     @Autowired
-    private DiagnosisService diagnosisService;
+    TroubleshootingController troubleshootingController;
     @Autowired
     private ProjectInfo projectProperties;
     @Autowired
@@ -56,6 +56,7 @@ public class TestController {
      * @return BaseResult
      */
     @GetMapping(value = "projectProperties")
+    @AuditLog("TestController.projectProperties")
     public BaseResult projectProperties() {
         log.info("Project Properties: {}", projectProperties);
         return BaseResultGenerator.success("ok", projectProperties);
@@ -67,6 +68,7 @@ public class TestController {
      * @return 返回当前项目的环境值
      */
     @GetMapping(value = "activeProfiles")
+    @AuditLog("TestController.activeProfiles")
     public BaseResult activeProfiles() {
         List<String> activeProfiles = Lists.newArrayList(nacosConfig.getNamespace());
         log.info("Current Namespace: {}", activeProfiles);
@@ -79,6 +81,7 @@ public class TestController {
      * @return 返回当前项目的运行环境
      */
     @GetMapping(value = "env")
+    @AuditLog("TestController.env")
     public BaseResult env() {
         return BaseResultGenerator.success(Lists.newArrayList(nacosConfig.getNamespace()));
     }
@@ -89,33 +92,9 @@ public class TestController {
      * @return 检查授权
      */
     @GetMapping(value = "checkAuthc")
+    @AuditLog("TestController.checkAuthc")
     public BaseResult checkAuthc() {
         return BaseResultGenerator.success();
-    }
-
-
-    /**
-     * 运行测试用例
-     *
-     * @return
-     */
-    @GetMapping(value = "runSql")
-    @Deprecated
-    public BaseResult runSql() {
-        BaseResult result = diagnosisService.runPocSQL(false, "validation", null);
-        return result;
-    }
-
-    /**
-     * 校验schema
-     *
-     * @return
-     */
-    @GetMapping(value = "runSchema")
-    @Deprecated
-    public BaseResult runSchema() {
-        BaseResult result = diagnosisService.validateSchema();
-        return result;
     }
 
     /**
@@ -124,6 +103,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "jobAdminHttpSource")
+    @AuditLog("TestController.jobAdminHttpSource")
     public BaseResult jobAdminHttpSource() {
         return BaseResultGenerator.success("ok", jobAdminHttpSource);
     }
@@ -134,6 +114,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "druidIoHttpSource")
+    @AuditLog("TestController.druidIoHttpSource")
     public BaseResult druidIoHttpSource() {
         return BaseResultGenerator.success("ok", druidIoHttpSource);
     }
@@ -144,6 +125,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "clickHouseHttpSource")
+    @AuditLog("TestController.clickHouseHttpSource")
     public BaseResult clickHouseHttpSource() {
         return BaseResultGenerator.success("ok", clickHouseHttpSource);
     }
@@ -154,6 +136,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "hBaseAPISource")
+    @AuditLog("TestController.hBaseAPISource")
     public BaseResult hBaseAPISource() {
         return BaseResultGenerator.success("ok", hBaseAPISource);
     }
@@ -164,6 +147,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "engineConfigSource")
+    @AuditLog("TestController.engineConfigSource")
     public BaseResult engineConfigSource() {
         return BaseResultGenerator.success("ok", engineConfigSource);
     }
@@ -174,6 +158,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "arangoConfig")
+    @AuditLog("TestController.arangoConfig")
     public BaseResult arangoConfig() {
         return BaseResultGenerator.success("ok", arangoConfig);
     }
@@ -184,6 +169,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "httpConfig")
+    @AuditLog("TestController.httpConfig")
     public BaseResult httpConfig() {
         return BaseResultGenerator.success("ok", httpConfig);
     }

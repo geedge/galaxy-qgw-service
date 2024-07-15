@@ -8,57 +8,62 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "__time"
+      ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
         "device_group",
         "data_center"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "sessions",
-        "active_sessions",
         "closed_sessions",
         "in_bytes",
         "out_bytes",
         "in_pkts",
         "out_pkts",
         "asymmetric_c2s_flows",
-        "asymmetric_s2c_flows",
-        "tcp_syn_pkts",
-        "tcp_ack_pkts",
-        "tcp_fin_pkts",
-        "tcp_rst_pkts"
+        "asymmetric_s2c_flows"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
         "device_group",
-        "data_center",
-        "sessions",
-        "active_sessions",
-        "closed_sessions",
-        "in_bytes",
-        "out_bytes",
-        "in_pkts",
-        "out_pkts",
-        "asymmetric_c2s_flows",
-        "asymmetric_s2c_flows",
-        "tcp_syn_pkts",
-        "tcp_ack_pkts",
-        "tcp_fin_pkts",
-        "tcp_rst_pkts"
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
-      "granularity": 5,
-      "ingestion_delay": 15
+      "ingestion_period": "PT1S",
+      "compaction_period": "PT1M",
+      "skip_compaction_offset_from_latest": "P7D",
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "asymmetric_c2s_flows": "flows",
+          "asymmetric_s2c_flows": "flows",
+          "sessions": "sessions",
+          "closed_sessions": "sessions",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "asymmetric_c2s_flows": "fps",
+          "asymmetric_s2c_flows": "fps",
+          "sessions": "sps",
+          "closed_sessions": "sps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -122,13 +127,17 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
       "name": "sessions",
-      "label": "Sessions",
+      "label": "New Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -137,6 +146,9 @@
       "name": "active_sessions",
       "label": "Active Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -145,6 +157,10 @@
       "name": "closed_sessions",
       "label": "Closed Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -154,6 +170,10 @@
       "label": "Incoming Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       }
     },
@@ -162,6 +182,10 @@
       "label": "Incoming Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
@@ -170,6 +194,10 @@
       "label": "Outgoing Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       }
     },
@@ -178,22 +206,34 @@
       "label": "Outgoing Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "asymmetric_c2s_flows",
-      "label": "Asymmetric Flows (c2s)",
+      "label": "Asymmetric Flows(c2s)",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "asymmetric_s2c_flows",
-      "label": "Asymmetric Flows (s2c)",
+      "label": "Asymmetric Flows(s2c)",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
@@ -202,14 +242,10 @@
       "label": "TCP SYN Packets",
       "type": "long",
       "doc": {
-        "visibility": "enabled"
-      }
-    },
-    {
-      "name": "tcp_syn_ack_pkts",
-      "label": "TCP SYN/ACK Packets",
-      "type": "long",
-      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
@@ -218,6 +254,34 @@
       "label": "TCP ACK Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_fin_pkts",
+      "label": "TCP FIN Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_rst_pkts",
+      "label": "TCP RST Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     }

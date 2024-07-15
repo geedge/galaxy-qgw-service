@@ -5,7 +5,7 @@
       "group": "CLICKHOUSE_GROUP",
       "tables": [
         "session_record_cn",
-        "cn_entity_relation",
+        "session_relation_domain_ip_app",
         "cn_ip_dynamic_attribute",
         "cn_security_event",
         "metric_ip",
@@ -22,28 +22,25 @@
         "metric_dns_rcode",
         "metric_dns_rr_a",
         "metric_dns_rr_aaaa",
-        "metric_dns_rr_cname"
+        "metric_dns_rr_cname",
+        "metric_tag",
+        "location_subscriber",
+        "session_relation_subscriber_app"
       ]
     },
     {
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "processes",
+        "processes_cluster",
         "tables_cluster"
-      ]
-    },
-    {
-      "namespace":"tsg",
-      "group":"HBASE_GROUP",
-      "tables":[
-        "report_result"
       ]
     },
     {
       "namespace": "tsg_galaxy",
       "group": "HBASE_GROUP",
       "tables": [
+        "saved_query_result"
       ]
     }
   ]

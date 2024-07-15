@@ -65,9 +65,9 @@
 
 4. 执行./build-deploy.sh 完成部署
 
-5. 启停/home/tsg/galaxy/galaxy-qgw-service/bin start.sh|stop.sh
+5. 启停/opt/galaxy-qgw-service/bin start.sh|stop.sh
 
-6. 查看日志：tail -f /home/tsg/galaxy/galaxy-qgw-service/logs/galaxy-qgw-service.log
+6. 查看日志：tail -f /opt/galaxy-qgw-service/logs/galaxy-qgw-service.log
 
 7. 修改配置文件 
 
@@ -85,17 +85,17 @@
 
 2. 修改镜像tag docker tag 79470009165e ceiec/galaxy-qgw-service:[version]
 
-3. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/tsg/galaxy/galaxy-qgw-service/logs:/home/tsg/galaxy/galaxy-qgw-service/logs -p 9999:9999 --restart=always galaxy/galaxy-qgw-service:[version]
+3. 部署容器 docker run -d  --name galaxy-qgw-service -v /opt/galaxy-qgw-service/logs:/opt/galaxy-qgw-service/logs -p 9999:9999 --restart=always galaxy/galaxy-qgw-service:[version]
 
 4. 启停 docker start|stop galaxy-qgw-service
 
-5. 查看日志tail -f /home/tsg/galaxy/galaxy-qgw-service/logs/galaxy-qgw-service.log
-6. 备份镜像文件 docker save 79470009165e  > /home/tsg/galaxy/docker_image_galaxy-qgw-service_[version].tar 
+5. 查看日志tail -f /opt/galaxy-qgw-service/logs/galaxy-qgw-service.log
+6. 备份镜像文件 docker save 79470009165e  > /opt/docker_image_galaxy-qgw-service_[version].tar 
 
 - GIT 提交规范
   - [purpose][module name] Description (JIRA Issue ID)
-  - purpose : Fix, Feature, Improve, Docs
-  - module name : engine, cn, network, sql-dataset
+  - purpose : Fix, Feature, Improve, Refactor, Docs
+  - module name : query, dataset, database, util, troubleshooting, hos, admin, knowledge base file
 
 - 部署前提
 

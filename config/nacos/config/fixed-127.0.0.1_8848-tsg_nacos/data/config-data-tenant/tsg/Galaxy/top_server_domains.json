@@ -8,44 +8,58 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "__time"
+      ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "domain"
+        "server_domain"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "domain",
         "sessions",
+        "bytes",
         "in_bytes",
         "out_bytes",
+        "pkts",
         "in_pkts",
         "out_pkts"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
+        "rank_by",
         "device_group",
-        "data_center",
-        "domain",
-        "sessions",
-        "in_bytes",
-        "out_bytes",
-        "in_pkts",
-        "out_pkts"
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
-      "granularity": 300,
-      "ingestion_delay": 15
+      "ingestion_period": "PT1M",
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sessions": "sessions",
+          "bytes": "bytes",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "pkts": "packets",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "sessions": "sps",
+          "bytes": "Bps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "pkts": "pps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "bytes": "bps",
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -69,7 +83,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -113,17 +127,37 @@
       }
     },
     {
-      "name": "domain",
-      "label": "Domain",
+      "name": "rank_by",
+      "label": "Rank",
       "doc": {
+        "constraints": {
+          "operator_functions": "="
+        },
+        "data": [
+          {
+            "code": "bytes",
+            "value": "Bytes"
+          },
+          {
+            "code": "sessions",
+            "value": "Sessions"
+          },
+          {
+            "code": "packets",
+            "value": "Packets"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "string"
     },
     {
-      "name": "metric",
-      "label": "Metric",
+      "name": "server_domain",
+      "label": "Server Domain",
       "doc": {
+        "constraints": {
+          "type": "domain"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -132,7 +166,23 @@
       "name": "sessions",
       "label": "Sessions",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
       },
       "type": "long"
     },
@@ -140,15 +190,11 @@
       "name": "in_bytes",
       "label": "Incoming Bytes",
       "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "in_pkts",
-      "label": "Incoming Packets",
-      "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
       },
       "type": "long"
     },
@@ -156,7 +202,35 @@
       "name": "out_bytes",
       "label": "Outgoing Bytes",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "pkts",
+      "label": "Packets",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
       },
       "type": "long"
     },
@@ -164,7 +238,11 @@
       "name": "out_pkts",
       "label": "Outgoing Packets",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
       },
       "type": "long"
     }

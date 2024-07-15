@@ -3,7 +3,7 @@ package com.mesalab.qgw.filter;
 
 
 import com.google.common.collect.Lists;
-import com.mesalab.common.enums.QueryParamEnum;
+import com.mesalab.common.enums.QueryParam;
 import com.mesalab.common.utils.HttpHelper;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -34,12 +34,12 @@ public class RequestParamWrapper extends HttpServletRequestWrapper {
 
     @Override
     public String[] getParameterValues(String name) {
-        if (QueryParamEnum.QUERY.getValue().equals(name)) {
+        if (QueryParam.QUERY.getValue().equals(name)) {
             queryString =  queryString.replaceAll("\\+", "%2B");
-            List<NameValuePair> values = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
+            List<NameValuePair> values = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
             List<String> valueList = Lists.newArrayList();
               for (NameValuePair nameValuePair: values) {
-                  if (nameValuePair.getName().equals(QueryParamEnum.QUERY.getValue())) {
+                  if (nameValuePair.getName().equals(QueryParam.QUERY.getValue())) {
                       valueList.add(nameValuePair.getValue());
                   }
               }

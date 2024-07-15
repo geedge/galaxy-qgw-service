@@ -4,12 +4,10 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.base.Joiner;
-import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.cn.constant.SqlKeywords;
 import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.cn.exception.CNErrorCode;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -43,7 +41,7 @@ public class CNParser extends DSLParser {
             selectSql = parseQueryOfShareNet(dslObject, selectSql);
         } catch (RuntimeException e) {
             log.error("Build SQL Exception:{}",e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
                     String.format(CNErrorCode.SQL_BUILDER_EXCEPTION.getMessage(),e.getMessage()));
         }
         return selectSql;
@@ -58,7 +56,7 @@ public class CNParser extends DSLParser {
             selectSql = parseQueryOfBannedApp(dslObject, selectSql);
         } catch (RuntimeException e) {
             log.error("Build SQL Exception:{}",e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
                     String.format(CNErrorCode.SQL_BUILDER_EXCEPTION.getMessage(),e.getMessage()));
         }
         return selectSql;

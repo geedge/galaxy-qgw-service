@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 /**
  * TODO
  *
- * @Classname TaskCfg
- * @Date 2021/12/8 4:26 下午
+ * @Classname TaskConfig
+ * @Date 2024/6/26 10:55
  * @Author wWei
  */
 @Data

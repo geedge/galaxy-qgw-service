@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.json.JSONUtil;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.nacos.NacosConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
@@ -39,13 +39,15 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
             return;
         }
         try {
-
             ResponseEntity responseEntity = restTemplate.getForEntity(URLUtil.normalize(nacosConfig.getServerAddr() + "/nacos/actuator/health"), Map.class);
-            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()
+            ResponseEntity<Map> resMap = restTemplate.getForEntity(URLUtil.normalize(nacosConfig.getServerAddr() + "/nacos/v1/console/server/state"), Map.class);
+            if (resMap.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()
+                    && responseEntity.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()
                     && "UP".equalsIgnoreCase(JsonPath.read(JSONUtil.toJsonStr(responseEntity.getBody()), "$.status"))) {
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", nacosConfig.getServerAddr())
+                        .withDetail("version",resMap.getBody().get("version"))
                         .withDetail("message", "ok");
             } else {
                 builder.down()

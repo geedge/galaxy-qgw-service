@@ -17,13 +17,13 @@ SELECT count(*) AS logCount, %s AS totalMetric FROM %s %s LIMIT 1
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."duration_time") VALUES('%s', %s, %s, %s)
 #end
 #sql("JOB_TOPK_DEFAULT")
-SELECT %s AS value, %s(%s) AS %s FROM %s %s GROUP BY value ORDER BY %s DESC limit 10000
+SELECT %s AS value, %s(%s) AS %s%s FROM %s %s GROUP BY value ORDER BY %s%s DESC limit %s
 #end
 #sql("JOB_TOPK_ARRAY")
-SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT %s AS items, %s AS metric FROM %s WHERE notEmpty(%s) %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT 10000
+SELECT value, %s(metric) AS %s%s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT IF(empty(%s), arrayPushBack(%s, NULL), %s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s%s DESC LIMIT %s
 #end
 #sql("JOB_TOPK_BIT")
-SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT bitmaskToArray(%s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT 10000
+SELECT value, %s(metric) AS %s%s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT bitmaskToArray(%s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s%s DESC LIMIT %s
 #end
 #sql("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')
@@ -50,7 +50,7 @@ SELECT %s FROM %s WHERE %s LIMIT 1
 INSERT INTO saved_query_job (job_id, query_sql, state, done_progress, is_failed, result_message, elapsed, rows_read, bytes_read, result_rows, result_bytes, is_valid, start_time, end_time, last_update_time, generated_time ) VALUES ('%s', '%s', 'PENDING', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '%s', '%s')
 #end
 #sql("SAVED_QUERY_JOB_STATUS")
-SELECT state, done_progress, is_failed, is_valid, start_time, end_time, rows_read, query_sql, job_id FROM saved_query_job WHERE job_id IN ('%s') LIMIT %s
+SELECT state, done_progress, is_failed, result_message, is_valid, start_time, end_time, rows_read, query_sql, job_id FROM saved_query_job WHERE job_id IN ('%s') LIMIT %s
 #end
 #sql("SAVED_QUERY_JOB_SAME")
 SELECT job_id AS id FROM saved_query_job WHERE is_valid = 1 AND state IN ( 'PENDING', 'RUNNING') AND is_failed = 0 AND query_sql = '%s' LIMIT 1

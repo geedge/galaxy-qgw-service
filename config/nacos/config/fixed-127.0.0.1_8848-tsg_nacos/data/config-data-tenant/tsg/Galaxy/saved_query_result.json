@@ -1,0 +1,32 @@
+{
+  "type": "record",
+  "name": "saved_query_result",
+  "namespace": "tsg_galaxy",
+  "fields": [
+    {
+      "name":"ROWKEY",
+      "label":"Row Key",
+      "type":"string"
+    },
+    {
+      "name":"excute_sql",
+      "label":"Excute SQL",
+      "type":"string"
+    },
+    {
+      "name":"read_rows",
+      "label":"Read Rows",
+      "type":"long"
+    },
+    {
+      "name":"result_id",
+      "label":"Result ID",
+      "type":"int"
+    },
+    {
+      "name":"result",
+      "label":"Result",
+      "type":"string"
+    }
+  ]
+}

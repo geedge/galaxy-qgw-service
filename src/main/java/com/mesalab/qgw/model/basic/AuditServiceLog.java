@@ -8,7 +8,7 @@ public class AuditServiceLog {
 
     private String annotation;
 
-    private String queryKey;
+    private String requestId;
 
     private String cacheKey;
 
@@ -16,11 +16,11 @@ public class AuditServiceLog {
 
     private String clientIp;
 
-    private long exeTime;
+    private long elapsed;
 
-    private String dbType;
+    private String dbEngine;
 
-    private String param;
+    private String requestParam;
 
     private String url;
 

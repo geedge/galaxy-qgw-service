@@ -1,0 +1,236 @@
+{
+  "port": {
+    "mode": "range",
+    "start": 0,
+    "end": 65535
+  },
+  "http_code": {
+    "mode": "range",
+    "start": 100,
+    "end": 599
+  },
+  "country": {
+    "mode": "sequence",
+    "values": [
+      "China",
+      "United States",
+      "Russia",
+      "American Samoa",
+      "Nauru",
+      "Italy",
+      "South Africa",
+      "Afghanistan",
+      "Germany",
+      "Canada",
+      "Myanmar",
+      "Kazakhsta",
+      "Pakistan",
+      "Japan",
+      "France"
+    ]
+  },
+  "super_administrative_area": {
+    "mode": "sequence",
+    "values": [
+      "Beijing",
+      "New York",
+      "Moscow Oblast",
+      "Eastern District",
+      "Meneng District",
+      "Piedmont",
+      "Gauteng",
+      "Nangarhar",
+      "Baden-Wurttemberg",
+      "Ontario",
+      "Yangon",
+      "Qostanay Oblysy",
+      "Punjab",
+      "Tokyo",
+      "Nouvelle-Aquitaine"
+    ]
+  },
+  "administrative_area": {
+    "mode": "sequence",
+    "random": true,
+    "values": [
+      "Beijing",
+      "Blossvale",
+      "Vlasikha",
+      "Utulei",
+      "Menen",
+      "Bruno",
+      "Irene",
+      "Jalalabad",
+      "Keltern",
+      "Southampton",
+      "San Chaung",
+      "Tenizovskiy",
+      "Chiniot",
+      "Sendagaya",
+      "Balzac"
+    ]
+  },
+  "fqdn": {
+    "mode": "enum",
+    "values": [
+      "appstore.ldmnq.com",
+      "oss.work.weixin.qq.com",
+      "extshort.weixin.qq.com",
+      "cube.weixinbridge.com",
+      "szextshort.weixin.qq.com",
+      "ctldl.windowsupdate.com",
+      "fsvippc.hw.kugou.com",
+      "i.work.weixin.qq.com",
+      "res.wx.qq.com",
+      "self.events.data.microsoft.com",
+      "docs.geedge.net",
+      "www.msftconnecttest.com",
+      "pds-app-cn-beijing.cn-beijing.log.aliyuncs.com",
+      "dns.google",
+      "mmbiz.qpic.cn",
+      "osfsr.lenovomm.com",
+      "static-pcs-sdk-server.alibaba.com",
+      "pypi.org",
+      "mobile.events.data.microsoft.com",
+      "tpstelemetry.tencent.com"
+    ]
+  },
+  "domain": {
+    "mode": "enum",
+    "values": [
+      "ldmnq.com",
+      "qq.com",
+      "microsoft.com",
+      "weixinbridge.com",
+      "baidu.com",
+      "kugou.com",
+      "windowsupdate.com",
+      "geedge.net",
+      "msftconnecttest.com",
+      "qpic.cn",
+      "google.com",
+      "aliyuncs.com",
+      "apple.com",
+      "alibaba.com",
+      "lenovomm.com",
+      "dns.google",
+      "360.cn",
+      "csdn.net",
+      "wps.cn",
+      "tencent.com"
+    ]
+  },
+  "app": {
+    "mode": "enum",
+    "values": [
+      "microsoft",
+      "iperf",
+      "baidu",
+      "iqiyi",
+      "qq_web",
+      "quic",
+      "cloudflare",
+      "wps_office",
+      "alibaba",
+      "360cn",
+      "tencent",
+      "apple",
+      "bing",
+      "amazon",
+      "bytedance",
+      "icloud",
+      "kingsoft",
+      "windows_marketplace",
+      "alibaba_cloud",
+      "qqmusic"
+    ]
+  },
+  "ip": {
+    "mode": "enum",
+    "values": [
+      "101.132.162.123",
+      "47.100.58.110",
+      "47.103.62.89",
+      "120.53.53.53",
+      "10.227.242.38",
+      "116.211.207.100",
+      "10.0.0.178",
+      "36.110.220.113",
+      "220.181.38.149",
+      "42.81.186.225",
+      "47.93.59.84",
+      "117.89.176.31",
+      "101.198.198.198",
+      "183.47.118.249",
+      "182.254.116.117",
+      "42.81.237.156",
+      "120.133.65.232",
+      "121.14.154.93",
+      "172.16.1.14",
+      "183.47.103.43",
+      "69.139.238.46",
+      "51.129.105.77",
+      "92.60.42.197",
+      "44.247.115.202",
+      "29.245.89.106"
+    ]
+  },
+  "email": {
+    "mode": "enum",
+    "values": [
+      "doerrling0@ovh.net",
+      "jjent1@wikispaces.com",
+      "scapron2@rambler.ru",
+      "nswyersexey3@ow.ly",
+      "dleband4@comsenz.com",
+      "psyred5@jimdo.com",
+      "bodda6@vistaprint.com",
+      "hhoult7@businessweek.com",
+      "rferebee8@hugedomains.com",
+      "eheintzsch9@mac.com",
+      "ffurmengera@indiatimes.com",
+      "mbrekonridgeb@china.com.cn",
+      "mhellardc@dmoz.org",
+      "iseczykd@jigsy.com",
+      "htrivette@livejournal.com",
+      "kschaffelf@cnn.com",
+      "bsucklingg@tuttocitta.it",
+      "atarbeth@craigslist.org",
+      "candrysiaki@liveinternet.ru",
+      "arisingj@adobe.com"
+    ]
+  },
+  "url": {
+    "mode": "enum",
+    "values": [
+      "appstore.ldmnq.com/menu_manager",
+      "pds-app-cn-beijing.cn-beijing.log.aliyuncs.com/logstores/sync-app",
+      "www.msftconnecttest.com/connecttest.txt",
+      "captive.apple.com",
+      "static-pcs-sdk-server.alibaba.com/a",
+      "ipv6.msftconnecttest.com/connecttest.txt",
+      "d?dn=5736b7bfb4a72e8e87b41bbd2863bc1e2016d03acdea7eca8a31de0200a11452&id=2&ttl=1&type=aaaa",
+      "www.msftncsi.com/ncsi.txt",
+      "shuc-pc-hunt.ksord.com/",
+      "helpdubaclient.ksmobile.com/nep/v1/",
+      "go.microsoft.com/fwlink/?LinkID=252669&clcid=0x409",
+      "global.quickconnect.cn/Serv.php",
+      "conn-service-cn-04.allawntech.com/generate204",
+      "err.taobao.com/error1.html",
+      "qd-update.qq.com:8080/",
+      "software-down.keniu.com/config/k52zip/evluatesetcfg.dat",
+      "connectivitycheck-backup.platform.hihonorcloud.com/generate_204",
+      "weather2db.cmcm.com/ip/cityid",
+      "conf-darwin.xycdn.com/psdk_param?version=wymusicw_3.0.23.1",
+      "sdkoptedge.chinanetcenter.com/"
+    ]
+  },
+  "hdr_histogram": {
+    "mode": "enum",
+    "values": [
+      "[{\"value\":1,\"count\":1,\"percentile\":0.0016328130102540657},{\"value\":22,\"count\":44118,\"percentile\":72.03807719939913},{\"value\":23,\"count\":14684,\"percentile\":96.01430344196983},{\"value\":24,\"count\":1603,\"percentile\":98.63170269740709},{\"value\":25,\"count\":383,\"percentile\":99.2570700803344},{\"value\":26,\"count\":98,\"percentile\":99.4170857553393},{\"value\":28,\"count\":128,\"percentile\":99.62608582065182},{\"value\":30,\"count\":72,\"percentile\":99.74364835739011},{\"value\":31,\"count\":48,\"percentile\":99.8220233818823},{\"value\":33,\"count\":42,\"percentile\":99.89060152831298},{\"value\":35,\"count\":29,\"percentile\":99.93795310561035},{\"value\":37,\"count\":25,\"percentile\":99.9787734308667},{\"value\":39,\"count\":11,\"percentile\":99.99673437397949},{\"value\":41,\"count\":2,\"percentile\":100.0}]",
+      "[{\"value\":3,\"count\":1464,\"percentile\":7.778958554729011},{\"value\":8,\"count\":3478,\"percentile\":26.259298618490966},{\"value\":41,\"count\":4656,\"percentile\":50.99893730074389},{\"value\":49,\"count\":2828,\"percentile\":66.02550478214665},{\"value\":55,\"count\":2066,\"percentile\":77.00318809776833},{\"value\":59,\"count\":860,\"percentile\":81.57279489904357},{\"value\":119,\"count\":1118,\"percentile\":87.51328374070138},{\"value\":215,\"count\":698,\"percentile\":91.2221041445271},{\"value\":271,\"count\":860,\"percentile\":95.79171094580234},{\"value\":303,\"count\":344,\"percentile\":97.61955366631243},{\"value\":319,\"count\":158,\"percentile\":98.45908607863974},{\"value\":1087,\"count\":108,\"percentile\":99.03294367693942},{\"value\":1599,\"count\":38,\"percentile\":99.23485653560043},{\"value\":2943,\"count\":72,\"percentile\":99.61742826780021},{\"value\":3199,\"count\":20,\"percentile\":99.72369819341127},{\"value\":4351,\"count\":34,\"percentile\":99.90435706695006},{\"value\":7679,\"count\":10,\"percentile\":99.95749202975558},{\"value\":8703,\"count\":8,\"percentile\":100.0}]",
+      "[{\"value\":6,\"count\":1464,\"percentile\":7.752594789239568},{\"value\":8,\"count\":3498,\"percentile\":26.27621266680788},{\"value\":41,\"count\":4666,\"percentile\":50.984960813387},{\"value\":49,\"count\":2844,\"percentile\":66.04532937936878},{\"value\":55,\"count\":2074,\"percentile\":77.02817199745816},{\"value\":59,\"count\":860,\"percentile\":81.58229188731201},{\"value\":119,\"count\":1118,\"percentile\":87.502647744122},{\"value\":215,\"count\":698,\"percentile\":91.19889853844525},{\"value\":271,\"count\":870,\"percentile\":95.80597331073925},{\"value\":303,\"count\":344,\"percentile\":97.62762126668079},{\"value\":319,\"count\":158,\"percentile\":98.46430840923533},{\"value\":1087,\"count\":108,\"percentile\":99.03622113958907},{\"value\":1599,\"count\":38,\"percentile\":99.23744969286169},{\"value\":2943,\"count\":72,\"percentile\":99.61872484643084},{\"value\":3199,\"count\":20,\"percentile\":99.72463461131116},{\"value\":4351,\"count\":34,\"percentile\":99.90468121160771},{\"value\":7679,\"count\":10,\"percentile\":99.95763609404787},{\"value\":8703,\"count\":8,\"percentile\":100.0}]"
+    ]
+  }
+}

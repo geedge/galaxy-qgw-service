@@ -7,17 +7,23 @@
     "partition_key": "recv_time",
     "ttl": null,
     "default_ttl": 2592000,
-    "index_key": {
-      "$ref": "public_schema_info.json#/transaction_record/index_key"
-    },
+    "index_key": [
+      "vsys_id",
+      "session_id",
+      "recv_time"
+    ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "dimensions": [
-        "session_id",
+      "time": [
+        "recv_time",
         "processing_time",
         "ingestion_time",
+        "insert_time"
+      ],
+      "dimensions": [
+        "session_id",
         "address_type",
         "decoded_as",
         "vsys_id",
@@ -58,6 +64,7 @@
         "mail_attachment_name",
         "mail_attachment_name_charset",
         "mail_eml_file",
+        "mail_starttls_flag",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -87,6 +94,7 @@
         "sip_bye"
       ],
       "metrics": [
+        "log_id",
         "address_type",
         "decoded_as",
         "vsys_id",
@@ -131,6 +139,7 @@
         "mail_attachment_name",
         "mail_attachment_name_charset",
         "mail_eml_file",
+        "mail_starttls_flag",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -145,8 +154,6 @@
         "dns_nscount",
         "dns_arcount",
         "dns_qname",
-        "dns_qtype",
-        "dns_qclass",
         "dns_cname",
         "dns_sub",
         "dns_rr",
@@ -175,7 +182,6 @@
         "decoded_as",
         "vsys_id",
         "client_ip",
-        "internal_ip",
         "client_port",
         "server_ip",
         "server_port",
@@ -216,6 +222,7 @@
         "mail_attachment_name",
         "mail_attachment_name_charset",
         "mail_eml_file",
+        "mail_starttls_flag",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -230,8 +237,6 @@
         "dns_nscount",
         "dns_arcount",
         "dns_qname",
-        "dns_qtype",
-        "dns_qclass",
         "dns_cname",
         "dns_sub",
         "dns_rr",
@@ -259,19 +264,224 @@
     },
     "decoded_as": {
       "BASE": {
-        "$ref": "public_schema_info.json#/decoded_as/BASE"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "address_type",
+          "vsys_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port"
+        ]
       },
       "DNS": {
-        "$ref": "public_schema_info.json#/decoded_as/DNS"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "address_type",
+          "vsys_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "dns_message_id",
+          "dns_qr",
+          "dns_opcode",
+          "dns_aa",
+          "dns_tc",
+          "dns_rd",
+          "dns_ra",
+          "dns_rcode",
+          "dns_qdcount",
+          "dns_ancount",
+          "dns_nscount",
+          "dns_arcount",
+          "dns_qname",
+          "dns_qtype",
+          "dns_qclass",
+          "dns_cname",
+          "dns_sub",
+          "dns_rr",
+          "dns_response_latency_ms"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "dns_qr",
+          "dns_qname",
+          "dns_qtype",
+          "server_ip",
+          "server_port"
+        ]
       },
       "HTTP": {
-        "$ref": "public_schema_info.json#/decoded_as/HTTP"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "address_type",
+          "vsys_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "http_url",
+          "http_host",
+          "http_request_line",
+          "http_response_line",
+          "http_request_content_length",
+          "http_request_content_type",
+          "http_response_content_length",
+          "http_response_content_type",
+          "http_request_body",
+          "http_response_body",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_set_cookie",
+          "http_version",
+          "http_status_code",
+          "http_response_latency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "http_url",
+          "server_ip",
+          "server_port"
+        ]
       },
       "MAIL": {
-        "$ref": "public_schema_info.json#/decoded_as/MAIL"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "address_type",
+          "vsys_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "mail_protocol_type",
+          "mail_account",
+          "mail_from_cmd",
+          "mail_to_cmd",
+          "mail_from",
+          "mail_password",
+          "mail_to",
+          "mail_cc",
+          "mail_bcc",
+          "mail_subject",
+          "mail_subject_charset",
+          "mail_attachment_name",
+          "mail_attachment_name_charset",
+          "mail_eml_file",
+          "mail_starttls_flag"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "mail_from",
+          "mail_to",
+          "mail_subject",
+          "server_ip",
+          "server_port"
+        ]
       },
       "SIP": {
-        "$ref": "public_schema_info.json#/decoded_as/SIP"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "address_type",
+          "vsys_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "server_ip",
+          "server_port"
+        ]
       }
     },
     "default_columns": [
@@ -310,11 +520,9 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
-        "format": [
-          {
-            "function": "snowflake_id"
-          }
-        ],
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -325,7 +533,7 @@
       "label": "Decoded AS",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
         },
         "data": [
           {
@@ -370,11 +578,6 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "format": [
-          {
-            "function": "current_timestamp"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -390,15 +593,6 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "format": [
-          {
-            "function": "ingestion_time"
-          },
-          {
-            "function": "get_value",
-            "appendTo": "recv_time"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -429,16 +623,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "4",
-            "value": "ipv4"
-          },
-          {
-            "code": "6",
-            "value": "ipv6"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/address_type/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -459,6 +646,7 @@
       "label": "Client IP",
       "doc": {
         "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
           "type": "ip"
         },
         "visibility": "enabled",
@@ -470,6 +658,9 @@
       "name": "client_port",
       "label": "Client Port",
       "doc": {
+        "constraints": {
+          "type": "port"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -480,14 +671,9 @@
       "label": "Server IP",
       "doc": {
         "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
           "type": "ip"
         },
-        "format": [
-          {
-            "function": "geo_asn",
-            "appendTo": "server_asn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -497,6 +683,9 @@
       "name": "server_port",
       "label": "Server Port",
       "doc": {
+        "constraints": {
+          "type": "port"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -554,6 +743,9 @@
       "name": "http_url",
       "label": "HTTP.URL",
       "doc": {
+        "constraints": {
+          "type": "url"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -588,16 +780,16 @@
     },
     {
       "name": "http_request_content_length",
-      "label": "HTTP.Request Content Length",
+      "label": "HTTP.Request Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "http_request_content_type",
-      "label": "HTTP.Request Content Type",
+      "label": "HTTP.Request Content-Type",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -606,12 +798,12 @@
     },
     {
       "name": "http_response_content_length",
-      "label": "HTTP.Response Content Length",
+      "label": "HTTP.Response Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "http_response_content_type",
@@ -626,11 +818,6 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
-        "format": [
-          {
-            "function": "combine"
-          }
-        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
@@ -644,11 +831,6 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
-        "format": [
-          {
-            "function": "combine"
-          }
-        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
@@ -662,7 +844,7 @@
       "name": "http_proxy_flag",
       "label": "HTTP.Proxy Flag",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -696,7 +878,7 @@
     },
     {
       "name": "http_user_agent",
-      "label": "HTTP.User Agent",
+      "label": "HTTP.User-Agent",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -705,7 +887,7 @@
     },
     {
       "name": "http_set_cookie",
-      "label": "HTTP.Set Cookie",
+      "label": "HTTP.Set-Cookie",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -725,6 +907,10 @@
       "name": "http_status_code",
       "label": "HTTP.Status Code",
       "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT",
+          "type": "http_code"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -732,7 +918,7 @@
     },
     {
       "name": "http_response_latency_ms",
-      "label": "HTTP.Response Latency (ms)",
+      "label": "HTTP.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -740,7 +926,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "int"
     },
     {
       "name": "http_action_file_size",
@@ -752,11 +938,11 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "http_session_duration_ms",
-      "label": "HTTP.Session Duration (ms)",
+      "label": "HTTP.Session Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -764,11 +950,11 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "int"
     },
     {
       "name": "mail_protocol_type",
-      "label": "Mail.Protocol Type",
+      "label": "MAIL.Protocol Type",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -777,8 +963,11 @@
     },
     {
       "name": "mail_account",
-      "label": "Mail.Account",
+      "label": "MAIL.Account",
       "doc": {
+        "constraints": {
+          "type": "email"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -786,7 +975,7 @@
     },
     {
       "name": "mail_from_cmd",
-      "label": "Mail.From CMD",
+      "label": "MAIL.From CMD",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -795,7 +984,7 @@
     },
     {
       "name": "mail_to_cmd",
-      "label": "Mail.To CMD",
+      "label": "MAIL.To CMD",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -804,7 +993,7 @@
     },
     {
       "name": "mail_from",
-      "label": "Mail.From",
+      "label": "MAIL.From",
       "doc": {
         "constraints": {
           "type": "email"
@@ -816,7 +1005,7 @@
     },
     {
       "name": "mail_password",
-      "label": "Mail.Password",
+      "label": "MAIL.Password",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -825,7 +1014,7 @@
     },
     {
       "name": "mail_to",
-      "label": "Mail.To",
+      "label": "MAIL.To",
       "doc": {
         "constraints": {
           "type": "email"
@@ -837,7 +1026,7 @@
     },
     {
       "name": "mail_cc",
-      "label": "Mail.CC",
+      "label": "MAIL.CC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -846,7 +1035,7 @@
     },
     {
       "name": "mail_bcc",
-      "label": "Mail.BCC",
+      "label": "MAIL.BCC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -855,14 +1044,8 @@
     },
     {
       "name": "mail_subject",
-      "label": "Mail.Subject",
+      "label": "MAIL.Subject",
       "doc": {
-        "format": [
-          {
-            "function": "decode_of_base64",
-            "param": "$.mail_subject_charset"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -870,7 +1053,7 @@
     },
     {
       "name": "mail_subject_charset",
-      "label": "Mail.Subject Charset",
+      "label": "MAIL.Subject Charset",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -879,14 +1062,8 @@
     },
     {
       "name": "mail_attachment_name",
-      "label": "Mail.Attachment",
+      "label": "MAIL.Attachment Name",
       "doc": {
-        "format": [
-          {
-            "function": "decode_of_base64",
-            "param": "$.mail_attachment_name_charset"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -894,7 +1071,7 @@
     },
     {
       "name": "mail_attachment_name_charset",
-      "label": "Mail.Attachment Charset",
+      "label": "MAIL.Attachment Name Charset",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -903,13 +1080,8 @@
     },
     {
       "name": "mail_eml_file",
-      "label": "Mail.EML File",
+      "label": "MAIL.EML File",
       "doc": {
-        "format": [
-          {
-            "function": "combine"
-          }
-        ],
         "constraints": {
           "type": "file"
         },
@@ -917,6 +1089,21 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "mail_starttls_flag",
+      "label": "MAIL.STARTTLS Flag",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/mail_starttls_flag/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "dns_message_id",
@@ -934,16 +1121,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "QUERY"
-          },
-          {
-            "code": "1",
-            "value": "RESPONSE"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_qr/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -956,24 +1136,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "QUERY"
-          },
-          {
-            "code": "1",
-            "value": "IQUERY"
-          },
-          {
-            "code": "2",
-            "value": "STATUS"
-          },
-          {
-            "code": "5",
-            "value": "UPDATE"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_opcode/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1019,76 +1184,9 @@
       "name": "dns_rcode",
       "label": "DNS.RCODE",
       "doc": {
-        "data": [
-          {
-            "code": 0,
-            "value": "NoError"
-          },
-          {
-            "code": 1,
-            "value": "FormErr"
-          },
-          {
-            "code": 2,
-            "value": "ServFail"
-          },
-          {
-            "code": 3,
-            "value": "NXDomain"
-          },
-          {
-            "code": 4,
-            "value": "NotImp"
-          },
-          {
-            "code": 5,
-            "value": "Refused"
-          },
-          {
-            "code": 6,
-            "value": "YXDomain"
-          },
-          {
-            "code": 7,
-            "value": "YXRRSet"
-          },
-          {
-            "code": 8,
-            "value": "NXRRSet"
-          },
-          {
-            "code": 9,
-            "value": "NotAuth"
-          },
-          {
-            "code": 10,
-            "value": "NotZone"
-          },
-          {
-            "code": 16,
-            "value": "BADSIG"
-          },
-          {
-            "code": 17,
-            "value": "BADKEY"
-          },
-          {
-            "code": 18,
-            "value": "BADTIME"
-          },
-          {
-            "code": 19,
-            "value": "BADMODE"
-          },
-          {
-            "code": 20,
-            "value": "BADNAME"
-          },
-          {
-            "code": 21,
-            "value": "BADALG"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_rcode/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1156,330 +1254,12 @@
       "label": "DNS.QTYPE",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
-        "data": [
-          {
-            "code": "1",
-            "value": "A"
-          },
-          {
-            "code": "2",
-            "value": "NS"
-          },
-          {
-            "code": "3",
-            "value": "MD"
-          },
-          {
-            "code": "4",
-            "value": "MF"
-          },
-          {
-            "code": "5",
-            "value": "CNAME"
-          },
-          {
-            "code": "6",
-            "value": "SOA"
-          },
-          {
-            "code": "7",
-            "value": "MB"
-          },
-          {
-            "code": "8",
-            "value": "MG"
-          },
-          {
-            "code": "9",
-            "value": "MR"
-          },
-          {
-            "code": "10",
-            "value": "NULL"
-          },
-          {
-            "code": "11",
-            "value": "WKS"
-          },
-          {
-            "code": "12",
-            "value": "PTR"
-          },
-          {
-            "code": "13",
-            "value": "HINFO"
-          },
-          {
-            "code": "14",
-            "value": "MINFO"
-          },
-          {
-            "code": "15",
-            "value": "MX"
-          },
-          {
-            "code": "16",
-            "value": "TXT"
-          },
-          {
-            "code": "17",
-            "value": "RP"
-          },
-          {
-            "code": "18",
-            "value": "AFSDB"
-          },
-          {
-            "code": "19",
-            "value": "X25"
-          },
-          {
-            "code": "20",
-            "value": "ISDN"
-          },
-          {
-            "code": "21",
-            "value": "RT"
-          },
-          {
-            "code": "22",
-            "value": "NSAP"
-          },
-          {
-            "code": "23",
-            "value": "NSAP"
-          },
-          {
-            "code": "24",
-            "value": "SIG"
-          },
-          {
-            "code": "25",
-            "value": "KEY"
-          },
-          {
-            "code": "26",
-            "value": "PX"
-          },
-          {
-            "code": "27",
-            "value": "GPOS"
-          },
-          {
-            "code": "28",
-            "value": "AAAA"
-          },
-          {
-            "code": "29",
-            "value": "LOC"
-          },
-          {
-            "code": "30",
-            "value": "EID"
-          },
-          {
-            "code": "31",
-            "value": "NIMLOC"
-          },
-          {
-            "code": "32",
-            "value": "NB"
-          },
-          {
-            "code": "33",
-            "value": "SRV"
-          },
-          {
-            "code": "34",
-            "value": "ATMA"
-          },
-          {
-            "code": "35",
-            "value": "NAPTR"
-          },
-          {
-            "code": "36",
-            "value": "KX"
-          },
-          {
-            "code": "37",
-            "value": "CERT"
-          },
-          {
-            "code": "38",
-            "value": "A6"
-          },
-          {
-            "code": "39",
-            "value": "DNAME"
-          },
-          {
-            "code": "40",
-            "value": "SINK"
-          },
-          {
-            "code": "41",
-            "value": "OPT"
-          },
-          {
-            "code": "42",
-            "value": "APL"
-          },
-          {
-            "code": "43",
-            "value": "DS"
-          },
-          {
-            "code": "44",
-            "value": "SSHFP"
-          },
-          {
-            "code": "45",
-            "value": "IPSECKEY"
-          },
-          {
-            "code": "46",
-            "value": "RRSIG"
-          },
-          {
-            "code": "47",
-            "value": "NSEC"
-          },
-          {
-            "code": "48",
-            "value": "DNSKEY"
-          },
-          {
-            "code": "49",
-            "value": "DHCID"
-          },
-          {
-            "code": "50",
-            "value": "NSEC3"
-          },
-          {
-            "code": "51",
-            "value": "NSEC3PARAM"
-          },
-          {
-            "code": "52",
-            "value": "TLSA"
-          },
-          {
-            "code": "53",
-            "value": "SMIMEA"
-          },
-          {
-            "code": "55",
-            "value": "HIP"
-          },
-          {
-            "code": "59",
-            "value": "CDS"
-          },
-          {
-            "code": "60",
-            "value": "CDNSKEY"
-          },
-          {
-            "code": "61",
-            "value": "OPENPGPKEY"
-          },
-          {
-            "code": "62",
-            "value": "CSYNC"
-          },
-          {
-            "code": "63",
-            "value": "ZONEMD"
-          },
-          {
-            "code": "64",
-            "value": "SVCB"
-          },
-          {
-            "code": "65",
-            "value": "HTTPS"
-          },
-          {
-            "code": "99",
-            "value": "SPF"
-          },
-          {
-            "code": "100",
-            "value": "UINFO"
-          },
-          {
-            "code": "101",
-            "value": "UID"
-          },
-          {
-            "code": "102",
-            "value": "GID"
-          },
-          {
-            "code": "103",
-            "value": "UNSPEC"
-          },
-          {
-            "code": "108",
-            "value": "EUI48"
-          },
-          {
-            "code": "109",
-            "value": "EUI64"
-          },
-          {
-            "code": "249",
-            "value": "TKEY"
-          },
-          {
-            "code": "250",
-            "value": "TSIG"
-          },
-          {
-            "code": "251",
-            "value": "IXFR"
-          },
-          {
-            "code": "252",
-            "value": "AXFR"
-          },
-          {
-            "code": "253",
-            "value": "MAILB"
-          },
-          {
-            "code": "254",
-            "value": "MAILA"
-          },
-          {
-            "code": "255",
-            "value": "*"
-          },
-          {
-            "code": "256",
-            "value": "URI"
-          },
-          {
-            "code": "257",
-            "value": "CAA"
-          },
-          {
-            "code": "32768",
-            "value": "TA"
-          },
-          {
-            "code": "32769",
-            "value": "DLV"
-          },
-          {
-            "code": "65521",
-            "value": "INTEGRITY"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_qtype/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1510,16 +1290,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "1",
-            "value": "DNS"
-          },
-          {
-            "code": "2",
-            "value": "DNSSEC"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_sub/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1536,12 +1309,12 @@
     },
     {
       "name": "dns_response_latency_ms",
-      "label": "DNS.Response Latency (ms)",
+      "label": "DNS.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -1595,6 +1368,9 @@
       "name": "sip_originator_sdp_connect_ip",
       "label": "SIP.Originator IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1604,6 +1380,9 @@
       "name": "sip_originator_sdp_media_port",
       "label": "SIP.Originator Port",
       "doc": {
+        "constraints": {
+          "type": "port"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1631,6 +1410,9 @@
       "name": "sip_responder_sdp_connect_ip",
       "label": "SIP.Responder IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1640,6 +1422,9 @@
       "name": "sip_responder_sdp_media_port",
       "label": "SIP.Responder Port",
       "doc": {
+        "constraints": {
+          "type": "port"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1665,7 +1450,7 @@
     },
     {
       "name": "sip_duration_s",
-      "label": "SIP.Duration (s)",
+      "label": "SIP.Duration(s)",
       "doc": {
         "constraints": {
           "type": "decimal"

@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.google.common.base.Splitter;
 import com.jfinal.plugin.activerecord.Db;
+import lombok.Data;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
@@ -34,17 +35,19 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
             return;
         }
         try {
-            List<Object> query = Db.query("SELECT CURRENT_TIMESTAMP AS curTimestamp");
+            List<Object> query = Db.query("SELECT CURRENT_TIMESTAMP AS timestamp,version() AS version");
             if (!CollectionUtils.isEmpty(query)) {
                 String substring = url.substring(url.indexOf("?") + 1);
                 Map<String, String> map = Splitter.on("&").withKeyValueSeparator("=").split(substring);
+                Object[] row = (Object[]) query.get(0);
                 String timeZone = map.get("serverTimezone");
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", url)
                         .withDetail("message", "ok")
+                        .withDetail("version",StrUtil.subBefore(String.valueOf(row[1]), "-", false))
                         .withDetail("timeZone", timeZone)
-                        .withDetail("curTimestamp", query.get(0));
+                        .withDetail("timestamp", row[0]);
 
             } else {
                 builder.down()

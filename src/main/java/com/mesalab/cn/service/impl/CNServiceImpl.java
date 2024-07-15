@@ -5,8 +5,8 @@ import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.cn.entity.pojo.*;
 import com.mesalab.cn.service.CNService;
-import com.mesalab.qgw.model.basic.QueryProfile;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.ua.analyser.UaAnalyser;
 import com.mesalab.ua.analyser.enums.UserInfo;
 import com.mesalab.ua.analyser.impl.UaAnalyserImpl;
@@ -36,15 +36,15 @@ public class CNServiceImpl implements CNService {
     private CNParser cnParser;
 
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
 
     @Override
     public BaseResult shareNetQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.buildShareNetSQL(dslObject);
-        QueryProfile queryProfile = new QueryProfile();
-        queryProfile.setQuery(executeSql);
-        BaseResult baseResult = queryService.executeQuery(queryProfile);
+        SQLQueryContext queryProfile = new SQLQueryContext();
+        queryProfile.setOriginalSQL(executeSql);
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             return baseResult;
         }
@@ -68,9 +68,7 @@ public class CNServiceImpl implements CNService {
     public BaseResult bannedAppQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.bannedAppSQL(dslObject);
-        QueryProfile queryProfile = new QueryProfile();
-        queryProfile.setQuery(executeSql);
-        BaseResult baseResult = queryService.executeQuery(queryProfile);
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(executeSql).build());
         if (!baseResult.isSuccess()) {
             return baseResult;
         }

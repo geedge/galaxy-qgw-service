@@ -24,7 +24,7 @@
     {
       "name":"port",
       "label":"Port",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"l7_protocol",

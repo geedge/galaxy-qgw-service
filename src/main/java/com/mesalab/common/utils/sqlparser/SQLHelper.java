@@ -3,12 +3,11 @@ package com.mesalab.common.utils.sqlparser;
 import com.alibaba.druid.util.JdbcConstants;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -30,6 +29,8 @@ public class SQLHelper {
 
     public static final Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
     public static final String INVALID_LIMIT_DESC = "NO LIMIT";
+
+    private static final Pattern PATTERN_QUOTES_AND_BACKTICKS = Pattern.compile("^([\"`])(.*)([\"`])$");
 
     /**
      * 去除qlString的select子句。
@@ -56,6 +57,22 @@ public class SQLHelper {
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    /**
+     * Desc: 去除字符串首位引号或反引号
+     *
+     * @param str
+     * @return {@link String}
+     * @created by wWei
+     * @date 2024/3/11 17:31
+     */
+    public static String removeQuotesAndBackticks(String str) {
+        Matcher matcher = PATTERN_QUOTES_AND_BACKTICKS.matcher(str);
+        if (matcher.matches()) {
+            return matcher.group(2);
+        }
+        return str;
     }
 
 
@@ -89,15 +106,15 @@ public class SQLHelper {
     /**
      * 获取当前数据库预定义的方言
      *
-     * @param dbType
+     * @param dbEngine
      * @return
      */
-    public static String getDialectDBType(String dbType) {
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+    public static String getDialectType(String dbEngine) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbEngine)) {
             return JdbcConstants.MYSQL;
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        } else if (DBEngineType.DRUID.getValue().equals(dbEngine)) {
             return JdbcConstants.HIVE;
-        } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
+        } else if (DBEngineType.HBASE.getValue().equals(dbEngine)) {
             return JdbcConstants.MYSQL;
         } else {
             return null;
@@ -106,9 +123,9 @@ public class SQLHelper {
     }
 
     /**
-     * Desc: Desc: 获取当前sql的表名
+     * Desc: Get Table Name from SQL
      *
-     * @param sql
+     * @param sql SQL
      * @return {@link List<String>}
      * @created by wWei
      * @date 2023/8/30 14:38
@@ -125,10 +142,62 @@ public class SQLHelper {
             });
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return result;
+    }
+
+    /**
+     * Desc: Get Table Name from Statement
+     *
+     * @param statement SQL statement
+     * @return {@link List<String>}
+     * @created by wWei
+     * @date 2023/8/30 14:38
+     */
+    public static List<String> getTableName(Statement statement) {
+        List<String> result = Lists.newArrayList();
+        TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+        List<String> tableList = tablesNamesFinder.getTableList(statement);
+        tableList.forEach(o -> {
+            int i = o.lastIndexOf(".");
+            result.add(i < 0 ? o : o.substring(i + 1));
+        });
+        return result;
+    }
+
+    /**
+     * Desc: 获取当前sql执行最大结果数
+     *
+     * @param sql
+     * @return {@link Long}
+     * @created by wWei
+     * @date 2024/3/4 18:12
+     */
+    public static Long getRowCount(String sql) {
+        try {
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            if (statement instanceof Select) {
+                Select select = (Select) statement;
+                SelectBody selectBody = select.getSelectBody();
+                if (selectBody instanceof PlainSelect) {
+                    PlainSelect plainSelect = (PlainSelect) selectBody;
+                    Limit limit = plainSelect.getLimit();
+                    if (limit != null) {
+                        Expression rowCount = limit.getRowCount();
+                        if (rowCount instanceof LongValue) {
+                            return ((LongValue) rowCount).getValue();
+                        }
+                    }
+                }
+            }
+        } catch (JSQLParserException e) {
+            log.error("SQL Syntax Error: Get Row Count Error, SQL is:{}, Error is:{}", sql, e);
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+        }
+        return null;
     }
 
     /**
@@ -164,13 +233,13 @@ public class SQLHelper {
                 // selectStatement = ((ExplainStatement) statement).getStatement();
             } else {
                 log.error("Not support DML Parser");
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.NOT_SUPPORT_DML_PARSER));
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.NOT_SUPPORT_DML_PARSER));
             }
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return Lists.newArrayList();
     }
@@ -197,6 +266,7 @@ public class SQLHelper {
 
     /**
      * Desc: 获取子查询SQL
+     *
      * @param sql
      * @return {@link String}
      * @created by wWei
@@ -215,9 +285,9 @@ public class SQLHelper {
                 plainSelect = inner;
             }
             return plainSelect;
-        }catch (JSQLParserException | RuntimeException e) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
+        } catch (JSQLParserException | RuntimeException e) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "statistics job init error: ".concat(e.getMessage())));
         }
     }
 

@@ -1,0 +1,70 @@
+[
+  {
+    "key": "start_time",
+    "default": "2023-08-01 00:00:00+08:00"
+  },
+  {
+    "key": "end_time",
+    "default": "2023-08-02T00:00:00+08:00"
+  },
+  {
+    "key": "vsys_id",
+    "default": 1
+  },
+  {
+    "key": "rule_id",
+    "default": 2
+  },
+  {
+    "key": "object_id",
+    "default": 3
+  },
+  {
+    "key": "limit",
+    "default": 20
+  },
+  {
+    "key": "granularity_period",
+    "default": "PT5M"
+  },
+  {
+    "key": "granularity_period_second",
+    "default": 300
+  },
+  {
+    "default": "P1D",
+    "key": "alignment_period"
+  },
+  {
+    "default": 300,
+    "key": "duration"
+  },
+  {
+    "key": "alignment_period_second",
+    "default": 86400
+  },
+  {
+    "key": "metric",
+    "default": "sessions"
+  },
+  {
+    "key": "sf_profile_id",
+    "default": 10011
+  },
+  {
+    "key": "sff_profile_id",
+    "default": 4035
+  },
+  {
+    "key": "profile_id",
+    "default": 275
+  },
+  {
+    "key": "subscriber_id",
+    "default": "test"
+  },
+  {
+    "key": "filter",
+    "default": ""
+  }
+]

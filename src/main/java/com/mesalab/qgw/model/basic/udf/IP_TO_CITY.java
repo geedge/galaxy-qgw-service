@@ -3,7 +3,7 @@ package com.mesalab.qgw.model.basic.udf;
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.IPUtil;
-import com.mesalab.qgw.model.basic.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SelectStatement;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,14 +28,14 @@ public class IP_TO_CITY implements  UDF {
     }
 
     @Override
-    public Object execute(SQLQuerySource sqlQuerySource, BaseResult baseResult) {
+    public Object execute(SelectStatement selectStatement, boolean isDryRun, BaseResult baseResult) {
         List<Object> results = (List<Object>)baseResult.getData();
         List<Map<String, Object>>  targetResult = Lists.newArrayList();
         String addressLabel = StringUtil.EMPTY;
 
-        for (String alias : sqlQuerySource.getAliasFields().keySet()) {
-            if (sqlQuerySource.getAliasFields().get(alias).contains(address) &&
-                    sqlQuerySource.getAliasFields().get(alias).contains(name) ) {
+        for (String alias : selectStatement.getAliasFields().keySet()) {
+            if (selectStatement.getAliasFields().get(alias).contains(address) &&
+                    selectStatement.getAliasFields().get(alias).contains(name) ) {
                 addressLabel = alias;
                 break;
             }

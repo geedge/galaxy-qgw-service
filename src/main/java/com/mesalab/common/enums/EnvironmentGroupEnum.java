@@ -16,14 +16,14 @@ public enum EnvironmentGroupEnum {
      * 1. DEV(开发环境)
      * 2. PROD(生产环境)
      */
-    RUNTIME(new EnvironmentEnum[]{EnvironmentEnum.DEV, EnvironmentEnum.PROD}),;
+    RUNTIME(new Environment[]{Environment.DEV, Environment.PROD}),;
 
     /**
      * 运行环境
      */
-    private EnvironmentEnum[] environments;
+    private Environment[] environments;
 
-    EnvironmentGroupEnum(EnvironmentEnum[] environments) {
+    EnvironmentGroupEnum(Environment[] environments) {
         this.environments = environments;
     }
 
@@ -34,8 +34,8 @@ public enum EnvironmentGroupEnum {
      * @return boolean
      */
     public static boolean isRuntime(String s) {
-        EnvironmentEnum[] environmentEnums = RUNTIME.getEnvironments();
-        for (EnvironmentEnum environmentEnum : environmentEnums) {
+        Environment[] environmentEnums = RUNTIME.getEnvironments();
+        for (Environment environmentEnum : environmentEnums) {
             if (environmentEnum.getName().equals(s)) {
                 return true;
             }

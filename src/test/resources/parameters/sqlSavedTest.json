@@ -1,0 +1,6 @@
+{
+  "default": {
+    "statement": "select * from session_record limit 1",
+    "is_saved_query": 1
+  }
+}

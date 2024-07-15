@@ -1,65 +1,90 @@
 package com.mesalab.qgw.dialect;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONPath;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
-import com.mesalab.common.utils.sqlparser.DruidSampleSQLHelper;
+import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.*;
-import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
-import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.model.basic.QueryProfile;
-import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.qgw.service.DatabaseService;
+import com.mesalab.qgw.service.impl.HttpClientServiceV2;
 import lombok.Data;
+import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
-import org.apache.commons.compress.utils.Lists;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
 
 public class DruidDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
+    public static final Pattern pAggregateFunSpecificOfDruid = Pattern.compile("\\b(QUANTILE_HDR|HDR_HISTOGRAM|HLLD|APPROX_COUNT_DISTINCT_HLLD|PERCENTILES_HDR)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
-    private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private HttpClientServiceV2 httpClientService = (HttpClientServiceV2) SpringContextUtil.getBean("httpClientServiceV2");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    private DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private int pageOffset;
     private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
-    public QueryProfile param;
+
     public BaseResult baseResult;
 
-    public DruidDialect(QueryProfile param) {
-        this.param = param;
+    private final static Map<String, String> metaMap = Maps.newHashMap();
+
+    static {
+        metaMap.put("CHAR", DataTypeMapping.STRING);
+        metaMap.put("VARCHAR", DataTypeMapping.STRING);
+        metaMap.put("FLOAT", DataTypeMapping.FLOAT);
+        metaMap.put("DECIMAL", DataTypeMapping.DOUBLE);
+        metaMap.put("REAL", DataTypeMapping.DOUBLE);
+        metaMap.put("DOUBLE", DataTypeMapping.DOUBLE);
+        metaMap.put("BOOLEAN", DataTypeMapping.BOOLEAN);
+        metaMap.put("TINYINT", DataTypeMapping.INT);
+        metaMap.put("SMALLINT", DataTypeMapping.INT);
+        metaMap.put("INTEGER", DataTypeMapping.INT);
+        metaMap.put("BIGINT", DataTypeMapping.LONG);
+        metaMap.put("TIMESTAMP", DataTypeMapping.DATE);
+        metaMap.put("DATE", DataTypeMapping.DATE);
+
+        metaMap.put("ARRAY", null);
+        metaMap.put("OTHER", null);
+    }
+
+    public DruidDialect(SQLQueryContext queryContext) {
+        super(queryContext);
     }
 
     @Override
     void init() {
-        if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbSelectStatement())) {
+            sqlQueryContext.getDbSelectStatement().setExecSQL(sqlQueryContext.getDbSelectStatement().getSqlBody());
         } else {
-            SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(param.getQuery());
-            param.setDbQuerySource(sqlQuerySource);
+            SelectStatement sqlQuerySource = new SelectStatement();
+            sqlQuerySource.setExecSQL(sqlQueryContext.getOriginalSQL());
+            sqlQueryContext.setDbSelectStatement(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
-
 
 
     @Override
@@ -70,20 +95,15 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
     @Override
     public String convertQuery(String sql) {
-        return new Converter(sql).generateStandard().generateDateFunction().build();
+        return new Converter(sql).generateStandard().mergeFunctions().generateDateFunction().build();
 
     }
 
     @Override
-    public String getBestQuery() {
+    public String generateRuleBaseOptimizedQuery() {
 
         return new Optimizer().generateQueryLimit().generateSQL().build();
 
-    }
-
-    @Override
-    public String getOriginalQuery() {
-        return param.getQuery();
     }
 
     /**
@@ -91,21 +111,22 @@ public class DruidDialect extends AbstractDataSourceDialect {
      *
      * @return
      */
+    @SneakyThrows
     @Override
     public String getSampleQuery() {
-        String sampleSQL = param.getDbQuerySource().getSqlBody();
+        String sampleSQL = sqlQueryContext.getDbSelectStatement().getSqlBody();
         try {
             sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sampleSQL, sampleSQL = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sampleSQL, sampleSQL = sqlQueryContext.getDbSelectStatement().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sampleSQL;
     }
 
     @Override
     String getExplainQuery() {
-        return "EXPLAIN PLAN FOR " + convertQuery(getBestQuery());
+        return "EXPLAIN PLAN FOR " + convertQuery(generateRuleBaseOptimizedQuery());
     }
 
     @Override
@@ -113,12 +134,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
         String url = druidIoHttpSource.getUrl();
         url = url.substring(0, url.indexOf("/"));
         String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(queryId);
-        Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
-        if (Integer.parseInt(map.get("status")) == ResultStatusEnum.SUCCESS.getCode()
-                || Integer.parseInt(map.get("status")) == ResultStatusEnum.ACCEPTED.getCode()) {
-            return BaseResultGenerator.generate(ResultStatusEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
+        HttpResponseResult httpResponseResult = httpClientService.delete(deleteUrl);
+        if (httpResponseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()
+                || httpResponseResult.getStatusCode() == HttpStatusCodeEnum.ACCEPTED.getCode()) {
+            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, true, "ok", null, null, null, null);
         } else {
-            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
+            return BaseResultGenerator.failure(httpResponseResult.getStatusCode(), httpResponseResult.getErrorMessage());
         }
     }
 
@@ -133,20 +154,37 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @param sql SQL语句
      * @return
      */
-    private Map<String, String> executeHttpPost(String sql) {
+    private HttpResponseResult executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
-        DruidQueryParam druidQueryParam = getDruidQueryParam(sql);
-        log.info("DB engine is :{},execute query is: {}", DBTypeEnum.DRUID.getValue(), JSON.toJSONString(druidQueryParam));
-        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        return httpClientService.httpPost(queryURL, JSON.toJSONString(druidQueryParam), socketTimeOut);
+        DruidQueryParam druidQueryParam = enrichContextAndBuildQueryParameter(sql);
+        log.info("Query ID: {}, SQL: {}", sqlQueryContext.getQueryId(), sql);
+        if (log.isDebugEnabled()) {
+            log.debug("DB engine is: {}, : {}", DBEngineType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
+                    + ". body sql is:" + sql);
+        }
+        long start = System.currentTimeMillis();
+        HttpResponseResult responseResult = httpClientService.post(queryURL, sqlQueryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
+        long elapsed = System.currentTimeMillis() - start;
+        if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
+            log.warn("DB engine is: {}, queryId: {}, elapsed: {} ms, sql: {}", DBEngineType.DRUID.getValue(), sqlQueryContext.getQueryId(), elapsed, sql);
+        }
+        return responseResult;
     }
 
-    private DruidQueryParam getDruidQueryParam(String sql) {
+    private DruidQueryParam enrichContextAndBuildQueryParameter(String sql) {
+        sqlQueryContext.setTimeout(httpConfig.getDruidSocketTimeOut());
+        if (StringUtil.isBlank(sqlQueryContext.getQueryId())) {
+            sqlQueryContext.setQueryId(DigestUtil.md5Hex(StringUtil.createUUID()));
+        }
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-        druidQueryParam.getContext().put("sqlQueryId", StringUtil.isNotBlank(param.getQueryId()) ? param.getQueryId() : DigestUtil.md5Hex(StringUtil.createUUID()));
+        druidQueryParam.getContext().put("sqlQueryId", sqlQueryContext.getQueryId());
+        druidQueryParam.getContext().put("maxSubqueryRows", druidIoHttpSource.getMaxSubqueryRows());
         druidQueryParam.setResultFormat("object");
+        druidQueryParam.setHeader(true);
+        druidQueryParam.setTypesHeader(true);
+        druidQueryParam.setSqlTypesHeader(true);
         return druidQueryParam;
     }
 
@@ -154,17 +192,15 @@ public class DruidDialect extends AbstractDataSourceDialect {
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
         watch.start();
 
-        Map<String, String> results = executeHttpPost(sql);
+        HttpResponseResult responseResult = executeHttpPost(sql);
 
-        int status = Integer.parseInt(results.get("status"));
-        if (status == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    (List<Object>) JSON.parseObject(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
+            baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(), ResultCodeEnum.SUCCESS.getCode(), true, message.get(),
+                    (List<Object>) JSON.parseObject(responseResult.getResponseBody(), Object.class), null, null, OutputMode.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
-
-                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), message.get()),
-                    StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
+            baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
+                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), false, String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
+                    responseResult.getErrorMessage(), null, null, sqlQueryContext.getFormat());
         }
         return build();
     }
@@ -179,6 +215,8 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 baseResult.setMessage("ok");
             }
             List<Object> allResults = (List<Object>) dataObject;
+            Object metaObj = allResults.remove(0);
+            baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(unifyMeta(JSON.parseObject(JSON.toJSONString(metaObj), Map.class)), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine()));
             if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
                 if (pageOffset >= allResults.size()) {
                     allResults = new ArrayList<>();
@@ -190,15 +228,14 @@ public class DruidDialect extends AbstractDataSourceDialect {
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             statistics.put("rows_read", allResults.size());
             baseResult.setData(allResults);
-            baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else {
-            if (baseResult.getStatus() >= ResultStatusEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
-                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < HttpStatusCodeEnum.SERVER_ERROR.getCode()) {
+                throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
             }
-            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }
@@ -216,45 +253,87 @@ public class DruidDialect extends AbstractDataSourceDialect {
         return StrUtil.removeAllLineBreaks(message).trim();
     }
 
+    @SneakyThrows
+    @Override
+    List<Map<String, String>> buildExampleMeta() {
+        if (baseResult.getMeta() == null) {
+            return Lists.newArrayList();
+        }
+        List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
+        Map<String, SelectItemHelper.AliasObject> selectItem = SelectItemHelper.getSelectItem(sqlQueryContext.getDbSelectStatement().getSqlBody());
+        for (Map<String, String> meta : metaList) {
+            toPerfectMeta(selectItem, meta);
+        }
+        return metaList;
+    }
+
+    @Override
+    public List<Object> buildExampleData() {
+        if (baseResult.getMeta() == null) {
+            return Lists.newArrayList();
+        }
+        List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
+        Map<String, List<Object>> schemaDataDict = databaseService.getSchemaDataDict(sqlQueryContext.getDbSelectStatement().getTableNames().get(0));
+        Long rowCount = SQLHelper.getRowCount(sqlQueryContext.getDbSelectStatement().getSqlBody());
+        String queryType = QueryTypeHelper.determineQueryType(sqlQueryContext.getDbSelectStatement());
+        Object param = QueryTypeHelper.determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
+        return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schemaDataDict, param);
+    }
 
     /**
-     * 做时间范围条件过滤: 去除原有最内层条件, 重新添加时间范围
+     * 将目标SQL转换为Dry Run SQ。使其不扫描数据，仅做执行
      *
      * @param sql
      * @return
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
-        String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL %s AND %s < CURRENT_TIMESTAMP",
-                param.getDbQuerySource().getPartitionKey(), isSampled ? "'12' HOUR " : "'1' SECOND", param.getDbQuerySource().getPartitionKey());
-        return new DruidSampleSQLHelper(sql, filterExpr, isSampled).build();
+        return new SampleSQLHelper(sql, " 1 != 1 ", false, null).build();
     }
 
-    private List<Map<String, String>> unifyMeta(List<Object> list) {
-        List<Map<String, String>> metaList = Lists.newArrayList();
-        if (StringUtil.isEmpty(list)) {
-            return metaList;
+    private List<Map<String, String>> unifyMeta(Map<String, Map<String, String>> metaMap) {
+        List<Map<String, String>> result = new ArrayList<>();
+        if (metaMap == null || metaMap.isEmpty()) {
+            return result;
         }
-        Map<String, Object> data = JsonPath.read(list.get(0), "$");
-        for (String key : data.keySet()) {
-            Map<String, String> temp = Maps.newHashMap();
-            temp.put("name", key);
-            Object value = data.get(key);
-            if (value instanceof Integer) {
-                temp.put("type", DataTypeMapping.INT);
-            } else if (value instanceof Long) {
-                temp.put("type", DataTypeMapping.LONG);
-            } else if (value instanceof Float) {
-                temp.put("type", DataTypeMapping.FLOAT);
-            } else if (value instanceof Double) {
-                temp.put("type", DataTypeMapping.DOUBLE);
-            } else {
-                temp.put("type", DataTypeMapping.STRING);
+        for (Map.Entry<String, Map<String, String>> entry : metaMap.entrySet()) {
+            String metaName = entry.getKey();
+            Map<String, String> typeMap = entry.getValue();
+            Map<String, String> meta = Maps.newHashMap();
+            meta.put(MetaConst.META_NAME, metaName);
+            String type = DruidDialect.metaMap.get(typeMap.get("sqlType"));
+            meta.put(MetaConst.META_TYPE, type == null ? DataTypeMapping.STRING : type);
+            result.add(meta);
+        }
+        return result;
+    }
+
+    private void toPerfectMeta(Map<String, SelectItemHelper.AliasObject> aliasObjects, Map<String, String> meta) {
+        if (aliasObjects == null) {
+            return;
+        }
+        String name = meta.get(MetaConst.META_NAME);
+        SelectItemHelper.AliasObject aliasObject = aliasObjects.get(name);
+        if (aliasObject == null) {
+            return;
+        }
+        if (aliasObject instanceof SelectItemHelper.AliasColumn) {
+            SelectItemHelper.AliasColumn aliasColumn = (SelectItemHelper.AliasColumn) aliasObject;
+            String fieldName = aliasColumn.getFieldName();
+            meta.put(MetaConst.META_FIELD_NAME, fieldName);
+            Map schemaInfo = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
+            Object dateType = JSONPath.extract(JSON.toJSONString(schemaInfo), "$.fields[?(@.name == \"" + fieldName + "\")].doc.constraints.type");
+            if (dateType instanceof List && ((List<?>) dateType).size() > 0) {
+                dateType = ((List<?>) dateType).get(0);
+                meta.put(MetaConst.META_DATA_TYPE, dateType.toString());
             }
-            metaList.add(temp);
+        } else if (aliasObject instanceof SelectItemHelper.AliasFunExpr) {
+            SelectItemHelper.AliasFunExpr aliasDatetime = (SelectItemHelper.AliasFunExpr) aliasObject;
+            String dateType = aliasDatetime.getDateType();
+            if (dateType != null) {
+                meta.put(MetaConst.META_DATA_TYPE, dateType);
+            }
         }
-        return metaList;
     }
 
     class Converter {
@@ -271,7 +350,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Converter generateStandard() {
-            SQLQuerySource dbQuerySource = param.getDbQuerySource();
+            SelectStatement dbQuerySource = sqlQueryContext.getDbSelectStatement();
             if (StringUtil.isNotBlank(dbQuerySource.getLimit()) &&
                     dbQuerySource.getLimit().split(",").length >= 2) {
 
@@ -284,9 +363,14 @@ public class DruidDialect extends AbstractDataSourceDialect {
             return this;
         }
 
+        @SneakyThrows
+        public Converter mergeFunctions() {
+            sql = FunctionsMergeHelper.build(sql);
+            return this;
+        }
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.DRUID.getValue());
             return this;
         }
 
@@ -307,19 +391,19 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Optimizer generateQueryLimit() {
-            if (StringUtil.isEmpty(param.getEngineQuerySource())) {
-                setDefaultResultRows(param.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+            if (StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement())) {
+                setDefaultResultRows(sqlQueryContext.getDbSelectStatement(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbSelectStatement(), engineConfigSource.getMaxCacheNum());
             } else {
-                setDefaultResultRows(param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
-                setMaxCacheResultRows(param.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
+                setDefaultResultRows(sqlQueryContext.getFederationSelectStatement(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbSelectStatement(), engineConfigSource.getMaxCacheNum());
+                setMaxCacheResultRows(sqlQueryContext.getFederationSelectStatement(), engineConfigSource.getMaxCacheNum());
             }
             return this;
         }
 
 
-        private void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+        private void setDefaultResultRows(SelectStatement sqlQuerySource, int defaultResultRows) {
             if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
                 sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
                 sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
@@ -333,7 +417,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @param sqlQuerySource
          * @return
          */
-        private void setMaxCacheResultRows(SQLQuerySource sqlQuerySource, int maxCacheResultRows) {
+        private void setMaxCacheResultRows(SelectStatement sqlQuerySource, int maxCacheResultRows) {
             if (!sqlQuerySource.isEnableLimit()) {
                 return;
             }
@@ -358,7 +442,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+            SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }
@@ -374,8 +458,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
     @Data
     class DruidQueryParam {
         private String query;
-        private Map<String, String> context = Maps.newHashMap();
+        private Map<String, Object> context = Maps.newHashMap();
         private String resultFormat;
+        private boolean header;
+        private boolean typesHeader;
+        private boolean sqlTypesHeader;
 
     }
 

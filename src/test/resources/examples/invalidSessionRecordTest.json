@@ -1,0 +1,6764 @@
+{
+  "type": "record",
+  "name": "session_record",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ],
+    "ttl": 2592000,
+    "default_ttl": 2592000,
+    "functions": {
+      "aggregation": [
+        {
+          "name": "COUNT",
+          "label": "COUNT",
+          "function": "count(expr)",
+          "metric_type": "counter",
+          "unit": "short"
+        },
+        {
+          "name": "COUNT_DISTINCT",
+          "label": "COUNT_DISTINCT",
+          "function": "COUNT_DISTINCT(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "AVG",
+          "label": "AVG",
+          "function": "avg(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "SUM",
+          "label": "SUM",
+          "function": "sum(expr)",
+          "metric_type": "counter",
+          "unit": "short"
+        },
+        {
+          "name": "MAX",
+          "label": "MAX",
+          "function": "max(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "MIN",
+          "label": "MIN",
+          "function": "min(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "MEDIAN",
+          "label": "MEDIAN",
+          "function": "MEDIAN(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "MEDIAN_HDR",
+          "label": "MEDIAN_HDR",
+          "function": "MEDIAN_HDR(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "QUANTILE",
+          "label": "QUANTILE",
+          "function": "QUANTILE(expr,level)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "P95_PERCENTILE",
+          "label": "P95_PERCENTILE",
+          "function": "QUANTILE(expr,0.95)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "P99_PERCENTILE",
+          "label": "P99_PERCENTILE",
+          "function": "QUANTILE(expr,0.99)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "QUANTILE_HDR",
+          "label": "QUANTILE_HDR",
+          "function": "QUANTILE_HDR(expr,level)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "P95_PERCENTILE_HDR",
+          "label": "P95_PERCENTILE_HDR",
+          "function": "QUANTILE_HDR(expr,0.95)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "P99_PERCENTILE_HDR",
+          "label": "P99_PERCENTILE_HDR",
+          "function": "QUANTILE_HDR(expr,0.99)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "PERCENTILES_HDR",
+          "label": "PERCENTILES_HDR",
+          "function": "PERCENTILES_HDR(expr)",
+          "metric_type": "histogram",
+          "unit": "short"
+        },
+        {
+          "name": "APPROX_COUNT_DISTINCT_HLLD",
+          "label": "COUNT_DISTINCT_HLLD",
+          "function": "APPROX_COUNT_DISTINCT_HLLD(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "APPROX_COUNT_DISTINCT_DS_HLL",
+          "label": "COUNT_DISTINCT_DS_HLL",
+          "function": "APPROX_COUNT_DISTINCT_DS_HLL(expr)",
+          "metric_type": "gauge",
+          "unit": "short"
+        },
+        {
+          "name": "RATE",
+          "label": "RATE",
+          "function": "RATE(expr,duration)",
+          "metric_type": "gauge",
+          "unit": "sps"
+        },
+        {
+          "name": "BITRATE",
+          "label": "BITRATE",
+          "function": "RATE(expr,duration)*8",
+          "metric_type": "gauge",
+          "unit": "bps"
+        }
+      ],
+      "date": [
+        {
+          "name": "UNIX_TIMESTAMP",
+          "label": "UNIX_TIMESTAMP",
+          "function": "UNIX_TIMESTAMP(expr)"
+        },
+        {
+          "name": "UNIX_TIMESTAMP_MILLIS",
+          "label": "UNIX_TIMESTAMP_MILLIS",
+          "function": "UNIX_TIMESTAMP_MILLIS(expr)"
+        },
+        {
+          "name": "FROM_UNIXTIME",
+          "label": "FROM_UNIXTIME",
+          "function": "FROM_UNIXTIME(expr)"
+        },
+        {
+          "name": "FROM_UNIXTIME_MILLIS",
+          "label": "FROM_UNIXTIME_MILLIS",
+          "function": "FROM_UNIXTIME_MILLIS(expr)"
+        },
+        {
+          "name": "DATE_FORMAT",
+          "label": "DATE_FORMAT",
+          "function": "DATE_FORMAT(expr,format)"
+        },
+        {
+          "name": "CONVERT_TZ",
+          "label": "CONVERT_TZ",
+          "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+        },
+        {
+          "name": "TIME_FLOOR_WITH_FILL",
+          "label": "TIME_FLOOR_WITH_FILL",
+          "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
+        }
+      ],
+      "operator": [
+        {
+          "name": "=",
+          "label": "=",
+          "function": "expr = value"
+        },
+        {
+          "name": "!=",
+          "label": "!=",
+          "function": "expr != value"
+        },
+        {
+          "name": ">",
+          "label": ">",
+          "function": "expr > value"
+        },
+        {
+          "name": "<",
+          "label": "<",
+          "function": "expr < value"
+        },
+        {
+          "name": ">=",
+          "label": ">=",
+          "function": "expr >= value"
+        },
+        {
+          "name": "<=",
+          "label": "<=",
+          "function": "expr <= value"
+        },
+        {
+          "name": "has",
+          "label": "HAS",
+          "function": "has(expr, value)"
+        },
+        {
+          "name": "in",
+          "label": "IN",
+          "function": "expr in (values)"
+        },
+        {
+          "name": "not in",
+          "label": "NOT IN",
+          "function": "expr not in (values)"
+        },
+        {
+          "name": "like",
+          "label": "LIKE",
+          "function": "expr like value"
+        },
+        {
+          "name": "not like",
+          "label": "NOT LIKE",
+          "function": "expr not like value"
+        },
+        {
+          "name": "notEmpty",
+          "label": "NOT EMPTY",
+          "function": "notEmpty(expr)"
+        },
+        {
+          "name": "empty",
+          "label": "EMPTY",
+          "function": "empty(expr)"
+        },
+        {
+          "name": "bitAnd",
+          "label": "Bitwise AND",
+          "function": "bitAnd(expr, value)=value"
+        }
+      ]
+    },
+    "schema_query": {
+      "time": [
+        "recv_time",
+        "test",
+        "start_timestamp_ms",
+        "end_timestamp_ms",
+        "processing_time",
+        "ingestion_time",
+        "insert_time"
+      ],
+      "dimensions": [
+        "session_id",
+        "session_id",
+        "device_id",
+        "out_link_id",
+        "in_link_id",
+        "data_center",
+        "sled_ip",
+        "device_group",
+        "address_type",
+        "decoded_as",
+        "vsys_id",
+        "flags",
+        "flags_identify_info",
+        "security_action",
+        "security_rule_list",
+        "monitor_rule_list",
+        "shaping_rule_list",
+        "sc_rule_list",
+        "statistics_rule_list",
+        "sc_rsp_raw",
+        "sc_rsp_decrypted",
+        "proxy_action",
+        "proxy_rule_list",
+        "client_ip",
+        "client_port",
+        "client_os_desc",
+        "client_geolocation",
+        "client_asn",
+        "subscriber_id",
+        "imei",
+        "imsi",
+        "apn",
+        "phone_number",
+        "packet_capture_file",
+        "in_src_mac",
+        "out_src_mac",
+        "server_ip",
+        "server_port",
+        "server_os_desc",
+        "server_geolocation",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "in_dest_mac",
+        "out_dest_mac",
+        "app_transition",
+        "app",
+        "app_debug_info",
+        "app_content",
+        "ip_protocol",
+        "decoded_path",
+        "dup_traffic_flag",
+        "tunnel_endpoint_a_desc",
+        "tunnel_endpoint_b_desc",
+        "http_url",
+        "http_host",
+        "http_request_line",
+        "http_response_line",
+        "http_proxy_flag",
+        "http_sequence",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
+        "http_version",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "http_action_file_size",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_password",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_subject_charset",
+        "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_eml_file",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_aa",
+        "dns_tc",
+        "dns_rd",
+        "dns_ra",
+        "dns_rcode",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_cname",
+        "dns_sub",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
+        "dtls_cookie",
+        "dtls_version",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_handshake_latency_ms",
+        "dtls_ja3_fingerprint",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject",
+        "quic_sni",
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye",
+        "ssh_version",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "rtp_originator_dir",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "stratum_mining_subscribe",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_desktop_width",
+        "rdp_desktop_height",
+        "rdp_requested_color_depth",
+        "rdp_certificate_type",
+        "rdp_certificate_count",
+        "rdp_certificate_permanent",
+        "rdp_encryption_level",
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "security_rule_id",
+        "monitor_rule_id",
+        "proxy_rule_id",
+        "statistics_rule_id",
+        "shaping_rule_id",
+        "sc_rule_id"
+      ],
+      "metrics": [
+        "client_ip",
+        "client_port",
+        "client_geolocation",
+        "client_asn",
+        "subscriber_id",
+        "imei",
+        "imsi",
+        "apn",
+        "phone_number",
+        "in_src_mac",
+        "out_src_mac",
+        "server_ip",
+        "server_port",
+        "server_geolocation",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "in_dest_mac",
+        "out_dest_mac",
+        "app",
+        "decoded_path",
+        "sent_pkts",
+        "received_pkts",
+        "sent_bytes",
+        "received_bytes",
+        "duration_ms",
+        "tcp_handshake_latency_ms",
+        "tcp_c2s_ip_fragments",
+        "tcp_s2c_ip_fragments",
+        "tcp_c2s_lost_bytes",
+        "tcp_s2c_lost_bytes",
+        "tcp_c2s_o3_pkts",
+        "tcp_s2c_o3_pkts",
+        "tcp_c2s_rtx_pkts",
+        "tcp_s2c_rtx_pkts",
+        "tcp_c2s_rtx_bytes",
+        "tcp_s2c_rtx_bytes",
+        "tcp_rtt_ms",
+        "http_url",
+        "http_host",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_response_content_length",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_attachment_name",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_aa",
+        "dns_rd",
+        "dns_ra",
+        "dns_rcode",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_qname",
+        "dns_cname",
+        "dns_response_latency_ms",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_handshake_latency_ms",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_handshake_latency_ms",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject",
+        "quic_sni",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "sip_call_id",
+        "sip_server",
+        "ssh_hassh"
+      ],
+      "filters": [
+        "session_id",
+        "start_timestamp_ms",
+        "end_timestamp_ms",
+        "duration_ms",
+        "tcp_handshake_latency_ms",
+        "processing_time",
+        "ingestion_time",
+        "device_id",
+        "data_center",
+        "sled_ip",
+        "device_group",
+        "address_type",
+        "decoded_as",
+        "vsys_id",
+        "flags",
+        "flags_identify_info",
+        "security_action",
+        "security_rule_list",
+        "monitor_rule_list",
+        "shaping_rule_list",
+        "sc_rule_list",
+        "statistics_rule_list",
+        "sc_rsp_raw",
+        "sc_rsp_decrypted",
+        "proxy_rule_list",
+        "proxy_action",
+        "monitor_mirrored_pkts",
+        "monitor_mirrored_bytes",
+        "client_ip",
+        "client_port",
+        "client_os_desc",
+        "client_geolocation",
+        "client_asn",
+        "subscriber_id",
+        "imei",
+        "imsi",
+        "apn",
+        "phone_number",
+        "in_src_mac",
+        "out_src_mac",
+        "server_ip",
+        "server_port",
+        "server_os_desc",
+        "server_geolocation",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "in_dest_mac",
+        "out_dest_mac",
+        "app_transition",
+        "app_debug_info",
+        "app",
+        "app_content",
+        "dup_traffic_flag",
+        "tunnel_endpoint_a_desc",
+        "tunnel_endpoint_b_desc",
+        "ip_protocol",
+        "decoded_path",
+        "fqdn_category_list",
+        "sent_pkts",
+        "received_pkts",
+        "sent_bytes",
+        "received_bytes",
+        "tcp_c2s_ip_fragments",
+        "tcp_s2c_ip_fragments",
+        "tcp_c2s_lost_bytes",
+        "tcp_s2c_lost_bytes",
+        "tcp_c2s_o3_pkts",
+        "tcp_s2c_o3_pkts",
+        "tcp_c2s_rtx_pkts",
+        "tcp_s2c_rtx_pkts",
+        "tcp_c2s_rtx_bytes",
+        "tcp_s2c_rtx_bytes",
+        "tcp_rtt_ms",
+        "http_url",
+        "http_host",
+        "http_request_line",
+        "http_response_line",
+        "http_proxy_flag",
+        "http_sequence",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
+        "http_version",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "http_action_file_size",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_password",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_subject_charset",
+        "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_eml_file",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_aa",
+        "dns_rd",
+        "dns_ra",
+        "dns_rcode",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_qdcount",
+        "dns_ancount",
+        "dns_nscount",
+        "dns_arcount",
+        "dns_qname",
+        "dns_cname",
+        "dns_sub",
+        "dns_rr",
+        "dns_response_latency_ms",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_handshake_latency_ms",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
+        "dtls_cookie",
+        "dtls_version",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_handshake_latency_ms",
+        "dtls_ja3_fingerprint",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject",
+        "quic_sni",
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_originator_sdp_content",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "rtp_originator_dir",
+        "ssh_version",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "stratum_mining_subscribe",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_desktop_width",
+        "rdp_desktop_height",
+        "rdp_requested_color_depth",
+        "rdp_certificate_type",
+        "rdp_certificate_count",
+        "rdp_certificate_permanent",
+        "rdp_encryption_level",
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "security_rule_id",
+        "monitor_rule_id",
+        "proxy_rule_id",
+        "statistics_rule_id",
+        "shaping_rule_id",
+        "sc_rule_id"
+      ],
+      "references": {
+        "aggregation": [
+          {
+            "type": "int",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          },
+          {
+            "type": "long",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          },
+          {
+            "type": "float",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          },
+          {
+            "type": "double",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          },
+          {
+            "type": "string",
+            "functions": "COUNT,COUNT_DISTINCT"
+          },
+          {
+            "type": "date",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          },
+          {
+            "type": "datetime",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          },
+          {
+            "type": "timestamp",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          },
+          {
+            "type": "unix_timestamp",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          },
+          {
+            "type": "array",
+            "functions": "COUNT,COUNT_DISTINCT"
+          },
+          {
+            "type": "bit",
+            "functions": "COUNT,COUNT_DISTINCT"
+          }
+        ],
+        "operator": [
+          {
+            "type": "int",
+            "functions": "=,!=,>,<,>=,<=,in,not in"
+          },
+          {
+            "type": "long",
+            "functions": "=,!=,>,<,>=,<=,in,not in"
+          },
+          {
+            "type": "float",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "double",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "string",
+            "functions": "=,!=,in,not in,like,not like,notEmpty,empty"
+          },
+          {
+            "type": "date",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "dateTime",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "timestamp",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "unix_timestamp",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "array",
+            "functions": "has,notEmpty,empty"
+          },
+          {
+            "type": "bit",
+            "functions": "=,!=,bitAnd"
+          }
+        ]
+      },
+      "details": {
+        "general": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info"
+        ],
+        "treatment": [
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes"
+        ],
+        "source": [
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number"
+        ],
+        "destination": [
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain"
+        ],
+        "application": [
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "fqdn_category_list"
+        ],
+        "protocol": [
+          "ip_protocol",
+          "decoded_path",
+          "dns_message_id",
+          "dns_qr",
+          "dns_opcode",
+          "dns_aa",
+          "dns_tc",
+          "dns_rd",
+          "dns_ra",
+          "dns_rcode",
+          "dns_qdcount",
+          "dns_ancount",
+          "dns_nscount",
+          "dns_arcount",
+          "dns_qname",
+          "dns_qtype",
+          "dns_qclass",
+          "dns_cname",
+          "dns_sub",
+          "dns_rr",
+          "dns_response_latency_ms",
+          "dtls_cookie",
+          "dtls_version",
+          "dtls_sni",
+          "dtls_san",
+          "dtls_cn",
+          "dtls_handshake_latency_ms",
+          "dtls_ja3_fingerprint",
+          "dtls_ja3_hash",
+          "dtls_cert_issuer",
+          "dtls_cert_subject",
+          "ftp_account",
+          "ftp_url",
+          "ftp_link_type",
+          "http_url",
+          "http_host",
+          "http_request_line",
+          "http_response_line",
+          "http_request_content_length",
+          "http_request_content_type",
+          "http_response_content_length",
+          "http_response_content_type",
+          "http_request_body",
+          "http_response_body",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_set_cookie",
+          "http_version",
+          "http_status_code",
+          "http_response_latency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size",
+          "mail_protocol_type",
+          "mail_account",
+          "mail_from_cmd",
+          "mail_to_cmd",
+          "mail_from",
+          "mail_password",
+          "mail_to",
+          "mail_cc",
+          "mail_bcc",
+          "mail_subject",
+          "mail_subject_charset",
+          "mail_attachment_name",
+          "mail_attachment_name_charset",
+          "mail_eml_file",
+          "quic_version",
+          "quic_sni",
+          "quic_user_agent",
+          "rdp_cookie",
+          "rdp_security_protocol",
+          "rdp_client_channels",
+          "rdp_keyboard_layout",
+          "rdp_client_version",
+          "rdp_client_name",
+          "rdp_client_product_id",
+          "rdp_desktop_width",
+          "rdp_desktop_height",
+          "rdp_requested_color_depth",
+          "rdp_certificate_type",
+          "rdp_certificate_count",
+          "rdp_certificate_permanent",
+          "rdp_encryption_level",
+          "rdp_encryption_method",
+          "ssh_version",
+          "ssh_auth_success",
+          "ssh_client_version",
+          "ssh_server_version",
+          "ssh_cipher_alg",
+          "ssh_mac_alg",
+          "ssh_compression_alg",
+          "ssh_kex_alg",
+          "ssh_host_key_alg",
+          "ssh_host_key",
+          "ssh_hassh",
+          "ssl_version",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_handshake_latency_ms",
+          "ssl_ja3_hash",
+          "ssl_ja3s_hash",
+          "ssl_cert_issuer",
+          "ssl_cert_subject",
+          "ssl_esni_flag",
+          "ssl_ech_flag",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir",
+          "stratum_cryptocurrency",
+          "stratum_mining_pools",
+          "stratum_mining_program",
+          "stratum_mining_subscribe"
+        ],
+        "transmission": [
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn"
+        ],
+        "other": [
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc"
+        ]
+      }
+    },
+    "data_view": {
+      "PROXY_INTERCEPT_EVENT_VIEW": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "http_url",
+          "http_host",
+          "http_request_line",
+          "http_response_line",
+          "http_request_content_length",
+          "http_request_content_type",
+          "http_response_content_length",
+          "http_response_content_type",
+          "http_request_body",
+          "http_response_body",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_set_cookie",
+          "http_version",
+          "http_status_code",
+          "http_response_latency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size",
+          "ssl_version",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_handshake_latency_ms",
+          "ssl_ja3_hash",
+          "ssl_ja3s_hash",
+          "ssl_cert_issuer",
+          "ssl_cert_subject",
+          "ssl_esni_flag",
+          "ssl_ech_flag"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "security_rule_list",
+          "security_action",
+          "client_ip",
+          "client_port",
+          "server_fqdn",
+          "app",
+          "server_ip",
+          "server_port"
+        ]
+      }
+    },
+    "decoded_as": {
+      "BASE": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "HTTP": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "http_url",
+          "http_host",
+          "http_request_line",
+          "http_response_line",
+          "http_request_content_length",
+          "http_request_content_type",
+          "http_response_content_length",
+          "http_response_content_type",
+          "http_request_body",
+          "http_response_body",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_set_cookie",
+          "http_version",
+          "http_status_code",
+          "http_response_latency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "http_url",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "MAIL": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "mail_protocol_type",
+          "mail_account",
+          "mail_from_cmd",
+          "mail_to_cmd",
+          "mail_from",
+          "mail_password",
+          "mail_to",
+          "mail_cc",
+          "mail_bcc",
+          "mail_subject",
+          "mail_subject_charset",
+          "mail_attachment_name",
+          "mail_attachment_name_charset",
+          "mail_eml_file"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "mail_from",
+          "mail_to",
+          "mail_subject",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "DNS": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "dns_message_id",
+          "dns_qr",
+          "dns_opcode",
+          "dns_aa",
+          "dns_tc",
+          "dns_rd",
+          "dns_ra",
+          "dns_rcode",
+          "dns_qdcount",
+          "dns_ancount",
+          "dns_nscount",
+          "dns_arcount",
+          "dns_qname",
+          "dns_qtype",
+          "dns_qclass",
+          "dns_cname",
+          "dns_sub",
+          "dns_rr",
+          "dns_response_latency_ms"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "dns_qr",
+          "dns_qname",
+          "dns_qtype",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "SSL": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "ssl_version",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_handshake_latency_ms",
+          "ssl_ja3_hash",
+          "ssl_ja3s_hash",
+          "ssl_cert_issuer",
+          "ssl_cert_subject",
+          "ssl_esni_flag",
+          "ssl_ech_flag"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "ssl_sni",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "DTLS": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "dtls_cookie",
+          "dtls_version",
+          "dtls_sni",
+          "dtls_san",
+          "dtls_cn",
+          "dtls_handshake_latency_ms",
+          "dtls_ja3_fingerprint",
+          "dtls_ja3_hash",
+          "dtls_cert_issuer",
+          "dtls_cert_subject"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "dtls_sni",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "QUIC": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "quic_version",
+          "quic_sni",
+          "quic_user_agent"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "quic_sni",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "FTP": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "ftp_account",
+          "ftp_url",
+          "ftp_link_type"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "ftp_url",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "SIP": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "server_ip",
+          "server_port"
+        ]
+      },
+      "RTP": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ]
+      },
+      "RDP": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "rdp_cookie",
+          "rdp_security_protocol",
+          "rdp_client_channels",
+          "rdp_keyboard_layout",
+          "rdp_client_version",
+          "rdp_client_name",
+          "rdp_client_product_id",
+          "rdp_desktop_width",
+          "rdp_desktop_height",
+          "rdp_requested_color_depth",
+          "rdp_certificate_type",
+          "rdp_certificate_count",
+          "rdp_certificate_permanent",
+          "rdp_encryption_level",
+          "rdp_encryption_method"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "rdp_client_version",
+          "rdp_client_name"
+        ]
+      },
+      "SSH": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "ssh_version",
+          "ssh_auth_success",
+          "ssh_client_version",
+          "ssh_server_version",
+          "ssh_cipher_alg",
+          "ssh_mac_alg",
+          "ssh_compression_alg",
+          "ssh_kex_alg",
+          "ssh_host_key_alg",
+          "ssh_host_key",
+          "ssh_hassh"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "ssh_auth_success"
+        ]
+      },
+      "Stratum": {
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "security_rule_list",
+          "security_action",
+          "monitor_rule_list",
+          "shaping_rule_list",
+          "sc_rule_list",
+          "statistics_rule_list",
+          "sc_rsp_raw",
+          "sc_rsp_decrypted",
+          "proxy_rule_list",
+          "proxy_action",
+          "proxy_pinning_status",
+          "proxy_intercept_status",
+          "proxy_passthrough_reason",
+          "proxy_client_side_latency_ms",
+          "proxy_server_side_latency_ms",
+          "proxy_client_side_version",
+          "proxy_server_side_version",
+          "proxy_cert_verify",
+          "proxy_intercept_error",
+          "monitor_mirrored_pkts",
+          "monitor_mirrored_bytes",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_asn",
+          "subscriber_id",
+          "imei",
+          "imsi",
+          "apn",
+          "phone_number",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_asn",
+          "server_fqdn",
+          "server_domain",
+          "app_transition",
+          "app",
+          "app_debug_info",
+          "app_content",
+          "ip_protocol",
+          "decoded_path",
+          "fqdn_category_list",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "tcp_c2s_ip_fragments",
+          "tcp_s2c_ip_fragments",
+          "tcp_c2s_lost_bytes",
+          "tcp_s2c_lost_bytes",
+          "tcp_c2s_o3_pkts",
+          "tcp_s2c_o3_pkts",
+          "tcp_c2s_rtx_pkts",
+          "tcp_s2c_rtx_pkts",
+          "tcp_c2s_rtx_bytes",
+          "tcp_s2c_rtx_bytes",
+          "tcp_rtt_ms",
+          "tcp_client_isn",
+          "tcp_server_isn",
+          "packet_capture_file",
+          "in_src_mac",
+          "out_src_mac",
+          "in_dest_mac",
+          "out_dest_mac",
+          "encapsulation",
+          "dup_traffic_flag",
+          "tunnel_endpoint_a_desc",
+          "tunnel_endpoint_b_desc",
+          "stratum_cryptocurrency",
+          "stratum_mining_pools",
+          "stratum_mining_program",
+          "stratum_mining_subscribe"
+        ],
+        "default_columns": [
+          "recv_time",
+          "subscriber_id",
+          "client_port",
+          "client_ip",
+          "server_ip",
+          "server_port",
+          "stratum_cryptocurrency",
+          "stratum_mining_pools",
+          "stratum_mining_program"
+        ]
+      }
+    },
+    "default_columns": [
+      "recv_time",
+      "subscriber_id",
+      "client_ip",
+      "client_port",
+      "server_ip",
+      "server_port",
+      "decoded_as",
+      "server_fqdn"
+    ],
+    "internal_columns": [
+      "recv_time",
+      "log_id",
+      "flags_identify_info",
+      "encapsulation",
+      "app_debug_info",
+      "app_content",
+      "packet_capture_file",
+      "tunnel_endpoint_a_desc",
+      "tunnel_endpoint_b_desc"
+    ],
+    "tunnel_type": {
+      "GTP": [
+        {
+          "name": "gtp_endpoint_a_ip",
+          "label": "Endpoint A IP",
+          "type": "string"
+        },
+        {
+          "name": "gtp_endpoint_b_ip",
+          "label": "Endpoint B IP",
+          "type": "string"
+        },
+        {
+          "name": "gtp_endpoint_a_port",
+          "label": "Endpoint A Port",
+          "type": "int"
+        },
+        {
+          "name": "gtp_endpoint_b_port",
+          "label": "Endpoint B Port",
+          "type": "int"
+        },
+        {
+          "name": "gtp_endpoint_a2b_teid",
+          "label": "Endpoint A2B TEID",
+          "type": "long"
+        },
+        {
+          "name": "gtp_endpoint_b2a_teid",
+          "label": "Endpoint B2A TEID",
+          "type": "long"
+        }
+      ],
+      "MPLS": [
+        {
+          "name": "mpls_c2s_direction_label",
+          "label": "Multiprotocol Label (c2s)",
+          "type": {
+            "type": "array",
+            "items": "int",
+            "logicalType": "array"
+          }
+        },
+        {
+          "name": "mpls_s2c_direction_label",
+          "label": "Multiprotocol Label (s2c)",
+          "type": {
+            "type": "array",
+            "items": "int",
+            "logicalType": "array"
+          }
+        }
+      ],
+      "VLAN": [
+        {
+          "name": "vlan_c2s_direction_id",
+          "label": "VLAN Direction (c2s)",
+          "type": {
+            "type": "array",
+            "items": "int",
+            "logicalType": "array"
+          }
+        },
+        {
+          "name": "vlan_s2c_direction_id",
+          "label": "VLAN Direction (s2c)",
+          "type": {
+            "type": "array",
+            "items": "int",
+            "logicalType": "array"
+          }
+        }
+      ],
+      "ETHERNET": [
+        {
+          "name": "source_mac",
+          "label": "Source MAC",
+          "type": "string"
+        },
+        {
+          "name": "destination_mac",
+          "label": "Destination MAC",
+          "type": "string"
+        }
+      ],
+      "MULTIPATH_ETHERNET": [
+        {
+          "name": "c2s_source_mac",
+          "label": "Source MAC (c2s)",
+          "type": "string"
+        },
+        {
+          "name": "c2s_destination_mac",
+          "label": "Destination MAC (c2s)",
+          "type": "string"
+        },
+        {
+          "name": "s2c_source_mac",
+          "label": "Source MAC (s2c)",
+          "type": "string"
+        },
+        {
+          "name": "s2c_destination_mac",
+          "label": "Destination MAC (s2c)",
+          "type": "string"
+        }
+      ],
+      "L2TP": [
+        {
+          "name": "l2tp_version",
+          "label": "Version",
+          "type": "string"
+        },
+        {
+          "name": "l2tp_lac2lns_tunnel_id",
+          "label": "LAC2LNS Tunnel ID",
+          "type": "int"
+        },
+        {
+          "name": "l2tp_lns2lac_tunnel_id",
+          "label": "LNS2LAC Tunnel ID",
+          "type": "int"
+        },
+        {
+          "name": "l2tp_lac2lns_session_id",
+          "label": "LAC2LNS Session ID",
+          "type": "int"
+        },
+        {
+          "name": "l2tp_lns2lac_session_id",
+          "label": "LNS2LAC Session ID",
+          "type": "int"
+        },
+        {
+          "name": "l2tp_access_concentrator_ip",
+          "label": "Access Concentrator IP",
+          "type": "string"
+        },
+        {
+          "name": "l2tp_access_concentrator_port",
+          "label": "Access Concentrator Port",
+          "type": "int"
+        },
+        {
+          "name": "l2tp_network_server_ip",
+          "label": "Network Server IP",
+          "type": "string"
+        },
+        {
+          "name": "l2tp_network_server_port",
+          "label": "Network Server Port",
+          "type": "int"
+        }
+      ],
+      "PPTP": [
+        {
+          "name": "pptp_uplink_tunnel_id",
+          "label": "UpLink Tunnel ID",
+          "type": "int"
+        },
+        {
+          "name": "pptp_downlink_tunnel_id",
+          "label": "Down Tunnel ID",
+          "type": "int"
+        }
+      ],
+      "IPv4": [
+        {
+          "name": "client_ip",
+          "label": "Client IP",
+          "type": "string"
+        },
+        {
+          "name": "server_ip",
+          "label": "Server IP",
+          "type": "string"
+        }
+      ],
+      "IPv6": [
+        {
+          "name": "client_ip",
+          "label": "Client IP",
+          "type": "string"
+        },
+        {
+          "name": "server_ip",
+          "label": "Server IP",
+          "type": "string"
+        }
+      ]
+    },
+    "measurements": {
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes"
+        },
+        "RATE": {
+          "sent_pkts": "pps",
+          "received_pkts": "pps",
+          "sent_bytes": "Bps",
+          "received_bytes": "Bps",
+          "tcp_c2s_lost_bytes": "Bps",
+          "tcp_s2c_lost_bytes": "Bps",
+          "tcp_c2s_o3_pkts": "pps",
+          "tcp_s2c_o3_pkts": "pps",
+          "tcp_c2s_rtx_pkts": "pps",
+          "tcp_s2c_rtx_pkts": "pps",
+          "tcp_c2s_rtx_bytes": "Bps",
+          "tcp_s2c_rtx_bytes": "Bps",
+          "http_request_content_length": "Bps",
+          "http_response_content_length": "Bps"
+        },
+        "BITRATE": {
+          "sent_bytes": "bps",
+          "received_bytes": "bps",
+          "tcp_c2s_lost_bytes": "bps",
+          "tcp_s2c_lost_bytes": "bps",
+          "tcp_c2s_rtx_bytes": "bps",
+          "tcp_s2c_rtx_bytes": "bps",
+          "http_request_content_length": "bps",
+          "http_response_content_length": "bps"
+        },
+        "MAX": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "MIN": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "AVG": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "MEDIAN": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "P95_PERCENTILE": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "P99_PERCENTILE": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        }
+      },
+      "field_discovery_metric": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "log_id",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "sent_bytes + received_bytes",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(flags, 8) = 8, received_bytes, sent_bytes)",
+            "value": "incoming_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(flags, 8) = 8, sent_bytes, received_bytes)",
+            "value": "outgoing_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          }
+        ]
+      }
+    },
+    "expression_fields": [
+      {
+        "name": "internal_ip_list",
+        "label": "Internal IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_ip,''), if(bitAnd(flags, 16)=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "external_ip_list",
+        "label": "External IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_ip,''), if(bitAnd(flags, 16)!=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "security_rule_id",
+        "label": "Security Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(IF(empty(security_rule_list), arrayPushFront(security_rule_list, null),security_rule_list))"
+        }
+      },
+      {
+        "name": "proxy_rule_id",
+        "label": "Proxy Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(IF(empty(proxy_rule_list), arrayPushFront(proxy_rule_list, null),proxy_rule_list))"
+        }
+      },
+      {
+        "name": "monitor_rule_id",
+        "label": "Monitor Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
+        }
+      },
+      {
+        "name": "shaping_rule_id",
+        "label": "Shaping Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(IF(empty(shaping_rule_list), arrayPushFront(shaping_rule_list, null),shaping_rule_list))"
+        }
+      },
+      {
+        "name": "sc_rule_id",
+        "label": "Service Chaining Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(IF(empty(sc_rule_list), arrayPushFront(sc_rule_list, null),sc_rule_list))"
+        }
+      },
+      {
+        "name": "statistics_rule_id",
+        "label": "Statistics Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(IF(empty(statistics_rule_list), arrayPushFront(statistics_rule_list, null),statistics_rule_list))"
+        }
+      }
+    ],
+    "size": 0
+  },
+  "fields": [
+    {
+      "name": "recv_time",
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null,
+        "size": 0
+      },
+      "label": "Receive Time"
+    },
+    {
+      "name": "log_id",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Log ID"
+    },
+    {
+      "name": "decoded_as",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "BASE",
+            "value": "BASE"
+          },
+          {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
+            "code": "DNS",
+            "value": "DNS"
+          },
+          {
+            "code": "HTTP",
+            "value": "HTTP"
+          },
+          {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
+            "code": "DTLS",
+            "value": "DTLS"
+          },
+          {
+            "code": "QUIC",
+            "value": "QUIC"
+          },
+          {
+            "code": "FTP",
+            "value": "FTP"
+          },
+          {
+            "code": "SSH",
+            "value": "SSH"
+          },
+          {
+            "code": "Stratum",
+            "value": "Stratum"
+          },
+          {
+            "code": "RDP",
+            "value": "RDP"
+          },
+          {
+            "code": "SIP",
+            "value": "SIP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null,
+        "size": 0
+      },
+      "label": "Decoded AS"
+    },
+    {
+      "name": "session_id",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Session ID"
+    },
+    {
+      "name": "start_timestamp_ms",
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime64"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Start Time"
+    },
+    {
+      "name": "end_timestamp_ms",
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime64"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "End Time"
+    },
+    {
+      "name": "duration_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Duration (ms)"
+    },
+    {
+      "name": "tcp_handshake_latency_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "TCP Handshake Latency (ms)"
+    },
+    {
+      "name": "processing_time",
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Processing Time"
+    },
+    {
+      "name": "ingestion_time",
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Ingestion Time"
+    },
+    {
+      "name": "insert_time",
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Insert Time"
+    },
+    {
+      "name": "device_id",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Device ID"
+    },
+    {
+      "name": "out_link_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Outgoing Link ID"
+    },
+    {
+      "name": "in_link_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Incoming Link ID"
+    },
+    {
+      "name": "device_tag",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Device Tag"
+    },
+    {
+      "name": "data_center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [],
+        "visibility": "enabled",
+        "ttl": null,
+        "size": 0
+      },
+      "label": "Data Center"
+    },
+    {
+      "name": "device_group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "City A",
+            "value": "City A"
+          },
+          {
+            "code": "City B",
+            "value": "City B"
+          },
+          {
+            "code": "City C",
+            "value": "City C"
+          },
+          {
+            "code": "City D",
+            "value": "City D"
+          },
+          {
+            "code": "City E",
+            "value": "City E"
+          },
+          {
+            "code": "City F",
+            "value": "City F"
+          },
+          {
+            "code": "City G",
+            "value": "City G"
+          },
+          {
+            "code": "City H",
+            "value": "City H"
+          },
+          {
+            "code": "City I",
+            "value": "City I"
+          },
+          {
+            "code": "City J",
+            "value": "City J"
+          },
+          {
+            "code": "City K",
+            "value": "City K"
+          },
+          {
+            "code": "City L",
+            "value": "City L"
+          },
+          {
+            "code": "City M",
+            "value": "City M"
+          },
+          {
+            "code": "City N",
+            "value": "City N"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null,
+        "size": 0
+      },
+      "label": "Device Group"
+    },
+    {
+      "name": "sled_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Sled IP"
+    },
+    {
+      "name": "address_type",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "4",
+            "value": "ipv4"
+          },
+          {
+            "code": "6",
+            "value": "ipv6"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Address Type"
+    },
+    {
+      "name": "vsys_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null,
+        "size": 0
+      },
+      "default": 1,
+      "label": "Vsys ID"
+    },
+    {
+      "name": "t_vsys_id",
+      "type": "int",
+      "doc": {
+        "allow_query": "false",
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Traffic Vsys ID"
+    },
+    {
+      "name": "flags",
+      "type": {
+        "type": "long",
+        "logicalType": "bit"
+      },
+      "doc": {
+        "constraints": {
+          "type": "bit",
+          "operator_functions": "=,!=,bitAnd"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "Asymmetric"
+          },
+          {
+            "code": "2",
+            "value": "Bulky"
+          },
+          {
+            "code": "4",
+            "value": "CBR Streaming"
+          },
+          {
+            "code": "8",
+            "value": "Client is Local"
+          },
+          {
+            "code": "16",
+            "value": "Server is Local"
+          },
+          {
+            "code": "32",
+            "value": "Download"
+          },
+          {
+            "code": "64",
+            "value": "Interactive"
+          },
+          {
+            "code": "128",
+            "value": "Inbound"
+          },
+          {
+            "code": "256",
+            "value": "Outbound"
+          },
+          {
+            "code": "512",
+            "value": "Pseudo Unidirectional"
+          },
+          {
+            "code": "1024",
+            "value": "Streaming"
+          },
+          {
+            "code": "2048",
+            "value": "Unidirectional"
+          },
+          {
+            "code": "4096",
+            "value": "Random looking"
+          },
+          {
+            "code": "8192",
+            "value": "C2S"
+          },
+          {
+            "code": "16384",
+            "value": "S2C"
+          },
+          {
+            "code": "32768",
+            "value": "Bidirectional"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Flags"
+    },
+    {
+      "name": "flags_identify_info",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Flags Identify Info"
+    },
+    {
+      "name": "security_rule_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Security Rule List"
+    },
+    {
+      "name": "security_action",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "Deny",
+            "value": "Deny"
+          },
+          {
+            "code": "Allow",
+            "value": "Allow"
+          }
+        ],
+        "ttl": null,
+        "size": 0
+      },
+      "label": "Security Action"
+    },
+    {
+      "name": "monitor_rule_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Monitor Rule List"
+    },
+    {
+      "name": "sc_rule_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Service Chaining Rule List"
+    },
+    {
+      "name": "statistics_rule_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Statistics Rule List"
+    },
+    {
+      "name": "sc_rsp_raw",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Service Chaining Rendered Service Path (Raw)"
+    },
+    {
+      "name": "sc_rsp_decrypted",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Service Chaining Rendered Service Path (Decrypted)"
+    },
+    {
+      "name": "shaping_rule_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Shaping Rule List"
+    },
+    {
+      "name": "proxy_rule_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Rule List"
+    },
+    {
+      "name": "proxy_action",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "Intercept",
+            "value": "Intercept"
+          },
+          {
+            "code": "No Intercept",
+            "value": "No Intercept"
+          }
+        ],
+        "ttl": null,
+        "size": 0
+      },
+      "label": "Proxy Action"
+    },
+    {
+      "name": "proxy_pinning_status",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "not pinning"
+          },
+          {
+            "code": "1",
+            "value": "pinning"
+          },
+          {
+            "code": "2",
+            "value": "maybe pinning"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Pinning Status"
+    },
+    {
+      "name": "proxy_intercept_status",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "passthrough"
+          },
+          {
+            "code": "1",
+            "value": "intercept"
+          },
+          {
+            "code": "2",
+            "value": "shutdown"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Intercept Status"
+    },
+    {
+      "name": "proxy_passthrough_reason",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Passthrough Reason"
+    },
+    {
+      "name": "proxy_server_side_latency_ms",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Server-Side Latency (ms)"
+    },
+    {
+      "name": "proxy_client_side_latency_ms",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Client-Side Latency (ms)"
+    },
+    {
+      "name": "proxy_client_side_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Client-Side Version"
+    },
+    {
+      "name": "proxy_server_side_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Server-Side Version"
+    },
+    {
+      "name": "proxy_cert_verify",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Certificate Verify"
+    },
+    {
+      "name": "proxy_intercept_error",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Proxy Intercept Error"
+    },
+    {
+      "name": "monitor_mirrored_pkts",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Monitor Mirrored Packets"
+    },
+    {
+      "name": "monitor_mirrored_bytes",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Monitor Mirrored Bytes"
+    },
+    {
+      "name": "client_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client IP"
+    },
+    {
+      "name": "client_port",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client Port"
+    },
+    {
+      "name": "client_os_desc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client OS Description"
+    },
+    {
+      "name": "client_geolocation",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client Geolocation"
+    },
+    {
+      "name": "client_asn",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client ASN"
+    },
+    {
+      "name": "subscriber_id",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Subscriber ID"
+    },
+    {
+      "name": "imei",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "IMEI"
+    },
+    {
+      "name": "imsi",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "IMSI"
+    },
+    {
+      "name": "apn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "APN"
+    },
+    {
+      "name": "phone_number",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Phone Number"
+    },
+    {
+      "name": "server_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server IP"
+    },
+    {
+      "name": "server_port",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server Port"
+    },
+    {
+      "name": "server_os_desc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server OS Description"
+    },
+    {
+      "name": "server_geolocation",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server Geolocation"
+    },
+    {
+      "name": "server_asn",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server ASN"
+    },
+    {
+      "name": "server_fqdn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server FQDN"
+    },
+    {
+      "name": "server_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server Domain"
+    },
+    {
+      "name": "app_transition",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Application Transition"
+    },
+    {
+      "name": "app",
+      "type": "string",
+      "doc": {
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Application"
+    },
+    {
+      "name": "app_debug_info",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Application Debug Info"
+    },
+    {
+      "name": "app_content",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Application Content"
+    },
+    {
+      "name": "ip_protocol",
+      "type": "string",
+      "doc": {
+        "data": [
+          {
+            "code": "tcp",
+            "value": "tcp"
+          },
+          {
+            "code": "udp",
+            "value": "udp"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "IP Protocol"
+    },
+    {
+      "name": "decoded_path",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Decoded Path"
+    },
+    {
+      "name": "fqdn_category_list",
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      },
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "dict_location": {
+          "path": "/v1/policy/object?type=fqdn_category",
+          "key": "category_id",
+          "value": "category_name"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "FQDN Category List"
+    },
+    {
+      "name": "sent_pkts",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Packets Sent"
+    },
+    {
+      "name": "received_pkts",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Packets Received"
+    },
+    {
+      "name": "sent_bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Bytes Sent"
+    },
+    {
+      "name": "received_bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Bytes Received"
+    },
+    {
+      "name": "tcp_c2s_ip_fragments",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client-to-Server IP Fragments"
+    },
+    {
+      "name": "tcp_s2c_ip_fragments",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server-to-Client IP Fragments"
+    },
+    {
+      "name": "tcp_c2s_lost_bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client-to-Server Lost Bytes"
+    },
+    {
+      "name": "tcp_s2c_lost_bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server-to-Client Lost Bytes"
+    },
+    {
+      "name": "tcp_c2s_o3_pkts",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client-to-Server Out-of-Order Packets"
+    },
+    {
+      "name": "tcp_s2c_o3_pkts",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server-to-Client Out-of-Order Packets"
+    },
+    {
+      "name": "tcp_c2s_rtx_pkts",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client-to-Server Retransmission Packets"
+    },
+    {
+      "name": "tcp_s2c_rtx_pkts",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server-to-Client Retransmission Packets"
+    },
+    {
+      "name": "tcp_c2s_rtx_bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client-to-Server Retransmission Bytes"
+    },
+    {
+      "name": "tcp_s2c_rtx_bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server-to-Client Retransmission Bytes"
+    },
+    {
+      "name": "tcp_rtt_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Round-trip Time (ms)"
+    },
+    {
+      "name": "tcp_client_isn",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Client ISN"
+    },
+    {
+      "name": "tcp_server_isn",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Server ISN"
+    },
+    {
+      "name": "packet_capture_file",
+      "type": "string",
+      "doc": {
+        "allow_query": "false",
+        "visibility": "enabled",
+        "constraints": {
+          "type": "file"
+        },
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Packet Capture File"
+    },
+    {
+      "name": "in_src_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Incoming Source MAC"
+    },
+    {
+      "name": "out_src_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Outgoing Source MAC"
+    },
+    {
+      "name": "in_dest_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Incoming Destination MAC"
+    },
+    {
+      "name": "out_dest_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Outgoing Destination MAC"
+    },
+    {
+      "name": "encapsulation",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Encapsulation"
+    },
+    {
+      "name": "dup_traffic_flag",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "No"
+          },
+          {
+            "code": "1",
+            "value": "Yes"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Duplicate Traffic Flag"
+    },
+    {
+      "name": "tunnel_endpoint_a_desc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Tunnel Endpoint A Description"
+    },
+    {
+      "name": "tunnel_endpoint_b_desc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Tunnel Endpoint B Description"
+    },
+    {
+      "name": "http_url",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.URL"
+    },
+    {
+      "name": "http_host",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Host"
+    },
+    {
+      "name": "http_request_line",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Request Line"
+    },
+    {
+      "name": "http_response_line",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Response Line"
+    },
+    {
+      "name": "http_request_content_length",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Request Content-Length"
+    },
+    {
+      "name": "http_request_content_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Request Content-Type"
+    },
+    {
+      "name": "http_response_content_length",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Response Content-Length"
+    },
+    {
+      "name": "http_response_content_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Response Content Type"
+    },
+    {
+      "name": "http_request_body",
+      "type": "string",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Request Body"
+    },
+    {
+      "name": "http_response_body",
+      "type": "string",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Response Body"
+    },
+    {
+      "name": "http_proxy_flag",
+      "type": "int",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Proxy Flag"
+    },
+    {
+      "name": "http_sequence",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Sequence"
+    },
+    {
+      "name": "http_cookie",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Cookie"
+    },
+    {
+      "name": "http_referer",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Referer"
+    },
+    {
+      "name": "http_user_agent",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.User-Agent"
+    },
+    {
+      "name": "http_set_cookie",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Set-Cookie"
+    },
+    {
+      "name": "http_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Version"
+    },
+    {
+      "name": "http_status_code",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Status Code"
+    },
+    {
+      "name": "http_response_latency_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Response Latency (ms)"
+    },
+    {
+      "name": "http_action_file_size",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Action File Size"
+    },
+    {
+      "name": "http_session_duration_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "HTTP.Session Duration (ms)"
+    },
+    {
+      "name": "mail_protocol_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Protocol Type"
+    },
+    {
+      "name": "mail_account",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Account"
+    },
+    {
+      "name": "mail_from_cmd",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.From CMD"
+    },
+    {
+      "name": "mail_to_cmd",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.To CMD"
+    },
+    {
+      "name": "mail_from",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.From"
+    },
+    {
+      "name": "mail_password",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Password"
+    },
+    {
+      "name": "mail_to",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.To"
+    },
+    {
+      "name": "mail_cc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.CC"
+    },
+    {
+      "name": "mail_bcc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.BCC"
+    },
+    {
+      "name": "mail_subject",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Subject"
+    },
+    {
+      "name": "mail_subject_charset",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Subject Charset"
+    },
+    {
+      "name": "mail_attachment_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Attachment Name"
+    },
+    {
+      "name": "mail_attachment_name_charset",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.Attachment Name Charset"
+    },
+    {
+      "name": "mail_eml_file",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "MAIL.EML File"
+    },
+    {
+      "name": "dns_message_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.Message ID"
+    },
+    {
+      "name": "dns_qr",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "QUERY"
+          },
+          {
+            "code": "1",
+            "value": "RESPONSE"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.QR"
+    },
+    {
+      "name": "dns_opcode",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "QUERY"
+          },
+          {
+            "code": "1",
+            "value": "IQUERY"
+          },
+          {
+            "code": "2",
+            "value": "STATUS"
+          },
+          {
+            "code": "5",
+            "value": "UPDATE"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.OPCODE"
+    },
+    {
+      "name": "dns_aa",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.AA"
+    },
+    {
+      "name": "dns_tc",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.TC"
+    },
+    {
+      "name": "dns_rd",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.RD"
+    },
+    {
+      "name": "dns_ra",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.RA"
+    },
+    {
+      "name": "dns_rcode",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": 0,
+            "value": "NoError"
+          },
+          {
+            "code": 1,
+            "value": "FormErr"
+          },
+          {
+            "code": 2,
+            "value": "ServFail"
+          },
+          {
+            "code": 3,
+            "value": "NXDomain"
+          },
+          {
+            "code": 4,
+            "value": "NotImp"
+          },
+          {
+            "code": 5,
+            "value": "Refused"
+          },
+          {
+            "code": 6,
+            "value": "YXDomain"
+          },
+          {
+            "code": 7,
+            "value": "YXRRSet"
+          },
+          {
+            "code": 8,
+            "value": "NXRRSet"
+          },
+          {
+            "code": 9,
+            "value": "NotAuth"
+          },
+          {
+            "code": 10,
+            "value": "NotZone"
+          },
+          {
+            "code": 16,
+            "value": "BADSIG"
+          },
+          {
+            "code": 17,
+            "value": "BADKEY"
+          },
+          {
+            "code": 18,
+            "value": "BADTIME"
+          },
+          {
+            "code": 19,
+            "value": "BADMODE"
+          },
+          {
+            "code": 20,
+            "value": "BADNAME"
+          },
+          {
+            "code": 21,
+            "value": "BADALG"
+          }
+        ],
+        "visibility": "enabled",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.RCODE"
+    },
+    {
+      "name": "dns_qdcount",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.QDCOUNT"
+    },
+    {
+      "name": "dns_ancount",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.ANCOUNT"
+    },
+    {
+      "name": "dns_nscount",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.NSCOUNT"
+    },
+    {
+      "name": "dns_arcount",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.ARCOUNT"
+    },
+    {
+      "name": "dns_qname",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.QNAME"
+    },
+    {
+      "name": "dns_qtype",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "A"
+          },
+          {
+            "code": "2",
+            "value": "NS"
+          },
+          {
+            "code": "3",
+            "value": "MD"
+          },
+          {
+            "code": "4",
+            "value": "MF"
+          },
+          {
+            "code": "5",
+            "value": "CNAME"
+          },
+          {
+            "code": "6",
+            "value": "SOA"
+          },
+          {
+            "code": "7",
+            "value": "MB"
+          },
+          {
+            "code": "8",
+            "value": "MG"
+          },
+          {
+            "code": "9",
+            "value": "MR"
+          },
+          {
+            "code": "10",
+            "value": "NULL"
+          },
+          {
+            "code": "11",
+            "value": "WKS"
+          },
+          {
+            "code": "12",
+            "value": "PTR"
+          },
+          {
+            "code": "13",
+            "value": "HINFO"
+          },
+          {
+            "code": "14",
+            "value": "MINFO"
+          },
+          {
+            "code": "15",
+            "value": "MX"
+          },
+          {
+            "code": "16",
+            "value": "TXT"
+          },
+          {
+            "code": "17",
+            "value": "RP"
+          },
+          {
+            "code": "18",
+            "value": "AFSDB"
+          },
+          {
+            "code": "19",
+            "value": "X25"
+          },
+          {
+            "code": "20",
+            "value": "ISDN"
+          },
+          {
+            "code": "21",
+            "value": "RT"
+          },
+          {
+            "code": "22",
+            "value": "NSAP"
+          },
+          {
+            "code": "23",
+            "value": "NSAP"
+          },
+          {
+            "code": "24",
+            "value": "SIG"
+          },
+          {
+            "code": "25",
+            "value": "KEY"
+          },
+          {
+            "code": "26",
+            "value": "PX"
+          },
+          {
+            "code": "27",
+            "value": "GPOS"
+          },
+          {
+            "code": "28",
+            "value": "AAAA"
+          },
+          {
+            "code": "29",
+            "value": "LOC"
+          },
+          {
+            "code": "30",
+            "value": "EID"
+          },
+          {
+            "code": "31",
+            "value": "NIMLOC"
+          },
+          {
+            "code": "32",
+            "value": "NB"
+          },
+          {
+            "code": "33",
+            "value": "SRV"
+          },
+          {
+            "code": "34",
+            "value": "ATMA"
+          },
+          {
+            "code": "35",
+            "value": "NAPTR"
+          },
+          {
+            "code": "36",
+            "value": "KX"
+          },
+          {
+            "code": "37",
+            "value": "CERT"
+          },
+          {
+            "code": "38",
+            "value": "A6"
+          },
+          {
+            "code": "39",
+            "value": "DNAME"
+          },
+          {
+            "code": "40",
+            "value": "SINK"
+          },
+          {
+            "code": "41",
+            "value": "OPT"
+          },
+          {
+            "code": "42",
+            "value": "APL"
+          },
+          {
+            "code": "43",
+            "value": "DS"
+          },
+          {
+            "code": "44",
+            "value": "SSHFP"
+          },
+          {
+            "code": "45",
+            "value": "IPSECKEY"
+          },
+          {
+            "code": "46",
+            "value": "RRSIG"
+          },
+          {
+            "code": "47",
+            "value": "NSEC"
+          },
+          {
+            "code": "48",
+            "value": "DNSKEY"
+          },
+          {
+            "code": "49",
+            "value": "DHCID"
+          },
+          {
+            "code": "50",
+            "value": "NSEC3"
+          },
+          {
+            "code": "51",
+            "value": "NSEC3PARAM"
+          },
+          {
+            "code": "52",
+            "value": "TLSA"
+          },
+          {
+            "code": "53",
+            "value": "SMIMEA"
+          },
+          {
+            "code": "55",
+            "value": "HIP"
+          },
+          {
+            "code": "59",
+            "value": "CDS"
+          },
+          {
+            "code": "60",
+            "value": "CDNSKEY"
+          },
+          {
+            "code": "61",
+            "value": "OPENPGPKEY"
+          },
+          {
+            "code": "62",
+            "value": "CSYNC"
+          },
+          {
+            "code": "63",
+            "value": "ZONEMD"
+          },
+          {
+            "code": "64",
+            "value": "SVCB"
+          },
+          {
+            "code": "65",
+            "value": "HTTPS"
+          },
+          {
+            "code": "99",
+            "value": "SPF"
+          },
+          {
+            "code": "100",
+            "value": "UINFO"
+          },
+          {
+            "code": "101",
+            "value": "UID"
+          },
+          {
+            "code": "102",
+            "value": "GID"
+          },
+          {
+            "code": "103",
+            "value": "UNSPEC"
+          },
+          {
+            "code": "108",
+            "value": "EUI48"
+          },
+          {
+            "code": "109",
+            "value": "EUI64"
+          },
+          {
+            "code": "249",
+            "value": "TKEY"
+          },
+          {
+            "code": "250",
+            "value": "TSIG"
+          },
+          {
+            "code": "251",
+            "value": "IXFR"
+          },
+          {
+            "code": "252",
+            "value": "AXFR"
+          },
+          {
+            "code": "253",
+            "value": "MAILB"
+          },
+          {
+            "code": "254",
+            "value": "MAILA"
+          },
+          {
+            "code": "255",
+            "value": "*"
+          },
+          {
+            "code": "256",
+            "value": "URI"
+          },
+          {
+            "code": "257",
+            "value": "CAA"
+          },
+          {
+            "code": "32768",
+            "value": "TA"
+          },
+          {
+            "code": "32769",
+            "value": "DLV"
+          },
+          {
+            "code": "65521",
+            "value": "INTEGRITY"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.QTYPE"
+    },
+    {
+      "name": "dns_qclass",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.QCLASS"
+    },
+    {
+      "name": "dns_cname",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.CNAME"
+    },
+    {
+      "name": "dns_sub",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "DNS"
+          },
+          {
+            "code": "2",
+            "value": "DNSSEC"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.SUB"
+    },
+    {
+      "name": "dns_rr",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.RR"
+    },
+    {
+      "name": "dns_response_latency_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DNS.Response Latency (ms)"
+    },
+    {
+      "name": "ssl_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.Version"
+    },
+    {
+      "name": "ssl_sni",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.SNI"
+    },
+    {
+      "name": "ssl_san",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.SAN"
+    },
+    {
+      "name": "ssl_cn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.CN"
+    },
+    {
+      "name": "ssl_handshake_latency_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.Handshake Latency (ms)"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.JA3 Hash"
+    },
+    {
+      "name": "ssl_ja3s_hash",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.JA3S Hash"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.Issuer"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.Subject"
+    },
+    {
+      "name": "ssl_esni_flag",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSL.ESNI Flag"
+    },
+    {
+      "name": "ssl_ech_flag",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": " SSL.ECH Flag"
+    },
+    {
+      "name": "dtls_cookie",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.Cookie"
+    },
+    {
+      "name": "dtls_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.Version"
+    },
+    {
+      "name": "dtls_sni",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.SNI"
+    },
+    {
+      "name": "dtls_san",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.SAN"
+    },
+    {
+      "name": "dtls_cn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.CN"
+    },
+    {
+      "name": "dtls_handshake_latency_ms",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.Handshake Latency (ms)"
+    },
+    {
+      "name": "dtls_ja3_fingerprint",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.JA3 Fingerprint"
+    },
+    {
+      "name": "dtls_ja3_hash",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.JA3 Hash"
+    },
+    {
+      "name": "dtls_cert_issuer",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.Certificate Issuer"
+    },
+    {
+      "name": "dtls_cert_subject",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "DTLS.Certificate Subject"
+    },
+    {
+      "name": "quic_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "QUIC.Version"
+    },
+    {
+      "name": "quic_sni",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "QUIC.SNI"
+    },
+    {
+      "name": "quic_user_agent",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "QUIC.User-Agent"
+    },
+    {
+      "name": "ftp_account",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "FTP.Account"
+    },
+    {
+      "name": "ftp_url",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "FTP.URL"
+    },
+    {
+      "name": "ftp_link_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "FTP.Link Type"
+    },
+    {
+      "name": "sip_call_id",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Call-ID"
+    },
+    {
+      "name": "sip_originator_description",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Originator"
+    },
+    {
+      "name": "sip_responder_description",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Responder"
+    },
+    {
+      "name": "sip_user_agent",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.User-Agent"
+    },
+    {
+      "name": "sip_server",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Server"
+    },
+    {
+      "name": "sip_originator_sdp_connect_ip",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Originator IP"
+    },
+    {
+      "name": "sip_originator_sdp_media_port",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Originator Port"
+    },
+    {
+      "name": "sip_originator_sdp_media_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Originator Media Type"
+    },
+    {
+      "name": "sip_originator_sdp_content",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Originator Content"
+    },
+    {
+      "name": "sip_responder_sdp_connect_ip",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Responder IP"
+    },
+    {
+      "name": "sip_responder_sdp_media_port",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Responder Port"
+    },
+    {
+      "name": "sip_responder_sdp_media_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Responder Media Type"
+    },
+    {
+      "name": "sip_responder_sdp_content",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Responder Content"
+    },
+    {
+      "name": "sip_duration_s",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Duration (s)"
+    },
+    {
+      "name": "sip_bye",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SIP.Bye"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RTP.Payload Type (C2S)"
+    },
+    {
+      "name": "rtp_payload_type_s2c",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RTP.Payload Type (S2C)"
+    },
+    {
+      "name": "rtp_pcap_path",
+      "type": "string",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RTP.PCAP"
+    },
+    {
+      "name": "rtp_originator_dir",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "unknown"
+          },
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RTP.Direction"
+    },
+    {
+      "name": "ssh_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Version"
+    },
+    {
+      "name": "ssh_auth_success",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Authentication Result"
+    },
+    {
+      "name": "ssh_client_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Client Version"
+    },
+    {
+      "name": "ssh_server_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Server Version"
+    },
+    {
+      "name": "ssh_cipher_alg",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Encryption Algorithm"
+    },
+    {
+      "name": "ssh_mac_alg",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Signing Algorithm"
+    },
+    {
+      "name": "ssh_compression_alg",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Compression Algorithm"
+    },
+    {
+      "name": "ssh_kex_alg",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Key Exchange Algorithm"
+    },
+    {
+      "name": "ssh_host_key_alg",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Server Host Key Algorithm"
+    },
+    {
+      "name": "ssh_host_key",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.Server Key Fingerprint"
+    },
+    {
+      "name": "ssh_hassh",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "SSH.HASSH"
+    },
+    {
+      "name": "stratum_cryptocurrency",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Stratum.Cryptocurrency"
+    },
+    {
+      "name": "stratum_mining_pools",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Stratum.Mining Pools"
+    },
+    {
+      "name": "stratum_mining_program",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Stratum.Mining Program"
+    },
+    {
+      "name": "stratum_mining_subscribe",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "Stratum.Mining Subscribe"
+    },
+    {
+      "name": "rdp_cookie",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Cookie"
+    },
+    {
+      "name": "rdp_security_protocol",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Security Protocol"
+    },
+    {
+      "name": "rdp_client_channels",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Client Channels"
+    },
+    {
+      "name": "rdp_keyboard_layout",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Keyboard Layout"
+    },
+    {
+      "name": "rdp_client_version",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Client Version"
+    },
+    {
+      "name": "rdp_client_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Client Name"
+    },
+    {
+      "name": "rdp_client_product_id",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Client Product ID"
+    },
+    {
+      "name": "rdp_desktop_width",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Desktop Width"
+    },
+    {
+      "name": "rdp_desktop_height",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Desktop Height"
+    },
+    {
+      "name": "rdp_requested_color_depth",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Requested Color Depth"
+    },
+    {
+      "name": "rdp_certificate_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Certificate Type"
+    },
+    {
+      "name": "rdp_certificate_count",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Certificate Count"
+    },
+    {
+      "name": "rdp_certificate_permanent",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Certificate Permanent"
+    },
+    {
+      "name": "rdp_encryption_level",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Encryption Level"
+    },
+    {
+      "name": "rdp_encryption_method",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": 2592000,
+        "size": 0
+      },
+      "label": "RDP.Encryption Method"
+    }
+  ]
+}

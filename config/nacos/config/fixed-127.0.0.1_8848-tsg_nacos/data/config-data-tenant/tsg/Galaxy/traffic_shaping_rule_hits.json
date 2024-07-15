@@ -8,60 +8,59 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "__time"
+      ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "profile_id",
-        "priority"
+        "device_group",
+        "data_center"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "rule_id",
-        "profile_id",
-        "priority",
         "in_bytes",
         "out_bytes",
         "in_pkts",
         "out_pkts",
-        "in_drop_pkt",
-        "out_drop_pkts",
-        "in_max_latency_us",
-        "out_max_latency_us",
-        "in_queue_len",
-        "out_queue_len"
+        "in_drop_pkts",
+        "out_drop_pkts"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "profile_id",
         "priority",
-        "in_bytes",
-        "out_bytes",
-        "in_pkts",
-        "out_pkts",
-        "in_drop_pkt",
-        "out_drop_pkts",
-        "in_max_latency_us",
-        "out_max_latency_us",
-        "in_queue_len",
-        "out_queue_len"
+        "device_group",
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
-      "granularity": 1,
-      "ingestion_delay": 5
+      "ingestion_period": "PT1S",
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets",
+          "in_drop_pkts": "packets",
+          "out_drop_pkts": "packets"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps",
+          "in_drop_pkts": "pps",
+          "out_drop_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -85,7 +84,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -131,7 +130,7 @@
     {
       "name": "rule_id",
       "label": "Rule",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
@@ -142,7 +141,7 @@
     {
       "name": "profile_id",
       "label": "Profile ID",
-      "type": "int",
+      "type": "long",
       "doc": {
         "visibility": "enabled"
       }
@@ -150,7 +149,7 @@
     {
       "name": "priority",
       "label": "Priority",
-      "type": "int",
+      "type": "long",
       "doc": {
         "visibility": "enabled"
       }
@@ -158,80 +157,116 @@
     {
       "name": "in_bytes",
       "label": "Incoming Bytes",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "in_pkts",
       "label": "Incoming Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "out_bytes",
       "label": "Outgoing Bytes",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "out_pkts",
       "label": "Outgoing Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "in_drop_pkts",
       "label": "Incoming Drop Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "out_drop_pkts",
       "label": "Outgoing Drop Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "in_max_latency_us",
-      "label": "Incoming Max Latency (us)",
-      "type": "int",
+      "label": "Incoming Max Latency(us)",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "out_max_latency_us",
-      "label": "Outgoing Max Latency (us)",
-      "type": "int",
+      "label": "Outgoing Max Latency(us)",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "in_queue_len",
       "label": "Incoming Queue Length",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     },
     {
       "name": "out_queue_len",
       "label": "Outgoing Queue Length",
-      "type": "int",
+      "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     }

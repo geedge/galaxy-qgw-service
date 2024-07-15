@@ -1,7 +1,21 @@
 {
-  "publishTest": {
+  "publish": {
+    "kb_id": "test",
     "name": "test",
-    "format": "test",
-    "type": "test"
+    "format": "format",
+    "category": "category",
+    "is_valid": 1
+  },
+  "update": {
+    "kb_id": "test",
+    "version": "latest"
+  },
+  "update_status": {
+    "kb_id": "test",
+    "version": "latest",
+    "is_valid": 0
+  },
+  "delete": {
+    "kb_id": "test"
   }
 }

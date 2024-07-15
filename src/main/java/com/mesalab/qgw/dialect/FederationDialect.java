@@ -8,41 +8,41 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.calcite.CalciteMemoryUtils;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.calcite.CalciteConnectionProcessor;
+import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.enums.OutputMode;
+import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.basic.QueryProfile;
-import com.mesalab.qgw.model.basic.SQLQuerySource;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
+import com.mesalab.qgw.model.basic.SelectStatement;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.*;
 
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 联邦查询-基于Calcite支持多源联合查询
  */
 @Slf4j
-public class FederationDialect extends AbstractEngineDialect{
+public class FederationDialect extends AbstractEngineDialect {
     private Stopwatch watch = Stopwatch.createUnstarted();
+    private final EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
+
     private static final Map<String, String> metaMap = Maps.newHashMap();
-    public QueryProfile param;
+    public SQLQueryContext sqlQueryContext;
     public BaseResult baseResult;
 
     static {
@@ -51,45 +51,45 @@ public class FederationDialect extends AbstractEngineDialect{
         metaMap.put("VARCHAR", DataTypeMapping.STRING);
     }
 
-    public FederationDialect(QueryProfile param, BaseResult result) {
-        this.param = param;
+    public FederationDialect(SQLQueryContext sqlQueryContext, BaseResult result) {
+        this.sqlQueryContext = sqlQueryContext;
         this.baseResult = result;
     }
 
     @Override
     public void init() {
-        if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            param.getEngineQuerySource().setExecSQL(param.getEngineQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getFederationSelectStatement())) {
+            sqlQueryContext.getFederationSelectStatement().setExecSQL(sqlQueryContext.getFederationSelectStatement().getSqlBody());
         } else {
-            SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(null);
-            param.setEngineQuerySource(sqlQuerySource);
+            SelectStatement fdSelectStatement = new SelectStatement();
+            fdSelectStatement.setExecSQL(null);
+            sqlQueryContext.setFederationSelectStatement(fdSelectStatement);
         }
     }
 
     @Override
     public String getFederateQuery() {
-        return  param.getEngineQuerySource().getExecSQL();
+        return sqlQueryContext.getFederationSelectStatement().getExecSQL();
     }
 
     @Override
     public String getSampleQuery() {
-        String sql = param.getEngineQuerySource().getExecSQL();
+        String sql = sqlQueryContext.getFederationSelectStatement().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
         try {
-            sql = String.valueOf(convertSampleSql(sql));
+            sql = new SampleSQLHelper(sql, null, false, engineConfigSource.getDefaultResultNum()).build();
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sql, sql = sqlQueryContext.getDbSelectStatement().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sql;
     }
 
     @Override
     public String getSyntaxCheckQuery() {
-        String sql = param.getEngineQuerySource().getExecSQL();
+        String sql = sqlQueryContext.getFederationSelectStatement().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -107,13 +107,13 @@ public class FederationDialect extends AbstractEngineDialect{
     }
 
     @Override
-    final public BaseResult getProcesses(String queryId){
+    final public BaseResult getProcesses(String queryId) {
         return null;
     }
 
     @Override
     public boolean isExecute() {
-        return StringUtil.isNotEmpty(param.getEngineQuerySource().getExecSQL());
+        return StringUtil.isNotEmpty(sqlQueryContext.getFederationSelectStatement().getExecSQL());
     }
 
 
@@ -122,63 +122,73 @@ public class FederationDialect extends AbstractEngineDialect{
         try {
             watch.start();
             if (isExecute()) {
-                log.info("DB engine is :{},execute query is: {}", DBTypeEnum.ENGINE.getValue(), JSON.toJSONString(sql));
-                SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
+                log.info("DB engine is :{}, execute query is: {}", DBEngineType.QGW.getValue(), JSON.toJSONString(sql));
+                SelectStatement fdSelectStatement = sqlQueryContext.getFederationSelectStatement();
+                Map resultMap = CalciteConnectionProcessor.getInstance().executeMemoryQuery(fdSelectStatement.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), sql);
                 baseResult.setData(resultMap.get("data"));
                 baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             }
-            log.debug("Calcite execute time :" + watch.elapsed().toMillis() / 1000 + "s");
-
+            long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+            if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
+                log.warn("DB engine is: {}, elapsed: {} ms, sql: {}", DBEngineType.QGW.getValue(), elapsed, sql);
+            }
         } catch (RuntimeException ex) {
-            log.error("Engine execute memory-query error:{}", ex);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),ex.getMessage()));
+            log.error("Federation query error:{}", ex.getMessage());
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                    CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(), ex.getMessage()));
         }
         return build();
     }
 
 
-
     private BaseResult build() {
-
-        long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
         Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
-        statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
         if (StringUtil.isEmpty(baseResult.getData())) {
             statisticMap.put("result_bytes", 0);
             statisticMap.put("result_rows", 0);
         } else {
             statisticMap.put("result_bytes", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
-            statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+            statisticMap.put("result_rows", ((List<?>) baseResult.getData()).size());
         }
-        extendMetaInfo(baseResult.getMeta());
-        if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-            convertJsonToCSV();
-        }
-        baseResult.setFormatType(param.getFormat());
-        log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
-        return baseResult;
-    }
+        baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getFederationSelectStatement(), null));
+        if (baseResult.getMeta() != null
+                && baseResult.getData() != null
+                && ((List<Map<String, Object>>) baseResult.getMeta()).stream().anyMatch(x -> DataTypeMapping.LONG.equalsIgnoreCase(String.valueOf(x.get("type"))))) {
 
-    private void extendMetaInfo(Object meta) {
-        if (StringUtil.isEmpty(meta)) {
-            return;
-        }
-        List<Map<String, Object>> data = JsonPath.read(meta, "$");
-        SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) || StringUtil.isEmpty(param.getEngineQuerySource().getExecSQL()) ? param.getDbQuerySource() : param.getEngineQuerySource();
-        Map<String, String> groupDimension = querySource.getGroupDimension();
-        for (Map<String, Object> map : data) {
-            String field = String.valueOf(map.get("name"));
-            if (StringUtil.isNotEmpty(groupDimension) && ((groupDimension.containsKey(field) || groupDimension.containsValue(field)))) {
-                map.put("category", "Dimension");
-            } else {
-                map.put("category", "Metric");
+            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+            for (int i = 0; i < data.size(); i++) {
+                Map<String, Object> map = data.get(i);
+                String jsonString = JSON.toJSONString(map, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.BrowserCompatible);
+                Map parsedMap = JSON.parseObject(jsonString, LinkedHashMap.class);
+                map.clear();
+                map.putAll(parsedMap);
             }
+            baseResult.setData(data);
         }
+        if (baseResult.getMeta() != null) {
+            List<Map<String, Object>> metaList = (List<Map<String, Object>>) baseResult.getMeta();
+            metaList.forEach(x -> {
+                x.remove(MetaConst.META_CATEGORY);
+                x.remove(MetaConst.META_DATA_TYPE);
+                x.remove(MetaConst.META_FIELD_NAME);
+            });
+
+        }
+        if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
+            convertJsonToCSV();
+        } else if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.JSON.getValue())) {
+            baseResult.setMeta(null);
+        } else if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.JSON_COMPACT.getValue())) {
+            convertToJsonCompact();
+        }
+        long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
+        statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
+        baseResult.setOutputMode(sqlQueryContext.getFormat());
+        log.debug("Federation execute and build result time : {} ms", executeTime);
+        return baseResult;
     }
 
     private List<Map<String, String>> unifyMeta(Object meta) {
@@ -196,12 +206,11 @@ public class FederationDialect extends AbstractEngineDialect{
     }
 
     @Override
-    public void executeUDF() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+    public void executeUDF(boolean isDryRun) {
+        SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
-            List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
-                    baseResult);
+            List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, isDryRun, baseResult);
             baseResult.setData(targetResult);
         }
     }
@@ -209,7 +218,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     private void convertJsonToCSV() {
 
-        List<String> results = Lists.transform( (List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
+        List<String> results = Lists.transform((List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
 
             @Override
             public String apply(@Nullable Map<String, Object> input) {
@@ -229,55 +238,12 @@ public class FederationDialect extends AbstractEngineDialect{
         baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
     }
 
-    /**
-     * Desc: where、having至无效：添加 OR 1=1
-     *
-     * @param sql
-     * @return {@link SelectBody}
-     * @created by wWei
-     * @date 2022/4/27 5:18 下午
-     */
-    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        if (parse instanceof Select) {
-            Select select = (Select) parse;
-            SelectBody selectBody = select.getSelectBody();
-            if (selectBody instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                FromItem fromItem = plainSelect.getFromItem();
-                if (fromItem instanceof SubSelect) {
-                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
-                    plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getHaving())) {
-                    plainSelect.setHaving(generateDatasetWhereSql(plainSelect.getHaving().toString()));
-                }
-                return plainSelect;
-            } else if (selectBody instanceof SetOperationList) {
-                SetOperationList setOperationList = (SetOperationList) selectBody;
-                List<SelectBody> selects = setOperationList.getSelects();
-                for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, convertSampleSql(selects.get(i).toString()));
-                }
-                return setOperationList;
-            } else {
-                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-            }
-        }
-        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-    }
-
-    private Expression generateDatasetWhereSql(String where) throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ", where, "OR 1=1");
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        Select select = (Select) parse;
-        PlainSelect selectBody = (PlainSelect) select.getSelectBody();
-        return selectBody.getWhere();
+    private void convertToJsonCompact() {
+        List<Map<String, Object>> dataList = (List<Map<String, Object>>) baseResult.getData();
+        List<Object> result = dataList.stream()
+                .map(Map::values)
+                .collect(Collectors.toList());
+        baseResult.setData(result);
     }
 
 }

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItemVisitor {
     private static final Log log = LogFactory.get();
     private static final long TOP_INNER_LIMIT_RATIO = 10;
-    private static final long TOP_INNER_LIMIT_LOWER = 100000;
+    private static final long TOP_INNER_LIMIT_LOWER = 1000;
     private static final Pattern pLimitSetting = Pattern.compile("\\blimit(.*?)(\\))", Pattern.CASE_INSENSITIVE);
     private List<String> groupByList;
     private List<String> orderByList;
@@ -148,7 +148,9 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
      * @return
      */
     private boolean parseAndValidation(PlainSelect plainSelect) {
-
+        if (plainSelect == null) {
+            return false;
+        }
         for (SelectItem item : plainSelect.getSelectItems()) {
             item.accept(this);
         }

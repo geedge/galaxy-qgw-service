@@ -8,37 +8,29 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "__time"
+      ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "sf_profile_id"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "sf_profile_id",
-        "sf_status",
         "sf_latency_us"
       ],
       "filters": [
-        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
-        "sf_profile_id",
         "sf_status",
-        "sf_latency_us"
+        "sf_profile_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
-      "granularity": 1
+      "ingestion_period": "PT1S",
+      "ingestion_delay": 5
     }
   },
   "fields": [
@@ -102,16 +94,19 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
       "name": "sf_latency_us",
-      "label": "Service Function Latency (us)",
+      "label": "Service Function Latency(us)",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "sf_profile_id",
@@ -119,15 +114,18 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "sf_status",
       "label": "Service Function Status",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     }
   ]
 }

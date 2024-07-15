@@ -1,5 +1,177 @@
 {
   "functions": {
+    "aggregation": [
+      {
+        "name": "COUNT",
+        "label": "COUNT",
+        "function": "count(expr)",
+        "metric_type": "counter",
+        "unit": "short"
+      },
+      {
+        "name": "COUNT_DISTINCT",
+        "label": "COUNT_DISTINCT",
+        "function": "COUNT_DISTINCT(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "AVG",
+        "label": "AVG",
+        "function": "avg(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "SUM",
+        "label": "SUM",
+        "function": "sum(expr)",
+        "metric_type": "counter",
+        "unit": "short"
+      },
+      {
+        "name": "MAX",
+        "label": "MAX",
+        "function": "max(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "MIN",
+        "label": "MIN",
+        "function": "min(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "MEDIAN",
+        "label": "MEDIAN",
+        "function": "MEDIAN(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "MEDIAN_HDR",
+        "label": "MEDIAN_HDR",
+        "function": "MEDIAN_HDR(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "QUANTILE",
+        "label": "QUANTILE",
+        "function": "QUANTILE(expr, level)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "P95_PERCENTILE",
+        "label": "P95_PERCENTILE",
+        "function": "QUANTILE(expr, 0.95)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "P99_PERCENTILE",
+        "label": "P99_PERCENTILE",
+        "function": "QUANTILE(expr, 0.99)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "QUANTILE_HDR",
+        "label": "QUANTILE_HDR",
+        "function": "QUANTILE_HDR(expr, level)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "P95_PERCENTILE_HDR",
+        "label": "P95_PERCENTILE_HDR",
+        "function": "QUANTILE_HDR(expr, 0.95)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "P99_PERCENTILE_HDR",
+        "label": "P99_PERCENTILE_HDR",
+        "function": "QUANTILE_HDR(expr, 0.99)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "PERCENTILES_HDR",
+        "label": "PERCENTILES_HDR",
+        "function": "PERCENTILES_HDR(expr)",
+        "metric_type": "histogram",
+        "unit": "short"
+      },
+      {
+        "name": "APPROX_COUNT_DISTINCT_HLLD",
+        "label": "COUNT_DISTINCT_HLLD",
+        "function": "APPROX_COUNT_DISTINCT_HLLD(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "APPROX_COUNT_DISTINCT_DS_HLL",
+        "label": "COUNT_DISTINCT_DS_HLL",
+        "function": "APPROX_COUNT_DISTINCT_DS_HLL(expr)",
+        "metric_type": "gauge",
+        "unit": "short"
+      },
+      {
+        "name": "RATE",
+        "label": "RATE",
+        "function": "RATE(<expr>, <duration>, [interval])",
+        "metric_type": "gauge",
+        "unit": "sps"
+      },
+      {
+        "name": "BITRATE",
+        "label": "BITRATE",
+        "function": "RATE(<expr>, <duration>, [interval]) * 8",
+        "metric_type": "gauge",
+        "unit": "bps"
+      }
+    ],
+    "date": [
+      {
+        "name": "UNIX_TIMESTAMP",
+        "label": "UNIX_TIMESTAMP",
+        "function": "UNIX_TIMESTAMP(expr)"
+      },
+      {
+        "name": "UNIX_TIMESTAMP_MILLIS",
+        "label": "UNIX_TIMESTAMP_MILLIS",
+        "function": "UNIX_TIMESTAMP_MILLIS(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME",
+        "label": "FROM_UNIXTIME",
+        "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME_MILLIS",
+        "label": "FROM_UNIXTIME_MILLIS",
+        "function": "FROM_UNIXTIME_MILLIS(expr)"
+      },
+      {
+        "name": "DATE_FORMAT",
+        "label": "DATE_FORMAT",
+        "function": "DATE_FORMAT(expr, format)"
+      },
+      {
+        "name": "CONVERT_TZ",
+        "label": "CONVERT_TZ",
+        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+      },
+      {
+        "name": "TIME_FLOOR_WITH_FILL",
+        "label": "TIME_FLOOR_WITH_FILL",
+        "function": "TIME_FLOOR_WITH_FILL(expr, period, fill)"
+      }
+    ],
     "operator": [
       {
         "name": "=",
@@ -32,6 +204,11 @@
         "function": "expr <= value"
       },
       {
+        "name": "has",
+        "label": "HAS",
+        "function": "has(expr, value)"
+      },
+      {
         "name": "in",
         "label": "IN",
         "function": "expr in (values)"
@@ -50,11 +227,72 @@
         "name": "not like",
         "label": "NOT LIKE",
         "function": "expr not like value"
+      },
+      {
+        "name": "notEmpty",
+        "label": "NOT EMPTY",
+        "function": "notEmpty(expr)"
+      },
+      {
+        "name": "empty",
+        "label": "EMPTY",
+        "function": "empty(expr)"
+      },
+      {
+        "name": "bitAnd",
+        "label": "Bitwise AND",
+        "function": "bitAnd(expr, value) = value"
       }
     ]
   },
   "schema_query": {
     "references": {
+      "aggregation": [
+        {
+          "type": "int",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+        },
+        {
+          "type": "long",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+        },
+        {
+          "type": "float",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+        },
+        {
+          "type": "double",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+        },
+        {
+          "type": "string",
+          "functions": "COUNT,COUNT_DISTINCT"
+        },
+        {
+          "type": "date",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "datetime",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "timestamp",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "unix_timestamp",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "array",
+          "functions": "COUNT,COUNT_DISTINCT"
+        },
+        {
+          "type": "bit",
+          "functions": "COUNT,COUNT_DISTINCT"
+        }
+      ],
       "operator": [
         {
           "type": "int",
@@ -81,12 +319,24 @@
           "functions": "=,!=,>,<,>=,<="
         },
         {
+          "type": "dateTime",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
           "type": "timestamp",
           "functions": "=,!=,>,<,>=,<="
         },
         {
           "type": "unix_timestamp",
           "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "array",
+          "functions": "has,notEmpty,empty"
+        },
+        {
+          "type": "bit",
+          "functions": "=,!=,bitAnd"
         }
       ]
     }

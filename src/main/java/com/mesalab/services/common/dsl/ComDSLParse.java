@@ -4,26 +4,18 @@ import cn.hutool.core.date.DateException;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.entity.pojo.DSLParser;
 import com.mesalab.cn.enums.RangeTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
-import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
-import org.joda.time.format.ISODateTimeFormat;
+import com.mesalab.common.exception.CommonErrorCode;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 
@@ -41,8 +33,8 @@ public class ComDSLParse extends DSLParser {
             }
             return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
         } catch (DateException e) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
         }
     }
 

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated
 public class QueryCacheUtils {
 
     private static Cache<String,Object> cache;

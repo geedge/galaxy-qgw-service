@@ -6,16 +6,12 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 @WebFilter(urlPatterns = "/*")
-public class ControllerFilter implements  Filter {
-
-    private static final Set<String> NOT_FILTER_PATHS = Collections.unmodifiableSet(new HashSet<>(
-            Collections.singletonList("/knowledge_base/v1")));
+public class ControllerFilter implements Filter {
+    private static final String NOT_FILTER_PATHS_KB = "/v1/knowledge_base";
+    private static final String NOT_FILTER_PATHS_HOS = "/v1/hos";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -26,7 +22,7 @@ public class ControllerFilter implements  Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
         String servletPath = httpServletRequest.getServletPath();
-        if (NOT_FILTER_PATHS.contains(servletPath)) {
+        if (String.valueOf(servletPath).startsWith(NOT_FILTER_PATHS_HOS) || String.valueOf(servletPath).startsWith(NOT_FILTER_PATHS_KB)) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             filterChain.doFilter(new RequestParamWrapper(httpServletRequest), servletResponse);

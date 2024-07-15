@@ -1,0 +1,619 @@
+{
+  "type": "record",
+  "name": "traffic_sketch_metric",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
+    "index_key": [
+      "vsys_id",
+      "direction",
+      "ip_protocol",
+      "app",
+      "client_ip",
+      "recv_time"
+    ],
+    "ttl": null,
+    "default_ttl": 2592000,
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "recv_time"
+      ],
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "direction",
+        "ip_protocol",
+        "client_ip",
+        "server_ip",
+        "internal_ip",
+        "external_ip",
+        "client_country",
+        "server_country",
+        "client_asn",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "app",
+        "app_category",
+        "c2s_ttl",
+        "s2c_ttl",
+        "c2s_link_id",
+        "s2c_link_id"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "direction",
+        "ip_protocol",
+        "client_ip",
+        "server_ip",
+        "internal_ip",
+        "external_ip",
+        "client_country",
+        "server_country",
+        "client_asn",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "app",
+        "app_category",
+        "c2s_ttl",
+        "s2c_ttl",
+        "c2s_link_id",
+        "s2c_link_id",
+        "sessions",
+        "bytes",
+        "sent_bytes",
+        "received_bytes",
+        "pkts",
+        "sent_pkts",
+        "received_pkts",
+        "asymmetric_c2s_flows",
+        "asymmetric_s2c_flows",
+        "c2s_fragments",
+        "s2c_fragments",
+        "c2s_tcp_lost_bytes",
+        "s2c_tcp_lost_bytes",
+        "c2s_tcp_retransmitted_pkts",
+        "s2c_tcp_retransmitted_pkts"
+      ],
+      "filters": [
+        "log_id",
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "direction",
+        "ip_protocol",
+        "client_ip",
+        "server_ip",
+        "internal_ip",
+        "external_ip",
+        "client_country",
+        "server_country",
+        "client_asn",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "app",
+        "app_category",
+        "c2s_ttl",
+        "s2c_ttl",
+        "c2s_link_id",
+        "s2c_link_id",
+        "sessions",
+        "bytes",
+        "sent_bytes",
+        "received_bytes",
+        "pkts",
+        "sent_pkts",
+        "received_pkts",
+        "asymmetric_c2s_flows",
+        "asymmetric_s2c_flows",
+        "c2s_fragments",
+        "s2c_fragments",
+        "c2s_tcp_lost_bytes",
+        "s2c_tcp_lost_bytes",
+        "c2s_tcp_retransmitted_pkts",
+        "s2c_tcp_retransmitted_pkts"
+      ]
+    },
+    "measurements": {
+      "ingestion_period": "PT1M"
+    }
+  },
+  "fields": [
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "data": {
+          "$ref": "public_schema_info.json#/fields/direction/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ip_protocol",
+      "label": "IP Protocol",
+      "doc": {
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ip_protocol/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip",
+      "label": "Client IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip",
+      "label": "Server IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "internal_ip",
+      "label": "Internal IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "external_ip",
+      "label": "External IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_country",
+      "label": "Client Country",
+      "doc": {
+        "constraints": {
+          "type": "country"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_country",
+      "label": "Server Country",
+      "doc": {
+        "constraints": {
+          "type": "country"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_asn",
+      "label": "Client ASN",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_asn",
+      "label": "Server ASN",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "constraints": {
+          "type": "fqdn"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "constraints": {
+          "type": "domain"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app",
+      "label": "Application",
+      "doc": {
+        "constraints": {
+          "type": "app"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_category",
+      "label": "Application Category",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "c2s_ttl",
+      "label": "Client-to-Server TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "s2c_ttl",
+      "label": "Server-to-Client TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "c2s_link_id",
+      "label": "Client-to-Server Link ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "s2c_link_id",
+      "label": "Server-to-Client Link ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE",
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "sent_bytes",
+      "label": "Bytes Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE",
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "received_bytes",
+      "label": "Bytes Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE",
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "pkts",
+      "label": "Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE",
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "sent_pkts",
+      "label": "Packets Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE",
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "received_pkts",
+      "label": "Packets Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE",
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "asymmetric_c2s_flows",
+      "label": "Client-to-Server Asymmetric Flows",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "asymmetric_s2c_flows",
+      "label": "Server-to-Client Asymmetric Flows",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_fragments",
+      "label": "Client-to-Server Fragments",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_fragments",
+      "label": "Server-to-Client Fragments",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_lost_bytes",
+      "label": "Client-to-Server Lost Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_lost_bytes",
+      "label": "Server-to-Client Lost Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_retransmitted_pkts",
+      "label": "Client-to-Server Retransmission Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_retransmitted_pkts",
+      "label": "Server-to-Client Retransmission Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

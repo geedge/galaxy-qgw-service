@@ -39,14 +39,11 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
         HbaseDialect.PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
         HbaseDialect.PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
         HbaseDialect.PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
-        Connection conn = null;
-        PreparedStatement ps = null;
-        try {
-            String url = "jdbc:phoenix:".concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
-            conn = DriverManager.getConnection(url, HbaseDialect.PROPERTIES);
-            String sql = "select 1";
-            ps = conn.prepareStatement(sql);
-            PhoenixResultSet resultSet = (PhoenixResultSet) ps.executeQuery();
+        String url = "jdbc:phoenix:".concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
+        String sql = "select 1";
+        try (Connection conn = DriverManager.getConnection(url, HbaseDialect.PROPERTIES);
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet resultSet = ps.executeQuery()) {
             if (resultSet.next()) {
                 builder.up()
                         .withDetail("app", APP)
@@ -61,10 +58,6 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
             builder.down()
                     .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
-        } finally {
-            if (conn != null) {
-                conn.close();
-            }
         }
     }
 }

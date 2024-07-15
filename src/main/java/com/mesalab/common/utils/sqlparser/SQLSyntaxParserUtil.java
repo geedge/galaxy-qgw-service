@@ -5,11 +5,11 @@ import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.sf.jsqlparser.JSQLParserException;
@@ -39,17 +39,14 @@ public class SQLSyntaxParserUtil {
 
     private static final Log log = LogFactory.get();
 
-    private static QueryService queryService = (QueryService) SpringContextUtil.getBean("queryService");
-
     public static List syntaxParse(String sql) {
         List resultList = Lists.newArrayList();
         try {
             parseSQL(sql, resultList);
-            //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax_parse: sql-" + sql + ", error: ", e);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return resultList;
     }

@@ -1,0 +1,35 @@
+{
+  "field_discovery_default": {
+    "name": "field_discovery",
+    "data_source": "session_record",
+    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+  },
+  "field_discovery_sessions": {
+    "name": "field_discovery",
+    "data_source": "session_record",
+    "custom.field_discovery.metric": "sessions",
+    "custom.field_discovery.metric.fn": "count",
+    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+  },
+  "field_discovery_bytes": {
+    "name": "field_discovery",
+    "data_source": "session_record",
+    "custom.field_discovery.metric": "bytes",
+    "custom.field_discovery.metric.fn": "sum",
+    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+  },
+  "field_discovery_incoming_bytes": {
+    "name": "field_discovery",
+    "data_source": "session_record",
+    "custom.field_discovery.metric": "incoming_bytes",
+    "custom.field_discovery.metric.fn": "sum",
+    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+  },
+  "field_discovery_outgoing_bytes": {
+    "name": "field_discovery",
+    "data_source": "session_record",
+    "custom.field_discovery.metric": "outgoing_bytes",
+    "custom.field_discovery.metric.fn": "sum",
+    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+  }
+}

@@ -4,19 +4,16 @@
       "namespace": "tsg_galaxy_v3",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "radius_onff_log",
         "session_record",
         "transaction_record",
-        "radius_record",
         "voip_record",
-        "gtpc_record",
         "security_event",
         "proxy_event",
         "dos_event",
-        "active_defence_event",
-        "sys_packet_capture_event",
         "assessment_event",
-        "monitor_event"
+        "monitor_event",
+        "datapath_telemetry_record",
+        "traffic_sketch_metric"
       ]
     },
     {
@@ -28,7 +25,7 @@
         "columns_cluster",
         "disks_cluster",
         "parts_cluster",
-        "processes",
+        "processes_cluster",
         "query_log",
         "tables",
         "clusters",
@@ -45,36 +42,28 @@
         "top_external_ips",
         "top_server_domains",
         "top_server_fqdns",
-        "top_subscribers",
+        "top_client_countries",
+        "top_server_countries",
         "application_protocol_stat",
         "traffic_general_stat",
-        "traffic_top_destination_ip_metrics_log",
         "traffic_shaping_rule_hits",
-        "sys_storage_log",
         "service_chaining_rule_hits",
         "service_function_status",
         "security_rule_hits",
         "proxy_rule_hits",
         "statistics_rule",
         "object_statistics",
-        "statistics_rule_hits"
-      ]
-    },
-    {
-      "namespace":"tsg",
-      "group":"HBASE_GROUP",
-      "tables":[
-        "report_result"
+        "statistics_rule_hits",
+        "monitor_rule_hits",
+        "dos_protection_rule_hits",
+        "dos_protection_rule_metric"
       ]
     },
     {
       "namespace": "tsg_galaxy",
       "group": "HBASE_GROUP",
       "tables": [
-        "relation_account_framedip",
-        "recommendation_app_cip",
-        "job_result",
-        "gtpc_knowledge_base"
+        "saved_query_result"
       ]
     }
   ]

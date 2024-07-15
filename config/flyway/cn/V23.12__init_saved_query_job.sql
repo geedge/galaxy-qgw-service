@@ -4,8 +4,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 -- Table structure for saved_query_job
 -- ----------------------------
-DROP TABLE IF EXISTS `saved_query_job`;
-CREATE TABLE `saved_query_job` (
+CREATE TABLE IF NOT EXISTS `saved_query_job` (
                                    `job_id` varchar(128) NOT NULL COMMENT 'Job unique identifier',
                                    `query_sql` text NOT NULL COMMENT 'Query SQL',
                                    `state` varchar(16) NOT NULL COMMENT 'Enums: PENDING or RUNNING or DONE',

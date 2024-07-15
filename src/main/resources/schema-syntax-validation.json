@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "type": {
+      "enum": ["record","enum","array","map","union","fixed"]
+    },
+    "doc": {
+      "properties": {
+        "schema_query": {
+          "properties": {
+            "time": {
+              "items": {
+                "enum": [
+                  "$ENUM_VALUES$"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "dimensions": {
+              "items": {
+                "enum": [
+                  "$ENUM_VALUES$"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "metrics": {
+              "items": {
+                "enum": [
+                  "$ENUM_VALUES$"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "filters": {
+              "items": {
+                "enum": [
+                  "$ENUM_VALUES$"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "details": {
+              "patternProperties": {
+                ".*": {
+                  "items": {
+                    "enum": [
+                      "$ENUM_VALUES$"
+                    ]
+                  },
+                  "uniqueItems": true
+                }
+              }
+            }
+          }
+        },
+        "decoded_as": {
+          "patternProperties": {
+            ".*": {
+              "patternProperties": {
+                ".*": {
+                  "items": {
+                    "enum": [
+                      "$ENUM_VALUES$"
+                    ]
+                  },
+                  "uniqueItems": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "message": {
+        "enum" : "{0}: described field not found in $.fields[*].name"
+      }
+    },
+    "fields": {
+      "items": {
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["null", "boolean", "int", "long", "float", "double", "bytes", "string"]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": ["array", "null", "boolean", "int", "long", "float", "double", "bytes", "string"]
+                  },
+                  "items": {
+                    "enum": ["null", "boolean", "int", "long", "float", "double", "bytes", "string"]
+                  }
+                },
+                "required": ["type"]
+              }
+            ]
+          },
+          "doc": {
+            "required": [
+              "visibility"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      }
+    }
+  },
+  "required": [
+    "type",
+    "name",
+    "namespace",
+    "fields"
+  ]
+}

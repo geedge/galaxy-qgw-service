@@ -1,0 +1,20 @@
+{
+  "ip_learning_fqdn_relate_ip": {
+    "name": "ip-learning-fqdn-relate-ip",
+    "filter": "VSYS_ID in (1,2,3,4,5) AND PROTOCOL in ('SSL',  'HTTP', 'DNS')  AND DEPTH = 1 and UNIQ_NAME > 12 AND  FQDN_NAME in ('google.com', 'itunes.apple.com')",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ],
+    "limit": 100
+  },
+  "ip_learning_active_ip": {
+    "name": "ip-learning-active-ip",
+    "execution_mode": "oneshot",
+    "filter": "vsys_id in (1) AND 1=1",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ],
+    "order_by": "BYTES_TOTAL desc, LAST_FOUND_TIME desc",
+    "limit": 1
+  }
+}

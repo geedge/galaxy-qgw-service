@@ -22,9 +22,11 @@ public class QGWMessageConst {
 
     public static final String SQL_PARSE_ERROR_NOT_FOUNT_TABLE = "unable to parse table name.";
 
-    public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
+    public static final String CONSISTENCY_OPTION_ERROR = "not support consistency option value.";
 
-    public static final String DIAGNOSIS_CATEGORY_ERROR = "not support category value.";
+    public static final String BENCHMARK_TEST_PARAM_CANNOT_BE_EMPTY = "The benchmark test param value cannot be empty.";
+
+    public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
 
     public static final String NOT_SUPPORT_DML_PARSER = "not support DML Parser.";
 
@@ -110,5 +112,26 @@ public class QGWMessageConst {
 
     public static final String QUERY_CUSTOM_FIELD_DISCOVERY_ERROR = "The param custom.field_discovery.* illegal.";
 
+    public static final String DATASET_BACKEND_ENGINE_ERROR = "The dataset backend_engine is not supported, backend_engine value must be :[ qgw| clickhouse| druid| hbase]";
+
+    public static final String BUCKET_NAME_ERROR = "The bucket_name cannot be empty.";
+
+    public static final String DATASET_ID_NOT_EXIST = "The dataset identifier_name is not exist.";
+
+    public static final String KB_FILE_ID_CANNOT_BE_EMPTY = "The knowledge base file id cannot be empty.";
+
+    public static final String KB_FILE_NAME_CANNOT_BE_EMPTY = "The knowledge base file name cannot be empty.";
+
+    public static final String KB_FILE_VERSION_CANNOT_BE_EMPTY = "The knowledge base file version cannot be empty.";
+
+    public static final String KB_FILE_IS_VALID_CANNOT_BE_EMPTY = "The knowledge base file is_valid cannot be empty.";
+
+    public static final String KB_FILE_FORMAT_CANNOT_BE_EMPTY = "The knowledge base file format cannot be empty.";
+
+    public static final String KB_FILE_FORMAT_NOT_SUPPORT = "The knowledge base file format is not supported, format value must be :[ MMDB| CSV| TXT| AES]";
+
+    public static final String SCHEMA_FUNCTION_CONSTRAINT_ERROR ="The %s schema %s constraint functions has %s, does not exit in the list of supported aggregate functions.";
+
+    public static final String SCHEMA_FIELD_TYPE_NEED_CHECK = "The %s schema fields type need to be checked: %s.";
 
 }

@@ -1,17 +1,19 @@
 package com.mesalab.common.utils.sqlparser;
 
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DruidIoHttpSource;
@@ -24,7 +26,9 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.joda.time.Period;
 
+import javax.validation.constraints.NotNull;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author wangwei
@@ -39,6 +44,7 @@ import java.util.regex.Pattern;
  */
 public class SQLFunctionUtil {
 
+    private static final boolean CONVERT_DEFAULT_TIMEZONE_INTO_UTC;
     public static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
     public static final String IP_TO_GEO = "IP_TO_GEO";
     public static final String IP_TO_CITY = "IP_TO_CITY";
@@ -47,6 +53,8 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN = "IP_TO_ASN";
     public static final String IP_TO_ASN_DETAIL = "IP_TO_ASN_DETAIL";
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
+    public static final String ROLLUP = "ROLLUP";
+    public static final String RATE = "RATE";
     public static final String MAX_DURATION = "MAX_DURATION";
     public static final String MEDIAN_HDR = "MEDIAN_HDR";
     public static final String QUANTILE_HDR = "QUANTILE_HDR";
@@ -68,6 +76,7 @@ public class SQLFunctionUtil {
      */
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pRate = Pattern.compile("\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -88,38 +97,40 @@ public class SQLFunctionUtil {
 
     public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
 
-    public static final HashMap<String, String> functions = Maps.newHashMap();
+    public static final HashMap<String, String> federationUDFFunctions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
 
     public static final Map<String, String> timeSlicingFunction = Maps.newHashMap();
 
     static {
-        functions.put(TIME_FLOOR_WITH_FILL, null);
-        functions.put(IP_TO_GEO, null);
-        functions.put(IP_TO_CITY, null);
-        functions.put(IP_TO_COUNTRY, null);
-        functions.put(IP_TO_ISP, null);
-        functions.put(IP_TO_ASN, null);
-        functions.put(IP_TO_ASN_DETAIL, null);
-        functions.put(IP_TO_ASN_ORG, null);
-        distributedGroupByFunction.put("count","sum");
-        distributedGroupByFunction.put("sum","sum");
-        distributedGroupByFunction.put("avg","avg");
-        distributedGroupByFunction.put("min","min");
-        distributedGroupByFunction.put("max","max");
-        distributedGroupByFunction.put("median","median");
-        timeSlicingFunction.put("count","sum");
-        timeSlicingFunction.put("sum","sum");
-        timeSlicingFunction.put("avg","avg");
-        timeSlicingFunction.put("min","min");
-        timeSlicingFunction.put("max","max");
+        federationUDFFunctions.put(TIME_FLOOR_WITH_FILL, null);
+        federationUDFFunctions.put(IP_TO_GEO, null);
+        federationUDFFunctions.put(IP_TO_CITY, null);
+        federationUDFFunctions.put(IP_TO_COUNTRY, null);
+        federationUDFFunctions.put(IP_TO_ISP, null);
+        federationUDFFunctions.put(IP_TO_ASN, null);
+        federationUDFFunctions.put(IP_TO_ASN_DETAIL, null);
+        federationUDFFunctions.put(IP_TO_ASN_ORG, null);
+        federationUDFFunctions.put(ROLLUP, null);
+        distributedGroupByFunction.put("count", "sum");
+        distributedGroupByFunction.put("sum", "sum");
+        distributedGroupByFunction.put("avg", "avg");
+        distributedGroupByFunction.put("min", "min");
+        distributedGroupByFunction.put("max", "max");
+        distributedGroupByFunction.put("median", "median");
+        timeSlicingFunction.put("count", "sum");
+        timeSlicingFunction.put("sum", "sum");
+        timeSlicingFunction.put("avg", "avg");
+        timeSlicingFunction.put("min", "min");
+        timeSlicingFunction.put("max", "max");
+        CONVERT_DEFAULT_TIMEZONE_INTO_UTC = clickHouseHttpSource.isConvertDefaultTimezoneIntoUTC();
     }
 
     /**
      * 标准函数
      */
     //time functions
-    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|APPROX_COUNT_DISTINCT_HLLD)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -142,12 +153,14 @@ public class SQLFunctionUtil {
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
     //other
+    public static final Pattern pRollUp = Pattern.compile("\\Wrollup\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
     public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
     public static final Pattern pCast = Pattern.compile("\\WCAST\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
     public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString\\(|CAST\\()", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIsIPAddressInRange = Pattern.compile("\\WisIPAddressInRange\\s*\\(", Pattern.CASE_INSENSITIVE);
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -159,6 +172,7 @@ public class SQLFunctionUtil {
     public static String generateDateFunction(String sql, String dbType) {
         sql = translateCommonFun(sql, dbType);
         sql = parseQuantile(sql, dbType);
+        sql = parseIsIPAddressInRange(sql, dbType);
         sql = parseMedian(sql, dbType);
         sql = parseCast(sql, dbType);
         sql = parseMergepFunction(sql, dbType);
@@ -177,6 +191,44 @@ public class SQLFunctionUtil {
         sql = timeZoneFunc(sql, dbType);
         sql = replaceMark(sql);
         return sql;
+    }
+
+    public static String replaceRollup(String sql) {
+        sql = parseRollup(sql);
+        return sql;
+    }
+
+    public static String parseRollup(String sql) {
+        while (true) {
+            Matcher matcher = pRollUp.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = translateRollup(sqlParse, bracketsMatch[0], null);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    public static String translateRollup(String sqlParse, int num, String dbType) {
+        Pattern pDateFormatMark = Pattern.compile("(ROLLUP)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        Matcher mDateFormatMark = pDateFormatMark.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (mDateFormatMark.find()) {
+            String group2 = mDateFormatMark.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = mDateFormatMark.group(2);
+            }
+            mDateFormatMark.appendReplacement(sb, replaceValue);
+        }
+        mDateFormatMark.appendTail(sb);
+        return sb.toString();
     }
 
     public static String timeZoneFunc(String sql, String dbType) {
@@ -226,15 +278,15 @@ public class SQLFunctionUtil {
                 int startTZInt = (Integer.parseInt(TimeZoneUtil.timeZoneTransition(startTZString))) / 100;
                 timeDifference = startTZInt - oldTZInt;
             }
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 replaceValue = "addHours#[toDateTime#[" + params.get(0) + "," + params.get(1) + "#]," + timeDifference + "," + params.get(1) + "#]";
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (!strFormatDateTime.matcher(params.get(0)).find()) {
                     replaceValue = "TIME_FORMAT#[TIME_SHIFT#[" + params.get(0) + "," + "'PT1H'," + timeDifference + "," + params.get(1) + "#],'yyyy-MM-dd HH:mm:ss'#]";
                 } else {
                     replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_PARSE#[" + params.get(0) + "#]," + "'PT1H'," + timeDifference + "," + params.get(1) + "#],'yyyy-MM-dd HH:mm:ss'#]";
                 }
-            } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
+            } else if (DBEngineType.HBASE.getValue().equals(dbType)) {
                 if (!strFormatDateTime.matcher(params.get(0)).find()) {
                     replaceValue = "TO_CHAR#[" + func + "#[ " + params.get(0) + ",'" + TimeZoneUtil.timeZoneTransition(oldTZString) + "','" + TimeZoneUtil.timeZoneTransition(startTZString) + "'#],'yyyy-MM-dd HH:mm:ss'#]";
                 } else {
@@ -248,6 +300,7 @@ public class SQLFunctionUtil {
     public static String getDistributedGroupByFunction(String sourceAggregateFunctionName) {
         return distributedGroupByFunction.get(sourceAggregateFunctionName);
     }
+
     /**
      * 公共函数转义
      *
@@ -289,6 +342,7 @@ public class SQLFunctionUtil {
     private static String translateUDF(String dbType, String resultSql) {
         resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
         resultSql = translateByPattern(resultSql, dbType, pMaxDuration);
+        resultSql = translateByPattern(resultSql, dbType, pRate);
         resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
         resultSql = translateByPattern(resultSql, dbType, pIpToCity);
         resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
@@ -312,7 +366,7 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String getQueryValue(String query, String dbType) {
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             query = generateDateFunction("select " + query + " as actualValue", dbType);
             query = Encodes.urlEncode(query);
             Map<String, String> results = executeHttpGetOfCK(query);
@@ -321,7 +375,7 @@ public class SQLFunctionUtil {
             Map<String, Object> data = dates.get(0);
             Object actualValue = data.get("actualValue");
             return actualValue.toString();
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
             query = generateDateFunction("select TIME_FORMAT(" + query + ", 'yyyy-MM-dd HH:mm:ss') as actualValue", dbType);
             Map<String, String> results = executeHttpPostOfDruid(query);
             List<Object> maps = (List<Object>) JSON.parseObject(results.get("result"), Object.class);
@@ -446,6 +500,30 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * 匹配范围：isIPAddressInRange(
+     *
+     * @param sql    需要解析的sql
+     * @param dbType 数据库的类型
+     * @return
+     */
+    public static String parseIsIPAddressInRange(String sql, String dbType) {
+        while (true) {
+            Matcher matcher = pIsIPAddressInRange.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseIsIPAddressInRangeReplace(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    /**
      * 替换：QUANTILE(expr,level)、QUANTILE(expr)
      *
      * @param sqlParse
@@ -470,6 +548,30 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * 替换：isIPAddressInRange
+     *
+     * @param sqlParse
+     * @param num      包含括号的个数
+     * @param dbType
+     * @return
+     */
+    public static String parseIsIPAddressInRangeReplace(String sqlParse, int num, String dbType) {
+        Pattern pNumQuantile = Pattern.compile("(isIPAddressInRange)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
+        Matcher matcher = pNumQuantile.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (matcher.find()) {
+            String group2 = matcher.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = isIPAddressInRangeReplaceByDB(group2, dbType);
+            }
+            matcher.appendReplacement(sb, replaceValue);
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+    /**
      * 替换：匹配范围：QUANTILE(
      *
      * @param param  截取到的括号内的参数
@@ -482,18 +584,34 @@ public class SQLFunctionUtil {
         if (params.size() == 1) {
             params.add("0.5");
         }
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "quantile#[" + params.get(1) + "#]#[" + params.get(0) + "#]";
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + params.get(0) + "," + params.get(1) + "#]";
         }
         return replaceValue;
     }
 
-    public static String parseMedian(String sql, String dbType){
+    /**
+     * 替换：匹配范围：isIPAddressInRange(
+     *
+     * @param param  截取到的括号内的参数
+     * @param dbType
+     * @return
+     */
+    private static String isIPAddressInRangeReplaceByDB(String param, String dbType) {
+        List<String> params = diviParam(param, ",");
+        String replaceValue = null;
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+            replaceValue = "IF#[empty#[" + params.get(0) + "#], 0, isIPAddressInRange#[" + params.get(0) + "," + params.get(1) + "#]#]";
+        }
+        return replaceValue;
+    }
+
+    public static String parseMedian(String sql, String dbType) {
         while (true) {
             Matcher matcher = pMedian.matcher(sql);
-            if (!matcher.find()){
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -507,7 +625,7 @@ public class SQLFunctionUtil {
         }
     }
 
-    public static String parseMedianReplace(String sqlParse, int num, String dbType){
+    public static String parseMedianReplace(String sqlParse, int num, String dbType) {
         Pattern pNumMedian = Pattern.compile("(MEDIAN)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
         Matcher matcher = pNumMedian.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -524,11 +642,11 @@ public class SQLFunctionUtil {
     }
 
 
-    private static String medianReplaceByDB(String param, String dbType){
+    private static String medianReplaceByDB(String param, String dbType) {
         String replaceValue = null;
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "median#[" + param + "#]";
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + param + "," + 0.5 + "#]";
         }
         return replaceValue;
@@ -574,15 +692,15 @@ public class SQLFunctionUtil {
             Expression expression = CCJSqlParserUtil.parseExpression(param);
             if (expression instanceof CastExpression) {
                 CastExpression castExpression = (CastExpression) expression;
-                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                     String dataType = castExpression.getType().getDataType();
                     castExpression.getType().setDataType("Nullable(" + dataType + ")");
                 }
                 replaceValue = String.valueOf(castExpression).replace("(", "#[").replace(")", "#]");
             }
         } catch (JSQLParserException e) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return replaceValue;
     }
@@ -679,12 +797,13 @@ public class SQLFunctionUtil {
 
     /**
      * Desc 匹配UNIX_TIMESTAMP_MILLIS(
+     *
      * @param sql
      * @param dbType
      * @return
      */
 
-    public static String parseUnixTimeMillis(String sql, String dbType){
+    public static String parseUnixTimeMillis(String sql, String dbType) {
         while (true) {
             Matcher matcher = pUnixTimeMillis.matcher(sql);
             if (!matcher.find()) {
@@ -853,16 +972,16 @@ public class SQLFunctionUtil {
             String var = group.substring(bracketsMatch[1] + 1);
             var = var.replaceAll(" ", "");
             String replaceValue = m.group(0);
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 switch (var) {
                     case "/60)*60),'%Y-%m-%d%H:%i:%s'":
-                        replaceValue = "toStartOfMinute#[toDateTime#[" + param + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMinute#[toDateTime#[" + param + ", 'UTC'#]#]" : "toStartOfMinute#[toDateTime#[" + param + "#]#]";
                         break;
                     case "/3600)*3600),'%Y-%m-%d%H:%i:%s'":
-                        replaceValue = "toStartOfHour#[toDateTime#[" + param + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfHour#[toDateTime#[" + param + ", 'UTC'#]#]" : "toStartOfHour#[toDateTime#[" + param + "#]#]";
                         break;
                 }
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (param.matches("'\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}'")) {
                     param = "TIMESTAMP " + param;
                 }
@@ -932,13 +1051,13 @@ public class SQLFunctionUtil {
             if (StringUtil.getBracketsMatch(group0.substring(0, group0.length() - 1), "(", true)[0] == num) {
                 String[] split = group4.split(",");
                 String replaceValue = "";
-                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                     if (split.length == 1) {
-                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + group4 + "#]*86400 )";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + group2 + ", 'UTC'#]#]+#[" + group4 + "#]*86400 )" : "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + group4 + "#]*86400 )";
                     } else if (split.length == 2) {
-                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + split[0] + "#]*86400 ," + split[1] + ")";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + group2 + ", 'UTC'#]#]+#[" + split[0] + "#]*86400 ," + split[1] + ")" : "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + split[0] + "#]*86400 ," + split[1] + ")";
                     }
-                } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                     if (split.length == 1) {
                         replaceValue = "TIME_SHIFT#[FLOOR#[ TIMESTAMP " + group2 + " to day#],'P1D'," + group4 + "#])";
                     } else if (split.length == 2) {
@@ -984,9 +1103,9 @@ public class SQLFunctionUtil {
     private static String lastDayReplace(String unit, String param, String dbType) {
         String replaceValue = null;
         if ("LAST_DAY".equals(StringUtils.upperCase(unit))) {
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                replaceValue = "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "#]#],1#],-1#]";
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+                replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + ", 'UTC'#]#],1#],-1#]" : "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "#]#],1#],-1#]";
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 replaceValue = "TIME_SHIFT#[FLOOR#[TIME_SHIFT#[ TIMESTAMP " + param + ", 'P1M', 1#] to month#], 'P1D', -1#]";
             }
         }
@@ -1037,17 +1156,21 @@ public class SQLFunctionUtil {
                 if (mYear.find()) {
                     String group1 = mYear.group(1);
                     String group5 = mYear.group(5);
-                    if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                    if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                         if (group1 != null && !"".equals(group1.trim()) && group5 != null && !"".equals(group5.trim())) {
-                            replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + " " + group5 + "#]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + group1 + " " + group5 + "#]," + params.get(1) + " -1 #]#]" :
+                                    "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + " " + group5 + "#]," + params.get(1) + " -1 #]#]";
                         } else if (group5 != null && !"".equals(group5.trim())) {
-                            replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group5 + "#]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + group5 + "#]," + params.get(1) + " -1 #]#]"
+                                    : "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group5 + "#]," + params.get(1) + " -1 #]#]";
                         } else if (group1 != null && !"".equals(group1.trim())) {
-                            replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + "0 #]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + group1 + "0 #]," + params.get(1) + " -1 #]#]"
+                                    : "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + "0 #]," + params.get(1) + " -1 #]#]";
                         } else {
-                            replaceValue = "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + params.get(1) + " -1 #]#]"
+                                    : "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + params.get(1) + " -1 #]#]";
                         }
-                    } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                    } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                         if (group1 != null && !"".equals(group1.trim()) && group5 != null && !"".equals(group5.trim())) {
                             replaceValue = "TIME_SHIFT#[TIME_SHIFT#[FLOOR#[ TIMESTAMP " + mYear.group(3) + " to year#],'P1Y'," + group1 + " " + group5 + " #],'P1D'," + params.get(1) + " -1 #]";
                         } else if (group5 != null && !"".equals(group5.trim())) {
@@ -1095,42 +1218,42 @@ public class SQLFunctionUtil {
     private static String unitFuncGetNumReplaceByDB(String unit, String expr, String dbType) {
         String replaceValue = null;
         unit = StringUtils.upperCase(unit);
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             switch (unit) {
                 case "YEAR":
-                    replaceValue = "toYear#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toYear#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toYear#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "QUARTER":
-                    replaceValue = "toQuarter#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toQuarter#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toQuarter#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "MONTH":
-                    replaceValue = "toMonth#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toMonth#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toMonth#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAY":
-                    replaceValue = "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfMonth#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "HOUR":
-                    replaceValue = "toHour#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toHour#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toHour#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "MINUTE":
-                    replaceValue = "toMinute#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toMinute#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toMinute#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "SECOND":
-                    replaceValue = "toSecond#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toSecond#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toSecond#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAYOFYEAR":
-                    replaceValue = "toDayOfYear#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfYear#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toDayOfYear#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAYOFMONTH":
-                    replaceValue = "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfMonth#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAYOFWEEK":
-                    replaceValue = "toDayOfWeek#[addDays#[toDateTime#[" + expr + "#],1#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfWeek#[addDays#[toDateTime#[" + expr + ", 'UTC'#],1#]#]" : "toDayOfWeek#[addDays#[toDateTime#[" + expr + "#],1#]#]";
                     break;
                 default:
                     replaceValue = unit + "#[" + expr + "#]";
             }
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
             switch (unit) {
                 case "YEAR":
                     replaceValue = "TIME_EXTRACT#[TIME_SHIFT#[ TIMESTAMP " + expr + ",'PT1M',0#], 'YEAR' #]";
@@ -1188,37 +1311,37 @@ public class SQLFunctionUtil {
                 if (!sign) {
                     param2 = "-  #[" + param2 + "#]";
                 }
-                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                     switch (StringUtils.upperCase(matcher.group(2))) {
                         case "SECOND":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2;
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 : "toDateTime#[" + param1 + "#]" + param2;
                             break;
                         case "MINUTE":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*60";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*60" : "toDateTime#[" + param1 + "#]" + param2 + "*60";
                             break;
                         case "HOUR":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*3600";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*3600" : "toDateTime#[" + param1 + "#]" + param2 + "*3600";
                             break;
                         case "DAY":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*86400";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*86400" : "toDateTime#[" + param1 + "#]" + param2 + "*86400";
                             break;
                         case "WEEK":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*604800";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*604800" : "toDateTime#[" + param1 + "#]" + param2 + "*604800";
                             break;
                         case "MONTH":
-                            replaceValue = "addMonths#[toDateTime#[" + param1 + "#] ," + param2 + "#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addMonths#[toDateTime#[" + param1 + ", 'UTC'#] ," + param2 + "#]" : "addMonths#[toDateTime#[" + param1 + "#] ," + param2 + "#]";
                             break;
                         case "QUARTER":
-                            replaceValue = "addQuarter#[toDateTime#[" + param1 + "#]," + param2 + "#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addQuarter#[toDateTime#[" + param1 + ", 'UTC'#]," + param2 + "#]" : "addQuarter#[toDateTime#[" + param1 + "#]," + param2 + "#]";
                             break;
                         case "YEAR":
-                            replaceValue = "addYears#[toDateTime#[" + param1 + "#]," + param2 + "#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addYears#[toDateTime#[" + param1 + ", 'UTC'#]," + param2 + "#]" : "addYears#[toDateTime#[" + param1 + "#]," + param2 + "#]";
                             break;
                         default:
                             replaceValue = param1 + param2;
                             break;
                     }
-                } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                     switch (StringUtils.upperCase(matcher.group(2))) {
                         case "SECOND":
                             replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1S'," + param2 + "#]";
@@ -1257,12 +1380,12 @@ public class SQLFunctionUtil {
             if (!sign) {
                 param2 = "-  #[" + param2 + "#]";
             }
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                replaceValue = "addDays#[toDateTime#[" + param1 + "#]," + param2 + "#]";
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+                replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addDays#[toDateTime#[" + param1 + ", 'UTC'#]," + param2 + "#]" : "addDays#[toDateTime#[" + param1 + "#]," + param2 + "#]";
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'P1D'," + param2 + "#]";
             }
-        } else if (params.size() == 3 && DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        } else if (params.size() == 3 && DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "DATE_ADD#[" + params.get(0) + "," + params.get(1) + "," + params.get(2) + "#]";
 
         }
@@ -1282,14 +1405,14 @@ public class SQLFunctionUtil {
         String param1 = params.get(0);
         String replaceValue = null;
         if ("FROM_UNIXTIME".equals(StringUtils.upperCase(func)) && params.size() == 1) {
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                replaceValue = "toDateTime#[" + param + "#]";
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && !bool) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+                replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param + ", 'UTC'#]" : "toDateTime#[" + param + "#]";
+            } else if (DBEngineType.DRUID.getValue().equals(dbType) && !bool) {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000 * #[" + param + "#]#]";
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && bool) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType) && bool) {
                 replaceValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[ 1000 * #[" + param + "#]#],'YYYY-MM-dd HH:mm:ss'#]";
             }
-        } else if (func.contains("FROM_UNIXTIME") && DBTypeEnum.DRUID.getValue().equals(dbType) && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
+        } else if (func.contains("FROM_UNIXTIME") && DBEngineType.DRUID.getValue().equals(dbType) && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
             if (!bool) {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000*#[" + param1 + "#]#]";
             } else if (bool) {
@@ -1297,71 +1420,71 @@ public class SQLFunctionUtil {
             }
         } else {
             String param2 = params.get(1).replaceAll("\\'|\\\"", "").trim();
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType) && bool) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType) && bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s":
-                        replaceValue = "toDateTime#[" + param1 + "#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" : "toDateTime#[" + param1 + "#]";
                         break;
                     case "%Y-%m-%d %H:%i:00":
-                        replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMinute#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d %H:00:00":
-                        replaceValue = "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfHour#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d 00:00:00":
-                        replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-01-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-%m-%d":
-                        replaceValue = "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-%d'#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "formatDateTime#[toDateTime#[" + param1 + ", 'UTC'#], '%Y-%m-%d'#]" : "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-%d'#]";
                         break;
                     case "%Y-%m-01":
-                        replaceValue = "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-01'#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "formatDateTime#[toDateTime#[" + param1 + ", 'UTC'#], '%Y-%m-01'#]" : "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-01'#]";
                         break;
                     case "%Y-01-01":
-                        replaceValue = "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-01-01'#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "formatDateTime#[toDateTime#[" + param1 + ", 'UTC'#], '%Y-01-01'#]" : "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-01-01'#]";
                         break;
                     default:
                         replaceValue = "toDateTime#[" + param1 + "#]";
                 }
-            } else if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType) && !bool) {
+            } else if (DBEngineType.CLICKHOUSE.getValue().equals(dbType) && !bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s":
-                        replaceValue = "toDateTime#[" + param1 + "#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" : "toDateTime#[" + param1 + "#]";
                         break;
                     case "%Y-%m-%d %H:%i:00":
-                        replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMinute#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d %H:00:00":
-                        replaceValue = "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfHour#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d 00:00:00":
-                        replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-01-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-%m-%d":
-                        replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-01":
-                        replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMonth#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfMonth#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-01-01":
-                        replaceValue = "toStartOfYear#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfYear#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfYear#[toDateTime#[" + param1 + "#]#]";
                         break;
                     default:
-                        replaceValue = "toDateTime#[" + param1 + "#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" : "toDateTime#[" + param1 + "#]";
                 }
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && bool) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType) && bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s":
                         replaceValue = "TIME_FORMAT#[ TIMESTAMP " + param1 + ",'YYYY-MM-dd HH:mm:ss'#]";
@@ -1393,7 +1516,7 @@ public class SQLFunctionUtil {
                     default:
                         replaceValue = "TIME_FORMAT#[ TIMESTAMP " + param1 + ",'YYYY-MM-dd HH:mm:ss'#]";
                 }
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && !bool) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType) && !bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s":
                         replaceValue = " TIMESTAMP " + param1;
@@ -1443,7 +1566,7 @@ public class SQLFunctionUtil {
             return sql;
         }
         StringBuffer sb = new StringBuffer();
-        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        if (DBEngineType.DRUID.getValue().equals(dbType)) {
 
             Matcher mNowFun = pNow.matcher(sql);
             while (mNowFun.find()) {
@@ -1529,23 +1652,23 @@ public class SQLFunctionUtil {
     }
 
 
-    public static String parseFromUnixTimeMillisByDB(String sqlParse, int num, String dbType){
+    public static String parseFromUnixTimeMillisByDB(String sqlParse, int num, String dbType) {
         Pattern pFromUnixTimeMillisParse = Pattern.compile("(FROM_UNIXTIME_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pFromUnixTimeMillisParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
         String innerValue = null;
         if (matcherParse.find()) {
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "fromUnixTimestamp64Milli#[CAST#[toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#], 'Int64'#]#]";
                 } else {
                     innerValue = String.format("fromUnixTimestamp64Milli#[CAST#[%s, 'Int64'#]#]", matcherParse.group(2));
                 }
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]#],'yyyy-MM-dd HH:mm:ss.SSS'#]";
                 } else {
-                    innerValue = String.format("TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[%s#],'yyyy-MM-dd HH:mm:ss.SSS'#]",matcherParse.group(2));
+                    innerValue = String.format("TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[%s#],'yyyy-MM-dd HH:mm:ss.SSS'#]", matcherParse.group(2));
                 }
             }
             matcherParse.appendReplacement(sb, innerValue);
@@ -1568,20 +1691,20 @@ public class SQLFunctionUtil {
         StringBuffer sb = new StringBuffer();
         String innerValue = null;
         if (matcherParse.find()) {
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp#[now#[#]#]";
                 } else {
-                    innerValue = "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#]#]#]";
+                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#], 'UTC'#]#]" : "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#]#]#]";
                 }
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
-                    innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
+                    innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]/1000";
                 } else {
                     if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[TIME_FORMAT#[ TIMESTAMP " + matcherParse.group(2) + ", 'yyyy-MM-dd HH:mm:ss'#]#]#]/1000";
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[ " + matcherParse.group(2) + "#]#]/1000";
                     } else {
-                        innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]";
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]/1000";
                     }
                 }
             }
@@ -1591,24 +1714,24 @@ public class SQLFunctionUtil {
         return sb.toString();
     }
 
-    public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType){
+    public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType) {
         Pattern pUnixTimeMillisParse = Pattern.compile("(UNIX_TIMESTAMP_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pUnixTimeMillisParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
         String innerValue = null;
         if (matcherParse.find()) {
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#]";
                 } else {
-                    innerValue = "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
+                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#], 'UTC'#] as DateTime64#]#]" : "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
                 }
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
                 } else {
                     if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]",matcherParse.group(2));
+                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]", matcherParse.group(2));
                     } else {
                         innerValue = "TIMESTAMP_TO_MILLIS#[ " + matcherParse.group(2) + "#]";
                     }
@@ -1634,9 +1757,10 @@ public class SQLFunctionUtil {
         StringBuffer sb = new StringBuffer();
         String innerValue = null;
         if (matcherParse.find()) {
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                innerValue = "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + matcherParse.group(2) + "#]#]#]";
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+                String param = matcherParse.group(2);
+                innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + param + "#], 'UTC'#]#]" : "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + param + "#]#]#]";
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 innerValue = "TIME_FLOOR#[ TIMESTAMP " + matcherParse.group(2) + ",'P1D'#]";
             }
             matcherParse.appendReplacement(sb, innerValue);
@@ -1652,10 +1776,7 @@ public class SQLFunctionUtil {
      * @param div 参数分隔符
      * @return
      */
-    public static List<String> diviParam(String str, String div) {
-        if (str == null) {
-            return null;
-        }
+    public static List<String> diviParam(@NotNull String str, String div) {
         List<String> result = new ArrayList<>();
         String[] split = str.split(div);
         String resultTemp = "";
@@ -1731,12 +1852,15 @@ public class SQLFunctionUtil {
 
     private static String translateCaseInsensitive(Function fun, String dbType) {
         String data;
-        switch (fun.getName()){
+        switch (fun.getName()) {
             case TIME_FLOOR_WITH_FILL:
                 data = translateTimeFloorWithFill(fun, dbType);
                 break;
             case MAX_DURATION:
                 data = translateDuration(fun, dbType);
+                break;
+            case RATE:
+                data = translateRate(fun, dbType);
                 break;
             case NOT_EMPTY:
                 data = translateNotEmpty(fun, dbType);
@@ -1767,6 +1891,7 @@ public class SQLFunctionUtil {
         }
         return data;
     }
+
     /**
      * Desc: 转义notEmpty
      *
@@ -1778,7 +1903,7 @@ public class SQLFunctionUtil {
      */
     private static String translateNotEmpty(Function fun, String dbType) {
         String data;
-        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        if (DBEngineType.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
             data = expr + " IS NOT NUll ";
         } else {
@@ -1804,7 +1929,7 @@ public class SQLFunctionUtil {
      */
     private static String translateEmpty(Function fun, String dbType) {
         String data;
-        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        if (DBEngineType.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
             data = expr + " IS NUll ";
         } else {
@@ -1839,17 +1964,17 @@ public class SQLFunctionUtil {
         if (matcherPT.find()) {
             String num = matcherPT.group(1);
             String unit = matcherPT.group(2);
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 String format = null;
                 if ("S".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s SECOND)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s SECOND)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s SECOND)))";
                 } else if ("M".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MINUTE)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s MINUTE)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MINUTE)))";
                 } else if ("H".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s HOUR)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s HOUR)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s HOUR)))";
                 }
                 return String.format(format, timestamp, num);
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
                 return String.format(format, timestamp, period);
             }
@@ -1859,19 +1984,19 @@ public class SQLFunctionUtil {
         if (matcherP.find()) {
             String num = matcherP.group(1);
             String unit = matcherP.group(2);
-            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 String format = null;
                 if ("D".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s DAY)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s DAY)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s DAY)))";
                 } else if ("W".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s WEEK)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s WEEK)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s WEEK)))";
                 } else if ("M".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MONTH)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s MONTH)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MONTH)))";
                 } else if ("Y".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s YEAR)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s YEAR)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s YEAR)))";
                 }
                 return String.format(format, timestamp, num);
-            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
                 return String.format(format, timestamp, period);
             }
@@ -1892,9 +2017,40 @@ public class SQLFunctionUtil {
         int factor = 60;
         String timestampExpr = fun.getParamsList().get(0);
         int interval = Integer.parseInt(fun.getParamsList().get(1));
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             return String.format("length(arrayReduce('max', alphaTokens(replaceAll(replaceAll(toString(arrayMap(x-> x<(%s+%s), arrayDifference(arraySort(groupUniqArray(%s))))),'1','a'),',','') ) )) * %s "
                     , interval, factor, timestampExpr, interval);
+        }
+        return fun.toString();
+    }
+
+    /**
+     * Desc: 转义RATE
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2023/12/22 4:47 下午
+     */
+    private static String translateRate(Function fun, String dbType) {
+        List<String> paramsList = fun.paramsList;
+        if (DBEngineType.DRUID.getValue().equals(dbType) || DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+            if (paramsList.size() == 2) {
+                String durationParam = fun.getParamsList().get(1);
+                if (!NumberUtil.isNumber(durationParam) && durationParam.startsWith("'") && durationParam.endsWith("'")) {
+                    durationParam = String.valueOf(Period.parse(StrUtil.strip(durationParam, "'")).toStandardSeconds().getSeconds());
+                }
+                String formatString = "ROUND(SUM(%s) * 1.0 / %s, 2)";
+                return String.format(formatString, paramsList.get(0), durationParam);
+            } else if (paramsList.size() == 3) {
+                String durationParam = fun.getParamsList().get(1);
+                if (!NumberUtil.isNumber(durationParam)) {
+                    durationParam = String.valueOf(Period.parse(StrUtil.strip(durationParam, "'")).toStandardSeconds().getSeconds());
+                }
+                String formatString = "ROUND(SUM(%s) / (%s * 1.0/%s), 2)";
+                return String.format(formatString, paramsList.get(0), durationParam, paramsList.get(2));
+            }
         }
         return fun.toString();
     }
@@ -1909,7 +2065,7 @@ public class SQLFunctionUtil {
 
     private static String translateHdrHistogram(Function fun, String dbType) {
         String hdrSketchExpr = fun.getParamsList().get(0);
-        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        if (DBEngineType.DRUID.getValue().equals(dbType)) {
             switch (fun.getName()) {
                 case MEDIAN_HDR:
                     return String.format("APPROX_QUANTILE_HDR(%s,0.50)", hdrSketchExpr);
@@ -1917,7 +2073,7 @@ public class SQLFunctionUtil {
                     double probability = Double.parseDouble(fun.getParamsList().get(1));
                     return String.format("APPROX_QUANTILE_HDR(%s,%s)", hdrSketchExpr, probability);
                 case PERCENTILES_HDR:
-                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 2)", hdrSketchExpr);
+                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 5)", hdrSketchExpr);
                 case APPROX_COUNT_DISTINCT_HLLD:
                     return String.format("APPROX_COUNT_DISTINCT_HLLD#[%s#]", hdrSketchExpr);
             }
@@ -1927,13 +2083,14 @@ public class SQLFunctionUtil {
 
     /**
      * Desc 转义 COUNT_DISTINCT
+     *
      * @param fun
      * @param dbType
      * @return
      */
     private static String translateCountDistinct(Function fun, String dbType) {
         String field = fun.getParamsList().get(0);
-        if (DBTypeEnum.DRUID.getValue().equals(dbType) || DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
+        if (DBEngineType.DRUID.getValue().equals(dbType) || DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             return String.format("count(distinct %s)", field);
         }
         return fun.toString();
@@ -1948,9 +2105,9 @@ public class SQLFunctionUtil {
      */
     private static String translateConcat(Function function, String dbType) {
         StringBuffer sb = new StringBuffer();
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             for (String param : function.getParamsList()) {
-                sb.append("toString("+param+"), ");
+                sb.append("toString(" + param + "), ");
             }
             return String.format("concat(%s'')", sb);
         }

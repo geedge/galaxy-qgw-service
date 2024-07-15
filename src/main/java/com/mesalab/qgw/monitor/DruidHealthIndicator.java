@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.model.basic.DruidIoHttpSource;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             HttpEntity request = new HttpEntity(JSON.toJSONString(druidQueryParam), headers);
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
-            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {
+            if (responseEntity.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()) {
                 List body = (List) responseEntity.getBody();
                 String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone"));
                 String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));
@@ -58,7 +58,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok")
                         .withDetail("timeZone", timeZone)
-                        .withDetail("curTimestamp", curDatetime);
+                        .withDetail("timestamp", curDatetime);
             } else {
                 builder.down()
                         .withDetail("app", APP)

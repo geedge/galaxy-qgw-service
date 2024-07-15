@@ -27,16 +27,22 @@
     {
       "name":"start_timestamp_ms",
       "label":"Start Time",
-      "type":"long"
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      }
     },
     {
       "name":"end_timestamp_ms",
       "label":"End Time",
-      "type":"long"
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      }
     },
     {
       "name":"duration_ms",
-      "label":"Duration (ms)",
+      "label":"Duration(ms)",
       "type":"long"
     },
     {
@@ -57,12 +63,12 @@
     {
       "name":"client_port",
       "label":"Client Port",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"server_port",
       "label":"Server Port",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"app",
@@ -70,13 +76,18 @@
       "type":"string"
     },
     {
-      "name":"app_path",
+      "name":"app_transition",
       "label":"Application Path",
       "type":"string"
     },
     {
-      "name":"protocol_path",
+      "name":"decoded_path",
       "label":"Protocol Path",
+      "type":"string"
+    },
+    {
+      "name":"ip_protocol",
+      "label":"IP Protocol",
       "type":"string"
     },
     {
@@ -87,12 +98,12 @@
     {
       "name":"out_link_id",
       "label":"Outgoing Link ID",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"in_link_id",
       "label":"Incoming Link ID",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"subscriber_id",
@@ -146,47 +157,47 @@
     },
     {
       "name":"tcp_c2s_lost_bytes",
-      "label":"Sequence Gap Loss (c2s)",
+      "label":"Sequence Gap Loss(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_lost_bytes",
-      "label":"Sequence Gap Loss (s2c)",
+      "label":"Sequence Gap Loss(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_c2s_o3_pkts",
-      "label":"Unordered Packets (c2s)",
+      "label":"Unordered Packets(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_o3_pkts",
-      "label":"Unordered Packets (s2c)",
+      "label":"Unordered Packets(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_c2s_rtx_bytes",
-      "label":"Byte Retransmission (c2s)",
+      "label":"Byte Retransmission(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_rtx_bytes",
-      "label":"Byte Retransmission (s2c)",
+      "label":"Byte Retransmission(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_c2s_rtx_pkts",
-      "label":"Packet Retransmission (c2s)",
+      "label":"Packet Retransmission(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_rtx_pkts",
-      "label":"Packet Retransmission (s2c)",
-      "type":"string"
+      "label":"Packet Retransmission(s2c)",
+      "type":"long"
     },
     {
       "name":"tcp_rtt_ms",
-      "label":"TCP Handshake Latency (ms)",
+      "label":"TCP Handshake Latency(ms)",
       "type":"long"
     },
     {
@@ -227,7 +238,7 @@
     {
       "name":"http_status_code",
       "label":"HTTP.Status Code",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"ssl_version",
@@ -267,22 +278,22 @@
     {
       "name":"dns_qr",
       "label":"DNS.QR",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_opcode",
       "label":"DNS.OPCODE",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_aa",
       "label":"DNS.AA",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_rcode",
       "label":"DNS.RCODE",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_qname",
@@ -292,17 +303,17 @@
     {
       "name":"dns_qtype",
       "label":"DNS.QTYPE",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_qclass",
       "label":"DNS.QCLASS",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_sub",
       "label":"DNS.SUB",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"dns_rr",
@@ -346,7 +357,7 @@
     },
     {
       "name":"ssh_kex_alg",
-      "label":"SSH. Key Exchange Algorithm",
+      "label":"SSH.Key Exchange Algorithm",
       "type":"string"
     },
     {
@@ -567,18 +578,18 @@
     },
     {
       "name":"http_response_latency_ms",
-      "label":"HTTP.Response Latency (ms)",
-      "type":"int"
+      "label":"HTTP.Response Latency(ms)",
+      "type":"long"
     },
     {
       "name":"ssl_handshake_latency_ms",
-      "label":"SSL.Handshake Latency (ms)",
-      "type":"int"
+      "label":"SSL.Handshake Latency(ms)",
+      "type":"long"
     },
     {
       "name":"dns_response_latency_ms",
-      "label":"DNS.Response Latency (ms)",
-      "type":"int"
+      "label":"DNS.Response Latency(ms)",
+      "type":"long"
     }
   ]
 }

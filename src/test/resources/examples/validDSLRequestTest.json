@@ -1,0 +1,55 @@
+{
+  "query": {
+    "dataSource": "IP_LEARNING_VIEW",
+    "parameters": {
+      "intervals": [
+        "2024-03-14 00:00:00/2024-03-15 00:00:00"
+      ],
+      "limit": "3",
+      "match": [
+        {
+          "fieldKey": "PROTOCOL",
+          "fieldValues": [
+            "SSL",
+            "HTTP",
+            "DNS"
+          ],
+          "type": "exactly"
+        },
+        {
+          "fieldKey": "FQDN_NAME",
+          "fieldValues": [
+            "itunes.apple",
+            "itunes.apple.com"
+          ],
+          "type": "exactly"
+        }
+      ],
+      "range": [
+        {
+          "fieldKey": "VSYS_ID",
+          "fieldValues": [
+            1
+          ],
+          "type": "eq"
+        },
+        {
+          "fieldKey": "DEPTH",
+          "fieldValues": [
+            1
+          ],
+          "type": "eq"
+        },
+        {
+          "fieldKey": "UNIQ_CIP",
+          "fieldValues": [
+            12
+          ],
+          "type": "gt"
+        }
+      ],
+      "sort": []
+    },
+    "queryType": "iplearning"
+  }
+}

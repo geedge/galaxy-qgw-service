@@ -2,7 +2,7 @@ package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.StrUtil;
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -17,7 +17,7 @@ import net.sf.jsqlparser.util.deparser.SelectDeParser;
  */
 public class SQLVisitorUtil {
 
-    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private static DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
 
     /**
      * Desc: 将SQL列名、别名、表名添加双引号转义
@@ -47,7 +47,7 @@ public class SQLVisitorUtil {
                 if (!StrUtil.isBlankIfStr(name)) {
                     table.setName(addDoubleQuote(name));
                 }
-                table.setSchemaName(addDoubleQuote(StrUtil.isBlank(table.getSchemaName()) ? metadataService.getDBNameByTableName(name) : table.getSchemaName()));
+                table.setSchemaName(addDoubleQuote(StrUtil.isBlank(table.getSchemaName()) ? databaseService.getDBNameByTableName(name) : table.getSchemaName()));
                 Alias alias = table.getAlias();
                 if (!StrUtil.isBlankIfStr(alias)) {
                     alias.setName(addDoubleQuote(alias.getName()));

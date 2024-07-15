@@ -8,25 +8,17 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "rule_id",
-        "pinning_status",
-        "action",
-        "sub_action"
+      "time": [
+        "__time"
       ],
-      "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
+      "dimensions": [
         "rule_id",
-        "pinning_status",
         "action",
         "sub_action",
+        "device_group",
+        "data_center"
+      ],
+      "metrics": [
         "hit_count",
         "in_bytes",
         "out_bytes",
@@ -34,27 +26,40 @@
         "out_pkts"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
-        "pinning_status",
         "action",
         "sub_action",
-        "hit_count",
-        "in_bytes",
-        "out_bytes",
-        "in_pkts",
-        "out_pkts"
+        "pinning_status",
+        "device_group",
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
-      "granularity": 1,
-      "ingestion_delay": 15
+      "ingestion_period": "PT1S",
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "hit_count": "sessions",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "hit_count": "sps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -78,7 +83,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -135,22 +140,22 @@
     {
       "name": "action",
       "label": "Action",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
         },
         "data": [
           {
-            "code": "2",
+            "code": 2,
             "value": "Intercept"
           },
           {
-            "code": "3",
+            "code": 3,
             "value": "No Intercept"
           },
           {
-            "code": "48",
+            "code": 48,
             "value": "Manipulate"
           }
         ],
@@ -235,6 +240,10 @@
       "name": "hit_count",
       "label": "Hit Count",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -243,6 +252,10 @@
       "name": "in_bytes",
       "label": "Incoming Bytes",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -251,6 +264,10 @@
       "name": "out_bytes",
       "label": "Outgoing Bytes",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -259,6 +276,10 @@
       "name": "in_pkts",
       "label": "Incoming Packets",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -267,6 +288,10 @@
       "name": "out_pkts",
       "label": "Outgoing Packets",
       "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
         "visibility": "enabled"
       },
       "type": "long"

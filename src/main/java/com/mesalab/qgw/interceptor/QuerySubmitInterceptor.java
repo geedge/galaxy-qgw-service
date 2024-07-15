@@ -7,10 +7,12 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.google.common.cache.CacheStats;
 import com.mesalab.common.utils.HttpHelper;
+import com.mesalab.common.utils.MDCUtil;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.qgw.model.basic.CachedSubmitCheck;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
@@ -24,9 +26,12 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
     private static final Log log = LogFactory.get();
     @Override
     public boolean preHandle(HttpServletRequest request,
-                             HttpServletResponse response, Object handler) throws Exception
-    {
-
+                             HttpServletResponse response, Object handler) throws Exception {
+        String traceId = request.getHeader("Request-Id");
+        if (traceId == null || traceId.isEmpty()) {
+            traceId = MDCUtil.generateTraceId();
+        }
+        MDC.put(MDCUtil.TRACE_ID, traceId);
         if (handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             CachedSubmitCheck submitCheck = handlerMethod.getMethodAnnotation(CachedSubmitCheck.class);

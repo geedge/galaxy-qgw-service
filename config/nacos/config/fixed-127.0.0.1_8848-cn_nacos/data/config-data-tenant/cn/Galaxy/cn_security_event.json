@@ -42,7 +42,7 @@
     {
       "name":"is_builtin",
       "label":"IS Builtin",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"severity",
@@ -55,9 +55,59 @@
       "type":"string"
     },
     {
+      "name":"offender_country_region",
+      "label":"Offender Country",
+      "type":"string"
+    },
+    {
+      "name":"offender_super_admin_area",
+      "label":"Offender Regin",
+      "type":"string"
+    },
+    {
+      "name":"offender_admin_area",
+      "label":"Offender City",
+      "type":"string"
+    },
+    {
+      "name":"offender_longitude",
+      "label":"Offender Longitude",
+      "type":"double"
+    },
+    {
+      "name":"offender_latitude",
+      "label":"Offender Latitude",
+      "type":"double"
+    },
+    {
       "name":"victim_ip",
       "label":"Victim IP",
       "type":"string"
+    },
+    {
+      "name":"victim_country_region",
+      "label":"Victim Country",
+      "type":"string"
+    },
+    {
+      "name":"victim_super_admin_area",
+      "label":"Victim Regin",
+      "type":"string"
+    },
+    {
+      "name":"victim_admin_area",
+      "label":"Victim City",
+      "type":"string"
+    },
+    {
+      "name":"victim_longitude",
+      "label":"Victim Longitude",
+      "type":"double"
+    },
+    {
+      "name":"victim_latitude",
+      "label":"Victim Latitude",
+      "type":"double"
     },
     {
       "name":"domain",
@@ -81,7 +131,7 @@
     },
     {
       "name":"duration_s",
-      "label":"Duration (s)",
+      "label":"Duration(s)",
       "type":"long"
     },
     {
@@ -92,7 +142,7 @@
     {
       "name":"status",
       "label":"Status",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"event_info",
