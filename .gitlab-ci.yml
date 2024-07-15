@@ -18,6 +18,8 @@ build:
     - mvn clean package -Dmaven.test.skip=true
   only:
     - tags
+  tags:
+    - docker-runner
 
 
 clean:
@@ -29,6 +31,8 @@ clean:
   when: on_failure
   only:
     - tags
+  tags:
+    - docker-runner
 
 deploy:
   stage: deploy
@@ -43,3 +47,5 @@ deploy:
   when: on_success
   only:
     - tags
+  tags:
+    - docker-runner
