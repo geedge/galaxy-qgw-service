@@ -2090,7 +2090,7 @@
       "name": "app_extra_info",
       "label": "Application Extra Info",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
