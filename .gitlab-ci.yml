@@ -16,8 +16,7 @@ build:
     - mvn clean package -Dmaven.test.skip=true
   only:
     - tags
-  tags:
-    - galaxy
+
 
 clean:
   stage: clean
@@ -28,8 +27,7 @@ clean:
   when: on_failure
   only:
     - tags
-  tags:
-    - galaxy
+
 deploy:
   stage: deploy
   script:
@@ -43,5 +41,3 @@ deploy:
   when: on_success
   only:
     - tags
-  tags:
-    - galaxy
