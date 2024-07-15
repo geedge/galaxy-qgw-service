@@ -15,7 +15,7 @@ build:
   script:
     - echo 'exec mvn clean package'
     - echo 'tag:' $CI_COMMIT_TAG
-    - mvn clean package -Dmaven.test.skip=true
+    - mvn $MAVEN_CLI_OPTS clean package -DskipTests
   only:
     - tags
   tags:
@@ -27,7 +27,7 @@ clean:
   script:
     - echo 'build job fail, exec mvn clean'
     - echo  'tag:' $CI_COMMIT_TAG
-    - mvn clean
+    - mvn $MAVEN_CLI_OPTS clean package
   when: on_failure
   only:
     - tags
