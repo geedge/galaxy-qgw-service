@@ -46,6 +46,7 @@
         "s2c_ttl",
         "monitor_rule_list",
         "client_ip",
+        "client_ip_tags",
         "client_port",
         "client_os_desc",
         "client_geolocation",
@@ -63,6 +64,7 @@
         "in_src_mac",
         "out_src_mac",
         "server_ip",
+        "server_ip_tags",
         "server_port",
         "server_os_desc",
         "server_geolocation",
@@ -72,6 +74,7 @@
         "server_sub_administrative_area",
         "server_asn",
         "server_fqdn",
+        "server_fqdn_tags",
         "server_domain",
         "in_dest_mac",
         "out_dest_mac",
@@ -346,6 +349,7 @@
         "monitor_mirrored_pkts",
         "monitor_mirrored_bytes",
         "client_ip",
+        "client_ip_tags",
         "client_port",
         "client_os_desc",
         "client_geolocation",
@@ -362,6 +366,7 @@
         "in_src_mac",
         "out_src_mac",
         "server_ip",
+        "server_ip_tags",
         "server_port",
         "server_os_desc",
         "server_geolocation",
@@ -371,6 +376,7 @@
         "server_sub_administrative_area",
         "server_asn",
         "server_fqdn",
+        "server_fqdn_tags",
         "server_domain",
         "in_dest_mac",
         "out_dest_mac",
@@ -1091,6 +1097,33 @@
           "allow_query": "false",
           "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
         }
+      },
+      {
+        "name": "client_ip_tag",
+        "label": "Client IP Tag",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(client_ip_tags), arrayPushFront(client_ip_tags, null),client_ip_tags))"
+        }
+      },
+      {
+        "name": "server_ip_tag",
+        "label": "Server IP Tag",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(server_ip_tags), arrayPushFront(server_ip_tags, null),server_ip_tags))"
+        }
+      },
+      {
+        "name": "server_fqdn_tag",
+        "label": "Server FQDN Tag",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(server_fqdn_tags), arrayPushFront(server_fqdn_tags, null),server_fqdn_tags))"
+        }
       }
     ]
   },
@@ -1781,6 +1814,22 @@
       "type": "string"
     },
     {
+      "name": "client_ip_tags",
+      "label": "Client IP Tags",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "client_port",
       "label": "Client Port",
       "doc": {
@@ -1927,6 +1976,22 @@
       "type": "string"
     },
     {
+      "name": "server_ip_tags",
+      "label": "Server IP Tags",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "server_port",
       "label": "Server Port",
       "doc": {
@@ -2025,6 +2090,22 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "server_fqdn_tags",
+      "label": "Server FQDN Tags",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
     },
     {
       "name": "server_domain",
