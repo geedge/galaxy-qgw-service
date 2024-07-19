@@ -989,7 +989,7 @@
     },
     {
       "name": "client_super_administrative_area",
-      "label": "Client Super Administrative Area",
+      "label": "Client Super Administrative Area(Deprecated)",
       "doc": {
         "constraints": {
           "type": "super_administrative_area"
@@ -1001,7 +1001,7 @@
     },
     {
       "name": "client_administrative_area",
-      "label": "Client Administrative Area",
+      "label": "Client Administrative Area(Deprecated)",
       "doc": {
         "constraints": {
           "type": "administrative_area"
@@ -1013,7 +1013,7 @@
     },
     {
       "name": "client_sub_administrative_area",
-      "label": "Client SubAdministrative Area",
+      "label": "Client SubAdministrative Area(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1090,7 +1090,7 @@
     },
     {
       "name": "server_super_administrative_area",
-      "label": "Server Super Administrative Area",
+      "label": "Server Super Administrative Area(Deprecated)",
       "doc": {
         "constraints": {
           "type": "super_administrative_area"
@@ -1102,7 +1102,7 @@
     },
     {
       "name": "server_administrative_area",
-      "label": "Server Administrative Area",
+      "label": "Server Administrative Area(Deprecated)",
       "doc": {
         "constraints": {
           "type": "administrative_area"
@@ -1114,7 +1114,7 @@
     },
     {
       "name": "server_sub_administrative_area",
-      "label": "Server SubAdministrative Area",
+      "label": "Server SubAdministrative Area(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
