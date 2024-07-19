@@ -1794,7 +1794,7 @@
     },
     {
       "name": "fqdn_category_list",
-      "label": "FQDN Category List",
+      "label": "FQDN Category List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
