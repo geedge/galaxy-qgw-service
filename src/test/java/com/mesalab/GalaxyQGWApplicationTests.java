@@ -2,7 +2,7 @@ package com.mesalab;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,14 +58,9 @@ public class GalaxyQGWApplicationTests {
             throw new IllegalArgumentException();
         }
         Map<String, Object> json = null;
-        try {
-            json = JSON.parseObject(resourceAsStream, Map.class);
-        } catch (IOException e) {
-            log.error("读取测试资源目录下的文件失败, 文件名: {}", path);
-            throw new RuntimeException(e);
-        }
+        json = JSON.parseObject(resourceAsStream, Map.class);
         Object data = json.get(parameterName);
-        String objectJsonStr = JSON.toJSONString(data, true);
+        String objectJsonStr = JSON.toJSONString(data);
         log.info("parameter file: {}, parameter name: {}", path, parameterName);
         return JSON.parseObject(objectJsonStr, type);
     }

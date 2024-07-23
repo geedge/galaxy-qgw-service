@@ -14,6 +14,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.QueryOption;
@@ -83,6 +84,7 @@ public class JobExecuteService implements EnvironmentAware {
     private TrafficSpectrumDslService trafficSpectrumDslService;
     private EngineConfigSource engineConfigSource;
     private JobConfig jobCfg;
+    private CustomizedStatisticsService customizedStatisticsService;
     private final ThreadPoolTaskExecutor heavyResourceThreadPool;
     private final ThreadPoolTaskExecutor lightWeightThreadPool;
     private final ThreadPoolTaskExecutor taskThreadPool;
@@ -181,6 +183,31 @@ public class JobExecuteService implements EnvironmentAware {
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
         }
     }
+
+    public BaseResult addDslExecutorCustomizedStatisticsWithoutCache(DSLQueryRequestParam request) {
+        customizedStatisticsService.validate(request);
+        return customizedStatisticsService.run(request);
+    }
+
+    @Async("lightWeightThreadPool")
+    public void addDslExecutorCustomizedStatisticsWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
+        try {
+            markJobBegin(request.getId());
+            customizedStatisticsService.validate(request);
+            updateJobResultOnQueryCache(request.getId(), customizedStatisticsService.run(request), null);
+        } catch (RuntimeException e) {
+            markJobFailure(request.getId(), e.getMessage());
+        } finally {
+            try {
+                markJobCompletion(request.getId());
+            } finally {
+                if (countDownLatch != null) {
+                    countDownLatch.countDown();
+                }
+            }
+        }
+    }
+
 
     public BaseResult addDslExecutorTrafficSpectrumWithoutCache(DSLQueryRequestParam request) {
         try {
@@ -936,5 +963,10 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     public void setJobCfg(JobConfig jobCfg) {
         this.jobCfg = jobCfg;
+    }
+
+    @Autowired
+    public void setJobCfg(CustomizedStatisticsService customizedStatisticsService) {
+        this.customizedStatisticsService = customizedStatisticsService;
     }
 }

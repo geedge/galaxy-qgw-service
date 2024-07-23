@@ -149,6 +149,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
                 }
+            } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
+                return jobExecuteService.addDslExecutorCustomizedStatisticsWithoutCache(request);
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
@@ -171,6 +173,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 queryCache.setType(request.getName());
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, null);
+            } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addDslExecutorCustomizedStatisticsWithCache(request, null);
             } else {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addExecutorDsl(request);

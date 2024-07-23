@@ -31,6 +31,7 @@ public class AutoPeriodHelper {
     private static final DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
     private static final String RATE = "RATE";
+    private static final String BITRATE = "BITRATE";
     private static final String CHART_GRANULARITY = "CHART_GRANULARITY";
     private static final String SAMPLE_GRANULARITY = "SAMPLE_GRANULARITY";
     private static final String SCHEMA_DOC_MEASUREMENTS_KEY = "measurements";
@@ -403,6 +404,8 @@ public class AutoPeriodHelper {
                 buildNewFunction(function);
             } else if (isRate(function)) {
                 buildNewFunction(function);
+            } else if (isBitRate(function)) {
+                buildNewFunction(function);
             } else {
                 Optional.ofNullable(function.getParameters()).ifPresent(o -> {
                     for (Expression expression : o.getExpressions()) {
@@ -463,6 +466,15 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return RATE.equalsIgnoreCase(function.getName())
+                && function.getParameters().getExpressions().size() >= 2;
+    }
+
+    private static boolean isBitRate(Expression expression) {
+        if (!(expression instanceof Function)) {
+            return false;
+        }
+        Function function = (Function) expression;
+        return BITRATE.equalsIgnoreCase(function.getName())
                 && function.getParameters().getExpressions().size() >= 2;
     }
 

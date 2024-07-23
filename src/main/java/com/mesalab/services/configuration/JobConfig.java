@@ -54,11 +54,12 @@ public class JobConfig {
     public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY = "field_discovery";
     public static final String DATAPATH_PACKET_COMBINE = "datapath_telemetry_packet_combine";
-    public static final String TRAFFIC_SPECTRUM_SUMMARY ="traffic-spectrum-summary";
-    public static final String TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS ="traffic-spectrum-unique-client-and-server-ips";
-    public static final String TRAFFIC_SPECTRUM_APP_DISTRIBUTION ="traffic-spectrum-app-distribution";
-    public static final String TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE ="traffic-spectrum-client-ip-connect-application-usage";
-    public static final String TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND ="traffic-spectrum-network-throughput-trend";
+    public static final String TRAFFIC_SPECTRUM_SUMMARY = "traffic-spectrum-summary";
+    public static final String TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS = "traffic-spectrum-unique-client-and-server-ips";
+    public static final String TRAFFIC_SPECTRUM_APP_DISTRIBUTION = "traffic-spectrum-app-distribution";
+    public static final String TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE = "traffic-spectrum-client-ip-connect-application-usage";
+    public static final String TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND = "traffic-spectrum-network-throughput-trend";
+    public static final String CUSTOMIZED_STATISTICS = "customized-statistics";
     public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
 
     public static final String DELIMIT = "-";

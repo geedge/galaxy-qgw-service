@@ -12,27 +12,59 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
+        "device_id",
         "device_group",
+        "data_center",
+        "rule_id",
+        "template_id",
+        "chart_id",
+        "version",
+        "client_ip_object",
+        "server_ip_object",
+        "fqdn_category",
+        "client_ip_object_list",
+        "server_ip_object_list",
+        "fqdn_category_list",
         "client_ip",
         "server_ip",
-        "client_asn",
-        "server_asn",
         "client_country",
         "server_country",
+        "client_asn",
+        "server_asn",
         "server_fqdn",
         "server_domain",
         "application",
-        "fqdn_category",
-        "client_ip_object",
-        "server_ip_object",
+        "app",
+        "app_category",
         "c2s_ttl",
         "s2c_ttl",
         "c2s_link_id",
         "s2c_link_id",
         "client_port",
-        "server_port"
+        "server_port",
+        "ssl_ja3_hash",
+        "http_host",
+        "ssl_sni",
+        "subscriber_id",
+        "decoded_as",
+        "sled_ip",
+        "flags",
+        "direction"
       ],
       "metrics": [
+        "count_1",
+        "count_2",
+        "count_3",
+        "count_4",
+        "unique_count_1",
+        "unique_count_2",
+        "unique_count_3",
+        "unique_count_4",
+        "distribution_1",
+        "distribution_2",
+        "distribution_3",
+        "distribution_4",
         "in_bytes",
         "out_bytes",
         "bytes",
@@ -76,87 +108,7 @@
       "ingestion_period": "PT1S",
       "compaction_period": "PT1M",
       "skip_compaction_offset_from_latest": "P7D",
-      "ingestion_delay": 5,
-      "aggregated_metric_unit": {
-        "SUM": {
-          "in_bytes": "bytes",
-          "out_bytes": "bytes",
-          "bytes": "bytes",
-          "in_pkts": "packets",
-          "out_pkts": "packets",
-          "pkts": "packets",
-          "new_c2s_flows": "flows",
-          "new_s2c_flows": "flows",
-          "new_in_sessions": "sessions",
-          "new_out_sessions": "sessions",
-          "sessions": "sessions",
-          "new_unestablished_sessions": "sessions",
-          "syn_pkts": "packets",
-          "c2s_ip_fragments": "packets",
-          "s2c_ip_fragments": "packets",
-          "ip_fragments": "packets"
-        },
-        "RATE": {
-          "in_bytes": "Bps",
-          "out_bytes": "Bps",
-          "bytes": "Bps",
-          "in_pkts": "pps",
-          "out_pkts": "pps",
-          "pkts": "pps",
-          "new_c2s_flows": "fps",
-          "new_s2c_flows": "fps",
-          "new_in_sessions": "sps",
-          "new_out_sessions": "sps",
-          "sessions": "sps",
-          "new_unestablished_sessions": "sps",
-          "syn_pkts": "pps",
-          "c2s_ip_fragments": "pps",
-          "s2c_ip_fragments": "pps",
-          "ip_fragments": "pps"
-        },
-        "BITRATE": {
-          "in_bytes": "bps",
-          "out_bytes": "bps",
-          "bytes": "bps"
-        },
-        "APPROX_COUNT_DISTINCT_HLLD": {
-          "session_identifier_sketch": "sessions",
-          "client_ip_sketch": "short",
-          "server_ip_sketch": "short"
-        },
-        "MEDIAN_HDR": {
-          "in_latency_ms_sketch": "ms",
-          "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "packets",
-          "out_pkt_length_sketch": "packets",
-          "pkt_length_sketch": "packets"
-        },
-        "P95_PERCENTILE_HDR": {
-          "in_latency_ms_sketch": "ms",
-          "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "packets",
-          "out_pkt_length_sketch": "packets",
-          "pkt_length_sketch": "packets"
-        },
-        "P99_PERCENTILE_HDR": {
-          "in_latency_ms_sketch": "ms",
-          "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "packets",
-          "out_pkt_length_sketch": "packets",
-          "pkt_length_sketch": "packets"
-        },
-        "PERCENTILES_HDR": {
-          "in_latency_ms_sketch": "ms",
-          "out_latency_ms_sketch": "ms",
-          "latency_ms_sketch": "ms",
-          "in_pkt_length_sketch": "packets",
-          "out_pkt_length_sketch": "packets",
-          "pkt_length_sketch": "packets"
-        }
-      }
+      "ingestion_delay": 5
     }
   },
   "fields": [
@@ -260,7 +212,7 @@
     },
     {
       "name": "client_ip_object",
-      "label": "Client IP Matched Objects",
+      "label": "Client IP Matched Objects(Deprecated)",
       "doc": {
         "visibility": "enabled"
       },
@@ -268,7 +220,7 @@
     },
     {
       "name": "server_ip_object",
-      "label": "Server IP Matched Objects",
+      "label": "Server IP Matched Objects(Deprecated)",
       "doc": {
         "visibility": "enabled"
       },
@@ -276,8 +228,35 @@
     },
     {
       "name": "fqdn_category",
+      "label": "WebSketch Categories(Deprecated)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip_object_list",
+      "label": "Client IP Matched Objects",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip_object_list",
+      "label": "Server IP Matched Objects",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "fqdn_category_list",
       "label": "WebSketch Categories",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -305,22 +284,6 @@
       "type": "string"
     },
     {
-      "name": "client_asn",
-      "label": "Client ASN",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "server_asn",
-      "label": "Server ASN",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
       "name": "client_country",
       "label": "Client Country",
       "doc": {
@@ -341,6 +304,22 @@
         "visibility": "enabled"
       },
       "type": "string"
+    },
+    {
+      "name": "client_asn",
+      "label": "Client ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_asn",
+      "label": "Server ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
     },
     {
       "name": "server_fqdn",
@@ -366,7 +345,29 @@
     },
     {
       "name": "application",
+      "label": "Application(Deprecated)",
+      "doc": {
+        "constraints": {
+          "type": "app"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app",
       "label": "Application",
+      "doc": {
+        "constraints": {
+          "type": "app"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_category",
+      "label": "Application Category",
       "doc": {
         "constraints": {
           "type": "app"
@@ -424,8 +425,188 @@
       "type": "long"
     },
     {
+      "name": "ssl_ja3_hash",
+      "label": "SSL JA3 Hash",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_host",
+      "label": "HTTP Host",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL SNI",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "subscriber_id",
+      "label": "Subscriber ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "decoded_as",
+      "label": "Decoded AS",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sled_ip",
+      "label": "Sled IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "flags",
+      "label": "Flags",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "count_1",
+      "label": "First Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "count_2",
+      "label": "Second Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "count_3",
+      "label": "Third Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "count_4",
+      "label": "Fourth Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "unique_count_1",
+      "label": "First Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "unique_count_2",
+      "label": "Second Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "unique_count_3",
+      "label": "Third Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "unique_count_4",
+      "label": "Fourth Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_1",
+      "label": "First Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_2",
+      "label": "Second Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_3",
+      "label": "Third Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_4",
+      "label": "Fourth Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
       "name": "in_bytes",
-      "label": "Incoming Bytes",
+      "label": "Incoming Bytes(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -437,7 +618,7 @@
     },
     {
       "name": "out_bytes",
-      "label": "Outgoing Bytes",
+      "label": "Outgoing Bytes(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -449,7 +630,7 @@
     },
     {
       "name": "bytes",
-      "label": "Bytes",
+      "label": "Bytes(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -461,7 +642,7 @@
     },
     {
       "name": "in_pkts",
-      "label": "Incoming Packets",
+      "label": "Incoming Packets(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -473,7 +654,7 @@
     },
     {
       "name": "out_pkts",
-      "label": "Outgoing Packets",
+      "label": "Outgoing Packets(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -485,7 +666,7 @@
     },
     {
       "name": "pkts",
-      "label": "Packets",
+      "label": "Packets(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -497,7 +678,7 @@
     },
     {
       "name": "new_c2s_flows",
-      "label": "New Client-to-Server Flows",
+      "label": "New Client-to-Server Flows(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -509,7 +690,7 @@
     },
     {
       "name": "new_s2c_flows",
-      "label": "New Server-to-Client Flows",
+      "label": "New Server-to-Client Flows(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -521,7 +702,7 @@
     },
     {
       "name": "new_in_sessions",
-      "label": "New Incoming Sessions",
+      "label": "New Incoming Sessions(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -533,7 +714,7 @@
     },
     {
       "name": "new_out_sessions",
-      "label": "New Outgoing Sessions",
+      "label": "New Outgoing Sessions(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -545,7 +726,7 @@
     },
     {
       "name": "sessions",
-      "label": "Sessions",
+      "label": "Sessions(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -557,7 +738,7 @@
     },
     {
       "name": "new_unestablished_sessions",
-      "label": "New Unestablished Sessions",
+      "label": "New Unestablished Sessions(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -569,7 +750,7 @@
     },
     {
       "name": "syn_pkts",
-      "label": "SYN Packets",
+      "label": "SYN Packets(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -581,7 +762,7 @@
     },
     {
       "name": "c2s_ip_fragments",
-      "label": "Client-to-Server IP Fragments",
+      "label": "Client-to-Server IP Fragments(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -593,7 +774,7 @@
     },
     {
       "name": "s2c_ip_fragments",
-      "label": "Server-to-Client IP Fragments",
+      "label": "Server-to-Client IP Fragments(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -605,7 +786,7 @@
     },
     {
       "name": "ip_fragments",
-      "label": "IP Fragments",
+      "label": "IP Fragments(Deprecated)",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -617,12 +798,11 @@
     },
     {
       "name": "session_identifier_sketch",
-      "label": "Session IDs",
+      "label": "Session IDs(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
+          "metric_type": "unique_count"
         },
         "visibility": "enabled"
       },
@@ -630,12 +810,11 @@
     },
     {
       "name": "client_ip_sketch",
-      "label": "Client IPs",
+      "label": "Client IPs(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
+          "metric_type": "unique_count"
         },
         "visibility": "enabled"
       },
@@ -643,12 +822,11 @@
     },
     {
       "name": "server_ip_sketch",
-      "label": "Server IPs",
+      "label": "Server IPs(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
+          "metric_type": "unique_count"
         },
         "visibility": "enabled"
       },
@@ -656,12 +834,11 @@
     },
     {
       "name": "in_latency_ms_sketch",
-      "label": "Incoming Latency",
+      "label": "Incoming Latency(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR"
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       },
@@ -669,12 +846,11 @@
     },
     {
       "name": "out_latency_ms_sketch",
-      "label": "Outgoing Latency",
+      "label": "Outgoing Latency(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR"
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       },
@@ -682,12 +858,11 @@
     },
     {
       "name": "latency_ms_sketch",
-      "label": "Latency",
+      "label": "Latency(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       },
@@ -695,12 +870,11 @@
     },
     {
       "name": "in_pkt_length_sketch",
-      "label": "Incoming Packet Length",
+      "label": "Incoming Packet Length(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       },
@@ -708,12 +882,11 @@
     },
     {
       "name": "out_pkt_length_sketch",
-      "label": "Outgoing Packet Length",
+      "label": "Outgoing Packet Length(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       },
@@ -721,12 +894,11 @@
     },
     {
       "name": "pkt_length_sketch",
-      "label": "Packet Length",
+      "label": "Packet Length(Deprecated)",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       },

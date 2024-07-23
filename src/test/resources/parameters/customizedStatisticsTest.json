@@ -1,0 +1,118 @@
+{
+  "metrics_value_statistics": {
+    "name": "customized-statistics",
+    "data_source": "statistics_rule",
+    "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
+    "custom.statistics.dimensions": [
+      {
+        "metric_name": "server_fqdn",
+        "label": "Server FQDN"
+      }
+    ],
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "UNIQUE_COUNT"
+        },
+        "metric_name": "unique_count_1",
+        "metric_type": "unique_count",
+        "label": "Clients"
+      },
+      {
+        "function": {
+          "name": "BITRATE"
+        },
+        "metric_name": "count_1",
+        "metric_type": "count",
+        "label": "Throughput"
+      },
+      {
+        "function": {
+          "name": "COUNT"
+        },
+        "metric_name": "server_ip",
+        "label": "Sessions"
+      }
+    ],
+    "intervals": [
+      "2024-07-01 00:00:00/2024-07-02 00:00:00"
+    ],
+    "order_by": "Clients DESC",
+    "limit": 10,
+    "execution_mode": "oneshot"
+  },
+  "metrics_value_statistics_over_time": {
+    "name": "customized-statistics",
+    "data_source": "statistics_rule",
+    "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
+    "custom.statistics.dimensions": [
+      {
+        "function": {
+          "name": "TIME_FLOOR_WITH_FILL"
+        },
+        "metric_name": "__time",
+        "label": "Stat Time"
+      }
+    ],
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "UNIQUE_COUNT"
+        },
+        "metric_name": "client_ip",
+        "label": "Client IPs"
+      },
+      {
+        "function": {
+          "name": "SUM"
+        },
+        "metric_name": "count_1",
+        "metric_type": "count",
+        "label": "Bytes"
+      }
+    ],
+    "intervals": [
+      "2020-01-01 00:00:00/2020-01-02 00:00:00"
+    ],
+    "execution_mode": "oneshot"
+  },
+  "metrics_value_series_statistics_over_time": {
+    "name": "customized-statistics",
+    "data_source": "statistics_rule",
+    "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
+    "custom.statistics.dimensions": [
+      {
+        "function": {
+          "name": "TIME_FLOOR_WITH_FILL"
+        },
+        "metric_name": "__time",
+        "label": "Stat Time"
+      },
+      {
+        "metric_name": "client_ip",
+        "label": "Client IP"
+      }
+    ],
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "SUM"
+        },
+        "metric_name": "count_1",
+        "metric_type": "count",
+        "label": "Bytes"
+      }
+    ],
+    "custom.statistics.subquery.topk": {
+      "dimensions": [
+        "Client IP"
+      ],
+      "metric": "Bytes",
+      "limit": 10
+    },
+    "intervals": [
+      "2020-01-01 00:00:00/2020-01-02 00:00:00"
+    ],
+    "execution_mode": "oneshot"
+  }
+}

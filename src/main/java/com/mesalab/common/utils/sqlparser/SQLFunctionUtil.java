@@ -1,5 +1,7 @@
 package com.mesalab.common.utils.sqlparser;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -7,8 +9,11 @@ import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import com.mesalab.cn.enums.CDQueryType;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.enums.MetricType;
+import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
@@ -30,10 +35,7 @@ import org.joda.time.Period;
 
 import javax.validation.constraints.NotNull;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -55,10 +57,13 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
     public static final String ROLLUP = "ROLLUP";
     public static final String RATE = "RATE";
+    public static final String BITRATE = "BITRATE";
     public static final String MAX_DURATION = "MAX_DURATION";
     public static final String MEDIAN_HDR = "MEDIAN_HDR";
     public static final String QUANTILE_HDR = "QUANTILE_HDR";
     public static final String PERCENTILES_HDR = "PERCENTILES_HDR";
+    public static final String P95_PERCENTILE_HDR = "P95_PERCENTILE_HDR";
+    public static final String P99_PERCENTILE_HDR = "P99_PERCENTILE_HDR";
     public static final String COUNT_DISTINCT = "COUNT_DISTINCT";
     public static final String UNIQUE_COUNT = "UNIQUE_COUNT";
     public static final String APPROX_COUNT_DISTINCT_HLLD = "APPROX_COUNT_DISTINCT_HLLD";
@@ -78,6 +83,7 @@ public class SQLFunctionUtil {
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pRate = Pattern.compile("\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pBitRate = Pattern.compile("\\b" + BITRATE + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -93,6 +99,8 @@ public class SQLFunctionUtil {
     public static final Pattern pQuantileHdr = Pattern.compile("\\b" + QUANTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pPercentilesHdr = Pattern.compile("\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pP95PercentileHdr = Pattern.compile("\\b" + P95_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pP99PercentileHdr = Pattern.compile("\\b" + P99_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pCountDistinct = Pattern.compile("\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUniqueCount = Pattern.compile("\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
@@ -101,6 +109,35 @@ public class SQLFunctionUtil {
 
     public static final HashMap<String, String> federationUDFFunctions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
+    private static final Map<String, Map<String, String>> FUNCTION_METRIC_TYPE_MAP;
+
+    static {
+        FUNCTION_METRIC_TYPE_MAP = new HashMap<>();
+
+        Map<String, String> countMap = new HashMap<>();
+        countMap.put(MetricType.COUNT.getValue(), "SUM");
+        FUNCTION_METRIC_TYPE_MAP.put("COUNT", countMap);
+
+        Map<String, String> uniqCountMap = new HashMap<>();
+        uniqCountMap.put(MetricType.UNIQUE_COUNT.getValue(), "APPROX_COUNT_DISTINCT_HLLD");
+        FUNCTION_METRIC_TYPE_MAP.put("UNIQUE_COUNT", uniqCountMap);
+
+        Map<String, String> medianMap = new HashMap<>();
+        medianMap.put(MetricType.DISTRIBUTION.getValue(), "MEDIAN_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("MEDIAN", medianMap);
+
+        Map<String, String> p95PercentileMap = new HashMap<>();
+        p95PercentileMap.put(MetricType.DISTRIBUTION.getValue(), "P95_PERCENTILE_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("P95_PERCENTILE", p95PercentileMap);
+
+        Map<String, String> histogramMap = new HashMap<>();
+        histogramMap.put(MetricType.DISTRIBUTION.getValue(), "P99_PERCENTILE_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("P99_PERCENTILE", histogramMap);
+
+        Map<String, String> p99PercentileMap = new HashMap<>();
+        p99PercentileMap.put(MetricType.DISTRIBUTION.getValue(), "PERCENTILES_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("HISTOGRAM", p99PercentileMap);
+    }
 
     public static final Map<String, String> timeSlicingFunction = Maps.newHashMap();
 
@@ -193,6 +230,12 @@ public class SQLFunctionUtil {
         sql = timeZoneFunc(sql, dbType);
         sql = replaceMark(sql);
         return sql;
+    }
+
+
+    public static String generateFunctionWithMetricType(String functionName, String metricType) {
+        Map<String, String> functionTypeMap = FUNCTION_METRIC_TYPE_MAP.getOrDefault(functionName, Collections.emptyMap());
+        return functionTypeMap.getOrDefault(metricType, functionName);
     }
 
     public static String replaceRollup(String sql) {
@@ -345,6 +388,7 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
         resultSql = translateByPattern(resultSql, dbType, pMaxDuration);
         resultSql = translateByPattern(resultSql, dbType, pRate);
+        resultSql = translateByPattern(resultSql, dbType, pBitRate);
         resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
         resultSql = translateByPattern(resultSql, dbType, pIpToCity);
         resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
@@ -355,6 +399,8 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pMedianHdr);
         resultSql = translateByPattern(resultSql, dbType, pQuantileHdr);
         resultSql = translateByPattern(resultSql, dbType, pPercentilesHdr);
+        resultSql = translateByPattern(resultSql, dbType, pP95PercentileHdr);
+        resultSql = translateByPattern(resultSql, dbType, pP99PercentileHdr);
         resultSql = translateByPattern(resultSql, dbType, pCountDistinct);
         resultSql = translateByPattern(resultSql, dbType, pUniqueCount);
         resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
@@ -1865,6 +1911,9 @@ public class SQLFunctionUtil {
             case RATE:
                 data = translateRate(fun, dbType);
                 break;
+            case BITRATE:
+                data = translateBitRate(fun, dbType);
+                break;
             case NOT_EMPTY:
                 data = translateNotEmpty(fun, dbType);
                 break;
@@ -1874,6 +1923,8 @@ public class SQLFunctionUtil {
             case MEDIAN_HDR:
             case QUANTILE_HDR:
             case PERCENTILES_HDR:
+            case P95_PERCENTILE_HDR:
+            case P99_PERCENTILE_HDR:
             case APPROX_COUNT_DISTINCT_HLLD:
                 data = translateHdrHistogram(fun, dbType);
                 break;
@@ -2029,7 +2080,7 @@ public class SQLFunctionUtil {
     }
 
     /**
-     * Desc: 转义RATE
+     * Desc: 转义 RATE
      *
      * @param fun
      * @param dbType
@@ -2060,6 +2111,37 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * Desc: 转义 BITRATE
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2023/12/22 4:47 下午
+     */
+    private static String translateBitRate(Function fun, String dbType) {
+        List<String> paramsList = fun.paramsList;
+        if (DBEngineType.DRUID.getValue().equals(dbType) || DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+            if (paramsList.size() == 2) {
+                String durationParam = fun.getParamsList().get(1);
+                if (!NumberUtil.isNumber(durationParam) && durationParam.startsWith("'") && durationParam.endsWith("'")) {
+                    durationParam = String.valueOf(Period.parse(StrUtil.strip(durationParam, "'")).toStandardSeconds().getSeconds());
+                }
+                String formatString = "ROUND(SUM(%s) * 1.0 / %s, 2) * 8";
+                return String.format(formatString, paramsList.get(0), durationParam);
+            } else if (paramsList.size() == 3) {
+                String durationParam = fun.getParamsList().get(1);
+                if (!NumberUtil.isNumber(durationParam)) {
+                    durationParam = String.valueOf(Period.parse(StrUtil.strip(durationParam, "'")).toStandardSeconds().getSeconds());
+                }
+                String formatString = "ROUND(SUM(%s) / (%s * 1.0/%s), 2) * 8";
+                return String.format(formatString, paramsList.get(0), durationParam, paramsList.get(2));
+            }
+        }
+        return fun.toString();
+    }
+
+    /**
      * Desc: 转义自定义函数 MEDIAN_HDR/QUANTILE_HDR/PERCENTILES_HDR/APPROX_COUNT_DISTINCT_HLLD
      *
      * @param fun
@@ -2073,6 +2155,10 @@ public class SQLFunctionUtil {
             switch (fun.getName()) {
                 case MEDIAN_HDR:
                     return String.format("APPROX_QUANTILE_HDR(%s,0.50)", hdrSketchExpr);
+                case P95_PERCENTILE_HDR:
+                    return String.format("APPROX_QUANTILE_HDR(%s,0.95)", hdrSketchExpr);
+                case P99_PERCENTILE_HDR:
+                    return String.format("APPROX_QUANTILE_HDR(%s,0.99)", hdrSketchExpr);
                 case QUANTILE_HDR:
                     double probability = Double.parseDouble(fun.getParamsList().get(1));
                     return String.format("APPROX_QUANTILE_HDR(%s,%s)", hdrSketchExpr, probability);

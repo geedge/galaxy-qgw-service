@@ -49,3 +49,9 @@ SELECT direction, SUM(temp_sessions) AS sessions, SUM(temp_bytes) AS bytes, SUM(
 #sql("TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND")
 SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(recv_time, '$granularity', 'zero')) AS stat_time, ROUND(RATE(bytes,$granularity_seconds,1)) * 8 AS avg_bits_per_sec, ROUND(RATE(bytes,$granularity_seconds,1)) AS avg_bytes_per_sec, ROUND(RATE(pkts,$granularity_seconds,1)) AS avg_pkts_per_sec, ROUND(RATE(sessions,$granularity_seconds,1)) AS avg_sessions_per_sec FROM $table WHERE $intervals_and_filter GROUP BY stat_time ORDER BY stat_time ASC $limit
 #end
+#sql("CUSTOMIZED_STATISTICS")
+SELECT %s FROM $table WHERE $intervals_and_filter %s %s %s $limit
+#end
+#sql("CUSTOMIZED_STATISTICS_SUBQUERY_TOPK")
+(%s) IN (SELECT %s FROM $table WHERE $intervals_and_filter %s %s $limit)
+#end
