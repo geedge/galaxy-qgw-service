@@ -228,7 +228,7 @@
     },
     {
       "name": "in_max_latency_us",
-      "label": "Incoming Max Latency(us)",
+      "label": "Incoming Max Latency(us)(Deprecated)",
       "type": "long",
       "doc": {
         "constraints": {
@@ -239,11 +239,23 @@
     },
     {
       "name": "out_max_latency_us",
-      "label": "Outgoing Max Latency(us)",
+      "label": "Outgoing Max Latency(us)(Deprecated)",
       "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "latency_distribution_us",
+      "label": "Latency Distribution(us)",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge",
+          "metric_type": "distribution"
         },
         "visibility": "enabled"
       }
