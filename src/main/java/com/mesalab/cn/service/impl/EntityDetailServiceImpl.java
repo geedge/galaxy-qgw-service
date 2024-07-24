@@ -370,17 +370,17 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         Map<String, String> secondAql = clientIpView.get(SECOND);
         Map<String, String> thirdAql = clientIpView.get(THIRD);
 
-        List<Map> firstEdges = execute(firstAql.get(STEP), firstAql.get(DIRECTION).concat(condition), firstAql.get(TABLE), sort, limit);
+        List<Map> firstEdges = execute(Objects.requireNonNull(firstAql, "firstAql is Null").get(STEP), firstAql.get(DIRECTION).concat(condition), firstAql.get(TABLE), sort, limit);
         EntityDetail searchClientIp = EntityDetail.builder().name(condition).type(IP).build();
         List<Object> clientIpLeaf = new ArrayList<>();
 
         for (Map serverIpMap : firstEdges) {
             EntityDetail serverEd = toBean(serverIpMap, SERVER_IP, IP);
             List<Object> serverLeaf = Lists.newArrayList();
-            List<Map> secondEdges = execute(secondAql.get(STEP), secondAql.get(DIRECTION).concat(serverEd.getName()), secondAql.get(TABLE), sort, limit);
+            List<Map> secondEdges = execute(Objects.requireNonNull(secondAql, "secondAql is Null").get(STEP), secondAql.get(DIRECTION).concat(serverEd.getName()), secondAql.get(TABLE), sort, limit);
             for (Map domainMap : secondEdges) {
                 EntityDetail domainEd = toBean(domainMap, DOMAIN, DOMAIN);
-                List<Map> thirdEdges = execute(thirdAql.get(STEP), thirdAql.get(DIRECTION).concat(domainEd.getName()), thirdAql.get(TABLE), sort, limit);
+                List<Map> thirdEdges = execute(Objects.requireNonNull(thirdAql, "thirdAql is Null").get(STEP), thirdAql.get(DIRECTION).concat(domainEd.getName()), thirdAql.get(TABLE), sort, limit);
                 List<Object> domainLeaf = Lists.newArrayList();
                 for (Map appMap : thirdEdges) {
                     domainLeaf.add(toBean(appMap, APP_NAME, APP_NAME));

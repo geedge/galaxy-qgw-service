@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
@@ -30,10 +31,7 @@ import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.HttpConfig;
-import com.mesalab.qgw.model.basic.JobAdminHttpSource;
-import com.mesalab.qgw.model.basic.SQLQueryContext;
-import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
+import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
@@ -880,7 +878,8 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             for (String tableName : previous.keySet()) {
                 updateSchema(tableName, previous.get(tableName));
             }
-            executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
+            XxlJobInfo xxlJobInfo = BeanUtil.copyProperties(dataByHandler, XxlJobInfo.class);
+            executeManageJob("update", xxlJobInfo);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "up schema error in storage set ", ex.getMessage()));
@@ -1115,7 +1114,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
         Map trafficDate = getDataByHandler(jobHandlerValue);
-        XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
+        XxlJobInfo xxlJobInfo = BeanUtil.copyProperties(trafficDate, XxlJobInfo.class);
         StorageDeletionInfo executorParam = JSON.parseObject(StrUtil.toUnderlineCase(xxlJobInfo.getExecutorParam()), StorageDeletionInfo.class);
         executorParam.setType(logType);
         return executorParam;
@@ -1136,7 +1135,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     private XxlJobInfo setXxlJobInfoParam(Map data, ExecutorParam executorParam) {
-        XxlJobInfo xxlJobInfo = mapToBean(data, XxlJobInfo.class);
+        XxlJobInfo xxlJobInfo = BeanUtil.copyProperties(data, XxlJobInfo.class);
         ExecutorParam executor = JSON.parseObject(xxlJobInfo.getExecutorParam(), ExecutorParam.class);
         executorParam.setDefaultMaxDays(executor.getDefaultMaxDays());
         xxlJobInfo.setExecutorParam(JSON.toJSONString(executorParam));

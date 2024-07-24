@@ -17,13 +17,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Objects;
 
 @Component
 public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
     private static final Log log = LogFactory.get();
+
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response, Object handler) throws Exception {
@@ -58,9 +61,6 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
     }
 
 
-
-
-
     private UserMethodKey getUserMethodKey(String clientId, String queryString) {
 
         UserMethodKey k = new UserMethodKey();
@@ -70,7 +70,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
     }
 
     private String getClientId() {
-        return RequestContextHolder.getRequestAttributes().getSessionId();
+        return Objects.requireNonNull(RequestContextHolder.getRequestAttributes(), "Request Attributes is Null").getSessionId();
     }
 
     @Data
@@ -83,7 +83,6 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             return DigestUtil.md5Hex(clientId + queryString);
         }
     }
-
 
 
 }

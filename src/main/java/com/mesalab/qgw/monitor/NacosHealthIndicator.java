@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Nacos健康检测
@@ -47,7 +48,7 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", nacosConfig.getServerAddr())
-                        .withDetail("version",resMap.getBody().get("version"))
+                        .withDetail("version", Objects.requireNonNull(resMap.getBody(), "body is null").get("version"))
                         .withDetail("message", "ok");
             } else {
                 builder.down()

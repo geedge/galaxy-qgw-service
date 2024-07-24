@@ -30,7 +30,6 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                     .withDetail("message", "DISABLED");
             return;
         }
-        clickHouseHttpSource.getRealTimeAccountSocketTimeOut();
 
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
 
@@ -44,18 +43,24 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
         try {
             ResponseEntity responseEntity = restTemplate.getForEntity(url, Map.class);
             if (responseEntity.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-                Map body = (Map) responseEntity.getBody();
-                Map data = (Map) ((List) body.get("data")).get(0);
+                Map<String, Object> body = Optional.ofNullable(responseEntity.getBody())
+                        .map(b -> (Map<String, Object>) b)
+                        .orElseThrow(() -> new IllegalArgumentException("Response body is null or not a map"));
+                List<Map<String, Object>> dataAll = Optional.ofNullable(body.get("data"))
+                        .map(b -> (List<Map<String, Object>>) b)
+                        .orElseThrow(() -> new IllegalArgumentException("Response body is null or not a list"));
+                Map<String, Object> data = Optional.ofNullable(dataAll.get(0))
+                        .orElseThrow(() -> new IllegalArgumentException("Response body is null or not a map"));
                 String dbTimeZone = data.get("timeZone").toString();
                 String curDatetime = data.get("timestamp").toString();
-                String version = StrUtil.subBefore(data.get("version").toString(),".", true);
+                String version = StrUtil.subBefore(data.get("version").toString(), ".", true);
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok")
                         .withDetail("timeZone", dbTimeZone)
                         .withDetail("timestamp", curDatetime)
-                        .withDetail("version",version);
+                        .withDetail("version", version);
             } else {
                 builder.down()
                         .withDetail("app", APP)

@@ -218,21 +218,9 @@ public class FederationDialect extends AbstractEngineDialect {
 
     private void convertJsonToCSV() {
 
-        List<String> results = Lists.transform((List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
+        List<String> results = Lists.transform((List<Map<String, Object>>) baseResult.getData(), input -> Joiner.on(",").useForNull("").join(input.values()));
 
-            @Override
-            public String apply(@Nullable Map<String, Object> input) {
-                return Joiner.on(",").useForNull("").join(input.values());
-            }
-        });
-
-        List<Object> metas = Lists.transform((List<Map<String, Object>>) baseResult.getMeta(), new Function<Map<String, Object>, Object>() {
-
-            @Override
-            public Object apply(@Nullable Map<String, Object> input) {
-                return input.get("name");
-            }
-        });
+        List<Object> metas = Lists.transform((List<Map<String, Object>>) baseResult.getMeta(), input -> input.get("name"));
 
         baseResult.setData(Joiner.on("\n").useForNull("").join(results));
         baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));

@@ -108,7 +108,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         if (ExecutionMode.ONESHOT.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(request.getId(), request);
-                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCacheAndRefresh(request.getId()));
+                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
                 HazelcastInstanceMapUtil.remove(request.getId());
                 BaseResult<Object> baseResult = queryCache.getBaseResult();
                 Map<String, Object> job = baseResult.getJob();

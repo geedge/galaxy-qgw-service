@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class DruidHealthIndicator extends AbstractHealthIndicator {
@@ -50,9 +51,13 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
             if (responseEntity.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-                List body = (List) responseEntity.getBody();
-                String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone"));
-                String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));
+                List<Map<String, Object>> body = Optional.ofNullable(responseEntity.getBody())
+                        .map(b -> (List<Map<String, Object>>) b)
+                        .orElseThrow(() -> new IllegalArgumentException("Response body is null or not a List"));
+                Map<String, Object> firstElement = Optional.ofNullable(body.get(0))
+                        .orElseThrow(() -> new IllegalArgumentException("First element in the body is null"));
+                Object timeZone = firstElement.get("timeZone");
+                Object curDatetime = firstElement.get("curTimestamp");
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", druidIoHttpSource.getUrl())

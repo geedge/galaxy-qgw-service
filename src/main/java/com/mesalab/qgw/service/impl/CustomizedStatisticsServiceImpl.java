@@ -5,7 +5,6 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -136,9 +135,9 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
         Object metric = subQueryTopK.get(SUBQUERY_TOPK_METRIC);
         orderByMetric = metric == null
                 ? metrics.get(0)
-                : metrics.stream()
-                .filter(m -> String.valueOf(m.get(LABEL)).equals(String.valueOf(metric)))
-                .findFirst().get();
+                : metrics.stream().filter(m -> String.valueOf(m.get(LABEL)).equals(String.valueOf(metric))).findFirst()
+                .orElseThrow(() -> new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The top-k metric must be included in the Customized Statistics Metrics")));
 
         Integer limit = (Integer) subQueryTopK.get(SUBQUERY_TOPK_LIMIT);
         limit = limit == null ? SUBQUERY_TOPK_LIMIT_DEFAULT_VALUE : limit;

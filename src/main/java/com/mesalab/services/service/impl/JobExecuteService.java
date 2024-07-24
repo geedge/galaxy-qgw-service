@@ -55,10 +55,7 @@ import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.mesalab.services.service.impl.JobServiceImpl.execute;
@@ -177,8 +174,8 @@ public class JobExecuteService implements EnvironmentAware {
     public BaseResult addDslExecutorPacketCombineWithoutCache(DSLQueryRequestParam request) {
         try {
             CompletableFuture<BaseResult> future = CompletableFuture.supplyAsync(() -> packetCombineDslService.run(request), heavyResourceThreadPool);
-            return future.get();
-        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+            return future.join();
+        } catch (CompletionException e) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
         }
@@ -212,8 +209,8 @@ public class JobExecuteService implements EnvironmentAware {
     public BaseResult addDslExecutorTrafficSpectrumWithoutCache(DSLQueryRequestParam request) {
         try {
             CompletableFuture<BaseResult> future = CompletableFuture.supplyAsync(() -> trafficSpectrumDslService.run(request), lightWeightThreadPool);
-            return future.get();
-        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+            return future.join();
+        } catch (CompletionException e) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
         }
@@ -473,7 +470,7 @@ public class JobExecuteService implements EnvironmentAware {
         //分片粒度 Max(per, TimeSlicingInterval)
         long perSeconds = (dateList.get(0).getTime() - dateList.get(1).getTime()) / 1000;
         long step = jobCfg.getTimeSlicingInterval() / perSeconds == 0 ? 1 : jobCfg.getTimeSlicingInterval() / perSeconds;
-        int totalTimes = Double.valueOf(Math.ceil((dateList.size() - 1) * 1.0 / step)).intValue();
+        int totalTimes = (int) Math.ceil((dateList.size() - 1) * 1.0 / step);
         jobInfo.setTotalTimes(totalTimes);
         while (true) {
             if (jobInfo.isTimeout()) {
@@ -904,7 +901,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     @Data
-    class JobInfo implements Serializable {
+    class JobInfo {
         private String id;
         private long startTime = System.currentTimeMillis();
         private long count = 0;

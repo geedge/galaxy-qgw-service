@@ -208,7 +208,6 @@ public class FqdnProviderImpl implements QueryProvider {
                     //UNIQ_CIP_RECENT与UNIQ_CIP相同
                     map.put("UNIQ_CIP", edges.getDistCip()==null?0:edges.getDistCip().size());
                     map.put("UNIQ_CIP_RECENT", edges.getDistCip()==null?0:edges.getDistCip().size());
-                    map.put("UNIQ_CIP_RECENT", edges.getDistCip()==null?0:edges.getDistCip().size());
 
                     map.put("VSYS_ID", edges.getVsysId());
 

@@ -27,6 +27,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -103,7 +104,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             log.error("Schema Validation Fail:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
+                    String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), e.getMessage()));
 
         }
         return result;
@@ -115,7 +116,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         Optional<File> testFile;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         Map<String, String> dialectResult = Maps.newHashMap();
-        try{
+        try {
             Stopwatch watch = Stopwatch.createStarted();
             String path = new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
@@ -124,13 +125,11 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                 dialectResult = getPocSqlByDatasource(Optional.of(new File(path)), queryNo);
             } else {
                 testFile = Optional.of(new File(dialectWriter.buildPocSQL(Lists.newLinkedList(), dialect, null)));
-                if (testFile.isPresent()) {
-                    if (!testFile.get().isFile()) {
-                        log.warn("UnKnow File " + testFile.get());
-                        return null;
-                    }
-                    dialectResult = getPocSqlByDatasource(testFile, queryNo);
+                if (!testFile.get().isFile()) {
+                    log.warn("UnKnow File " + testFile.get());
+                    return null;
                 }
+                dialectResult = getPocSqlByDatasource(testFile, queryNo);
             }
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
@@ -139,7 +138,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
                     CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), e.getMessage()));
         }
         return result;
     }
@@ -153,7 +152,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
         Map<String, String> infoMap = Maps.newLinkedHashMap();
-        List<String> rawLines = new FileReader(file.get()).readLines();
+        List<String> rawLines = file.isPresent() ? new FileReader(file.get()).readLines() : Lists.newArrayList();
         if (StringUtil.isEmpty(queryNo)) {
             int index = 0;
             for (String line : rawLines) {

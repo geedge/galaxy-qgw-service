@@ -314,7 +314,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
         }
 
-        return buildResult(variables ,resultData, sqlDatasetList.size() + dslDatasetList.size());
+        return buildResult(variables, resultData, sqlDatasetList.size() + dslDatasetList.size());
     }
 
     @Override
@@ -489,7 +489,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                             .append("]")
                             .append(", ");
                 }
-                sb.setLength(sb.length()-2);
+                sb.setLength(sb.length() - 2);
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                         CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                         String.format(QGWMessageConst.SCHEMA_FIELD_TYPE_NEED_CHECK, tableName, sb));
@@ -561,8 +561,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 continue;
             List<Map<String, Object>> schemaFields = (List<Map<String, Object>>) schemaMap.get(FIELDS);
             schemaFields.stream().forEach(objectMap -> {
-                if(JSONPath.contains(objectMap, "$.doc.constraints.aggregation_functions")){
-                    String str =JsonPath.read(objectMap, "$.doc.constraints.aggregation_functions");
+                if (JSONPath.contains(objectMap, "$.doc.constraints.aggregation_functions")) {
+                    String str = JsonPath.read(objectMap, "$.doc.constraints.aggregation_functions");
                     String funStr = str.replaceAll(" ", "");
                     List<String> funList = new ArrayList<>(Arrays.asList(funStr.split(",")));
                     for (String fun : funList) {
@@ -607,8 +607,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             tableTTLInDB = matcher.find() ? matcher.group(1) : null;
         }
         if (!String.valueOf(tableTTLInDB).equals(String.valueOf(tableTTLInSchema))) {
-            tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
-            tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
+            tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : String.valueOf(tableTTLInSchema));
+            tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : String.valueOf(tableTTLInDB));
             log.warn("table ttl: {} not consistency.", tableName);
         }
         return tableDiff;
@@ -640,8 +640,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
             log.warn("field ttl: address {} {}-{} not consistency.", ipPort, tableName, field.get("name"));
             Map<String, Object> ttlDiff = Maps.newHashMap();
-            ttlDiff.put("last_ttl", StringUtil.isEmpty(fieldTTLInSchema) ? null : fieldTTLInSchema.toString());
-            ttlDiff.put("used_ttl", StringUtil.isEmpty(fieldTTLInDB) ? null : fieldTTLInDB.toString());
+            ttlDiff.put("last_ttl", StringUtil.isEmpty(fieldTTLInSchema) ? null : String.valueOf(fieldTTLInSchema));
+            ttlDiff.put("used_ttl", StringUtil.isEmpty(fieldTTLInDB) ? null : String.valueOf(fieldTTLInDB));
             if (fieldDiff.stream().noneMatch(o -> o.containsKey(field.get("name").toString()))) {
                 Map<String, Object> item = Maps.newHashMap();
                 item.put(field.get("name").toString(), ttlDiff);
@@ -677,7 +677,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
     }
 
-    private BaseResult<List<Map<String, String>>> buildResult(List<LinkedHashMap> variables,List<Map<String, String>> resultData, int totalSize) {
+    private BaseResult<List<Map<String, String>>> buildResult(List<LinkedHashMap> variables, List<Map<String, String>> resultData, int totalSize) {
         if (CollectionUtil.isEmpty(resultData)) {
             return BaseResultGenerator.success(StrUtil.format("There are {} datasets in total, and 100% of them pass the verification, time range is: {}", totalSize, getTimeRangeByVariable(variables)), resultData);
         } else {
@@ -769,7 +769,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
         if (statusCode == HttpStatusCodeEnum.SUCCESS.getCode()) {
             if (writer != null) {
-                String [] data = {id, String.valueOf(queryResult.getStatistics().get("elapsed")), String.valueOf(queryResult.getData())};
+                String[] data = {id, String.valueOf(queryResult.getStatistics().get("elapsed")), String.valueOf(queryResult.getData())};
                 writer.writeNext(data);
             }
             infoMap.put(id, queryResult.getStatistics().get("elapsed") + "");

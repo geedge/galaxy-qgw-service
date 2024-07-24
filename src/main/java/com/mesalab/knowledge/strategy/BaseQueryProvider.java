@@ -84,6 +84,6 @@ public class BaseQueryProvider {
             responseResult = httpClientServiceV2.post(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), headers);
             jsonMap = JSON.parseObject(responseResult.getResponseBody(), Map.class);
         }
-        return jsonMap.get("result");
+        return Objects.requireNonNull(jsonMap, "query Arango is Null").get("result");
     }
 }

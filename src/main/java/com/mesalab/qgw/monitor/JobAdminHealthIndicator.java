@@ -15,8 +15,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 
 @Component
 public class JobAdminHealthIndicator extends AbstractHealthIndicator {
@@ -46,8 +47,12 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
         try {
             ResponseEntity responseEntity = restTemplate.postForEntity(jobAdminHttpSource.getUrl() + "/login?", request, Map.class);
             if (responseEntity.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-                Map body = (HashMap) responseEntity.getBody();
-                int code = Integer.parseInt(String.valueOf(body.get("code")));
+                Map<String, Object> body = Optional.ofNullable(responseEntity.getBody())
+                        .map(b -> (Map<String, Object>) b)
+                        .orElseThrow(() -> new IllegalArgumentException("Response body is null or not a Map"));
+                int code = Integer.parseInt(Optional.ofNullable(body.get("code"))
+                        .map(Object::toString)
+                        .orElseThrow(() -> new IllegalArgumentException("Code is missing in the response body")));
                 if (code == HttpStatusCodeEnum.SUCCESS.getCode()) {
                     builder.up()
                             .withDetail("app", APP)

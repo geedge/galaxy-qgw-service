@@ -195,11 +195,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
         HttpResponseResult responseResult = executeHttpPost(sql);
 
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(), ResultCodeEnum.SUCCESS.getCode(), true, message.get(),
+            baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(), ResultCodeEnum.SUCCESS.getCode(), true, message.orElse("OK"),
                     (List<Object>) JSON.parseObject(responseResult.getResponseBody(), Object.class), null, null, OutputMode.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
-                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), false, String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
+                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), false, String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.orElse(responseResult.getErrorMessage())),
                     responseResult.getErrorMessage(), null, null, sqlQueryContext.getFormat());
         }
         return build();
