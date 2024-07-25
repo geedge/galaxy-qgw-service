@@ -38,7 +38,7 @@ public class DatabaseController {
     private final static HashSet<String> VISIBILITY = Sets.newHashSet("enabled", "hidden", "disabled");
 
 
-    @RequestMapping(value = "/table/{table_name}/schema", consumes = "application/x-www-form-urlencoded")
+    @RequestMapping(value = "/table/{table_name}/schema", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getSchemaByTable")
     public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
         log.debug("SCHEMA信息获取,参数为{}", tableName);
@@ -61,7 +61,7 @@ public class DatabaseController {
         return databaseService.updateSchema(tableName, obj);
     }
 
-    @RequestMapping(value = "/{dbName}/table", consumes = "application/x-www-form-urlencoded")
+    @RequestMapping(value = "/{dbName}/table", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getTableByDB")
     public BaseResult getTableByDB(@PathVariable String dbName) {
         log.debug("SCHEMA信息获取,参数为{}", dbName);
@@ -115,7 +115,7 @@ public class DatabaseController {
         return databaseService.deleteStorage(deletionInfoList);
     }
 
-    @RequestMapping(value = "/storage/quota/daily_usage", consumes = "application/x-www-form-urlencoded")
+    @RequestMapping(value = "/storage/quota/daily_usage", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.dailyTrendOfStorage")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
         String searchStartTime = StringUtil.stripToEmpty((String) param.get("start_time"));

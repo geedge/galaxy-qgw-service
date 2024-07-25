@@ -26,23 +26,23 @@ public class DiagnosisController {
     @Autowired
     private DiagnosisService diagnosisService;
 
-    @RequestMapping("/component_info")
+    @RequestMapping(value = "/component_info", method = RequestMethod.GET)
     @AuditLog("DiagnosisController.versionInfo")
     public JSONObject versionInfo() {
         return diagnosisService.getVersionInfo();
     }
 
 
-    @RequestMapping(value = "/schema_check")
+    @RequestMapping(value = "/schema_check", method = RequestMethod.POST)
     @AuditLog("DiagnosisController.validateSchema")
     public BaseResult validateSchema() {
         return diagnosisService.validateSchema();
     }
 
-    @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})
+    @RequestMapping(value = {"/sql", "/sql/{dialect}/{queryNo}"}, method = RequestMethod.GET)
     @AuditLog("DiagnosisController.getPocSql")
-    public BaseResult getPocSql(@PathVariable  String dialect, @PathVariable(required = false) Integer queryNo) {
-        if (Arrays.stream(DBEngineType.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(dialect))){
+    public BaseResult getPocSql(@PathVariable String dialect, @PathVariable(required = false) Integer queryNo) {
+        if (Arrays.stream(DBEngineType.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(dialect))) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIALECT_VALUE_ERROR));
         }

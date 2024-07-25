@@ -249,7 +249,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
         if (StringUtil.isNotEmpty(parentSelectStatement)) {
             federationSelectStatement = new SelectStatement();
-            String tableName = StringUtil.isEmpty(parentSelectStatement.getSubSelect().getAlias()) ? parentSelectStatement.getTableNames().get(0) : parentSelectStatement.getSubSelect().getAlias().getName();
+            String tableName = StringUtil.isEmpty(Objects.requireNonNull(parentSelectStatement, "parentSelectStatement is null").getSubSelect().getAlias()) ? parentSelectStatement.getTableNames().get(0) : parentSelectStatement.getSubSelect().getAlias().getName();
             String replace = originalSelectStatement.getSqlBody().replace(parentSelectStatement.getSubSelect().toString(), tableName);
             federationSelectStatement.setSqlBody(replace);
             federationSelectStatement.getTableNames().add(0, tableName);

@@ -70,7 +70,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             String content = systemConfigService.getConfig(DATA_ID, nacosConfig.getGroup(), 3000);
             version = JSONObject.parseObject(content);
         } catch (NacosException e) {
-            e.printStackTrace();
+            log.error("NacosException:{}", e.getMessage());
         }
         return version;
     }

@@ -178,7 +178,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             jsonMap.put("version", componentInfo.get("version"));
             jsonMap.put("updated", componentInfo.get("updated"));
         } catch (NacosException e) {
-            e.printStackTrace();
+            log.error("get Component Status error:{}", e.getMessage());
         }
         return new JSONObject(jsonMap);
     }

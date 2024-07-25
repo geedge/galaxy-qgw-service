@@ -27,8 +27,8 @@ BigDecimalUtil {
      * @return 两个参数的和
      */
     public static double add(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(Double.toString(v1));
-        BigDecimal b2 = new BigDecimal(Double.toString(v2));
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.add(b2).doubleValue();
     }
 
@@ -40,8 +40,8 @@ BigDecimalUtil {
      * @return 两个参数的差
      */
     public static double sub(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(Double.toString(v1));
-        BigDecimal b2 = new BigDecimal(Double.toString(v2));
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.subtract(b2).doubleValue();
     }
 
@@ -53,8 +53,8 @@ BigDecimalUtil {
      * @return 两个参数的积
      */
     public static double mul(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(Double.toString(v1));
-        BigDecimal b2 = new BigDecimal(Double.toString(v2));
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.multiply(b2).doubleValue();
     }
 
@@ -83,8 +83,8 @@ BigDecimalUtil {
         if (scale < 0) {
             throw new IllegalArgumentException("The scale must be a positive integer or zero");
         }
-        BigDecimal b1 = new BigDecimal(Double.toString(v1));
-        BigDecimal b2 = new BigDecimal(Double.toString(v2));
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.divide(b2, scale, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
@@ -99,8 +99,8 @@ BigDecimalUtil {
         if (scale < 0) {
             throw new IllegalArgumentException("The scale must be a positive integer or zero");
         }
-        BigDecimal b = new BigDecimal(Double.toString(v));
-        BigDecimal one = new BigDecimal("1");
+        BigDecimal b = BigDecimal.valueOf(v);
+        BigDecimal one = BigDecimal.valueOf(1);
         return b.divide(one, scale, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
@@ -111,7 +111,7 @@ BigDecimalUtil {
      * @return 返回转换结果
      */
     public static float convertsToFloat(double v) {
-        BigDecimal b = new BigDecimal(v);
+        BigDecimal b = BigDecimal.valueOf(v);
         return b.floatValue();
     }
 
@@ -122,7 +122,7 @@ BigDecimalUtil {
      * @return 返回转换结果
      */
     public static int convertsToInt(double v) {
-        BigDecimal b = new BigDecimal(v);
+        BigDecimal b = BigDecimal.valueOf(v);
         return b.intValue();
     }
 
@@ -133,7 +133,7 @@ BigDecimalUtil {
      * @return 返回转换结果
      */
     public static long convertsToLong(double v) {
-        BigDecimal b = new BigDecimal(v);
+        BigDecimal b = BigDecimal.valueOf(v);
         return b.longValue();
     }
 
@@ -145,8 +145,8 @@ BigDecimalUtil {
      * @return 返回两个数中大的一个值
      */
     public static double returnMax(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(v1);
-        BigDecimal b2 = new BigDecimal(v2);
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.max(b2).doubleValue();
     }
 
@@ -158,8 +158,8 @@ BigDecimalUtil {
      * @return 返回两个数中小的一个值
      */
     public static double returnMin(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(v1);
-        BigDecimal b2 = new BigDecimal(v2);
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.min(b2).doubleValue();
     }
 
@@ -171,8 +171,8 @@ BigDecimalUtil {
      * @return 如果两个数一样则返回0，如果第一个数比第二个数大则返回1，反之返回-1
      */
     public static int compareTo(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(v1);
-        BigDecimal b2 = new BigDecimal(v2);
+        BigDecimal b1 = BigDecimal.valueOf(v1);
+        BigDecimal b2 = BigDecimal.valueOf(v2);
         return b1.compareTo(b2);
     }
 

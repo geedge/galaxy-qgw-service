@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -146,8 +145,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
 
                 } catch (InterruptedException e) {
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
                 }
             } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
                 return jobExecuteService.addDslExecutorCustomizedStatisticsWithoutCache(request);
@@ -198,8 +196,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
                 } catch (InterruptedException e) {
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
                 }
             } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
@@ -219,8 +216,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
                 } catch (InterruptedException e) {
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
                 }
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
@@ -456,6 +452,19 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         }
         request.setId(id);
     }
+
+    private void handleInterruptedExceptionAndThrowQGWBusinessException(InterruptedException e) {
+        // Restore the interrupted status
+        Thread.currentThread().interrupt();
+
+        log.error("Job was interrupted. Message: {}", e.getMessage(), e);
+        throw new QGWBusinessException(
+                HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was interrupted. Message: " + e.getMessage())
+        );
+    }
+
 
     @Override
     public void setEnvironment(Environment environment) {

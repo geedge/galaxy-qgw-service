@@ -183,7 +183,7 @@ public class CNServiceImpl implements CNService {
                         }
                     }
                     long uniqueCnt = Long.parseLong(next.getUniqueCnt());
-                    long filterValue = Long.parseLong(fieldFilter.getFieldValues().get(0).toString());
+                    long filterValue = Long.parseLong(Objects.requireNonNull(fieldFilter, "fieldFilter is Null").getFieldValues().get(0).toString());
                     if (((uniqueCnt - filterValue) < 0)
                             && !fieldFilter.getType().equalsIgnoreCase("lt")) {
                         iterator.remove();
@@ -305,7 +305,7 @@ public class CNServiceImpl implements CNService {
             feature.setAnalyseResult(t);
             return;
         }
-        t.put("osCnt", userInfo.getOsCnt());
+        t.put("osCnt", Objects.requireNonNull(userInfo, "userInfo is Null").getOsCnt());
         t.put("osList", userInfo.getOsList());
         t.put("browserList", userInfo.getBrowserList());
         t.put("browserCnt", userInfo.getBrowserCnt());
@@ -325,11 +325,11 @@ public class CNServiceImpl implements CNService {
             for (ShareNet shareNet : result) {
                 if (shareNet.getUserId().equals(data.getUserId())) {
                     for (ShareNet.UserIp userIp : shareNet.getUserIps()) {
-                        if (userIp.getIp().equals(data.getUserIps().get(0))) {
+                        if (userIp.getIp().equals(data.getUserIps().get(0).getIp())) {
                             dataFeature:
                             for (ShareNet.Feature dataFeature : data.getUserIps().get(0).getIpAccessInfo().get(0).getFeature()) {
                                 for (ShareNet.Feature feature : userIp.getIpAccessInfo().get(0).getFeature()) {
-                                    if (feature.getFeatureKey().equals(dataFeature)) {
+                                    if (feature.getFeatureKey().equals(dataFeature.getFeatureKey())) {
                                         feature.getCountList().addAll(dataFeature.getCountList());
                                         List<Map<String, Object>> value = merge(feature.getCountList(), "value");
                                         feature.setCountList(value);

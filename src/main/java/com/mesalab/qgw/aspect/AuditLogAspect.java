@@ -24,16 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-
 @Aspect
 @Component
 public class AuditLogAspect {
 
+    private static final Log log = LogFactory.get();
     private ThreadLocal<Long> startTime = ThreadUtil.createThreadLocal(false);
     private ThreadLocal<AuditServiceLog> auditLog = ThreadUtil.createThreadLocal(false);
-    private static final Log log = LogFactory.get();
     private EngineConfigSource engineConfigSource;
-
 
     @Pointcut("@annotation(com.mesalab.qgw.model.basic.AuditLog)")
     public void annotationPointCut() {
@@ -45,25 +43,30 @@ public class AuditLogAspect {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         AuditServiceLog auditServiceLog = new AuditServiceLog();
         String url = null;
+
         if (attributes != null) {
             HttpServletRequest request = attributes.getRequest();
             url = request.getRequestURL().toString();
             String method = request.getMethod();
             String remoteAddr = request.getRemoteAddr();
             String clientIp = IPUtil.getIpAddr(request);
+
             auditServiceLog.setRemoteAddr(remoteAddr);
             auditServiceLog.setClientIp(clientIp);
             auditServiceLog.setMethod(method);
         }
+
         String classMethod = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
-        MethodSignature sign = (MethodSignature) joinPoint.getSignature();
-        Method method2 = sign.getMethod();
-        AuditLog annotation = method2.getAnnotation(AuditLog.class);
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+        AuditLog annotation = method.getAnnotation(AuditLog.class);
+
         auditServiceLog.setRequestParam(Arrays.toString(joinPoint.getArgs()));
         auditServiceLog.setUrl(url);
         auditServiceLog.setClassMethod(classMethod);
         auditServiceLog.setAnnotation(annotation.value());
         auditServiceLog.setRequestId(MDCUtil.getTraceId());
+
         auditLog.set(auditServiceLog);
     }
 
@@ -75,21 +78,27 @@ public class AuditLogAspect {
     }
 
 
-    @After(value = "annotationPointCut()")
+    @After("annotationPointCut()")
     public void after(JoinPoint joinPoint) {
         AuditServiceLog logAfter = auditLog.get();
         Object[] args = joinPoint.getArgs();
+
         if (args != null && args.length > 0 && args[0] instanceof SQLQueryContext) {
-            SQLQueryContext queryContext = (SQLQueryContext) joinPoint.getArgs()[0];
-            auditLog.get().setDbEngine(queryContext.getDbEngine());
+            SQLQueryContext queryContext = (SQLQueryContext) args[0];
+            logAfter.setDbEngine(queryContext.getDbEngine());
         }
+
         long elapsed = System.currentTimeMillis() - startTime.get();
         logAfter.setElapsed(elapsed);
+
         String logMessage = StrUtil.format("Audit Log [done]: {}", JSON.toJSONString(logAfter));
         log.info(logMessage);
+
         if (elapsed > engineConfigSource.getHighLatencyThreshold()) {
             log.warn(logMessage);
         }
+        // Clear ThreadLocal variables to prevent potential memory leaks
+        clearThreadLocal();
     }
 
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
@@ -102,9 +111,17 @@ public class AuditLogAspect {
         log.debug("Audit Log [success]: result {}", result);
     }
 
+    private void clearThreadLocal() {
+        if (startTime != null) {
+            startTime.remove();
+        }
+        if (auditLog != null) {
+            auditLog.remove();
+        }
+    }
+
     @Autowired
     private void setEngineConfigSource(EngineConfigSource engineConfigSource) {
         this.engineConfigSource = engineConfigSource;
     }
-
 }

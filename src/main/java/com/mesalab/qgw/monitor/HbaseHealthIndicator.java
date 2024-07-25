@@ -2,6 +2,8 @@ package com.mesalab.qgw.monitor;
 
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.qgw.dialect.HbaseDialect;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import org.apache.phoenix.jdbc.PhoenixResultSet;
@@ -15,6 +17,7 @@ import java.sql.*;
 
 @Component
 public class HbaseHealthIndicator extends AbstractHealthIndicator {
+    private static final Log log = LogFactory.get();
     @Autowired
     private HBaseAPISource hBaseAPISource;
     private final static String APP = "Hbase";
@@ -22,9 +25,8 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
     static {
         try {
             Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");
-        } catch (
-                ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            log.error("get PhoenixDriver error:{}", e.getMessage());
         }
     }
 

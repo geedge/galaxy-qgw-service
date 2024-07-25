@@ -29,7 +29,7 @@ public class TroubleshootingController {
 
     @Autowired
     private TroubleshootingService troubleshootingService;
-    @RequestMapping("/component/status")
+    @RequestMapping(value = "/component/status", method = RequestMethod.GET)
     @AuditLog("TroubleshootingController.componentStatus")
     public JSONObject componentStatus() {
         return troubleshootingService.getComponentStatus();

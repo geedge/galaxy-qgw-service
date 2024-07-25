@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.entity;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.geedgenetworks.utils.StringUtil;
@@ -15,6 +17,7 @@ import java.util.List;
  **/
 @Data
 public class Range extends QueryExp {
+    private static final Log log = LogFactory.get();
 
     /**
      * 获取List<Range> 查询语句
@@ -65,7 +68,7 @@ public class Range extends QueryExp {
                 rangesb.append(" ) ");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("NacosException:{}", e.getMessage());
         }
         return rangesb.toString();
     }

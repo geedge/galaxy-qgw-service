@@ -104,6 +104,10 @@ public class JobExecuteService implements EnvironmentAware {
             } else {
                 executeFieldDiscoveryJob(request.getId(), jobInfo, request, request.getFilter());
             }
+        } catch (InterruptedException e) {
+            // 处理 InterruptedException 并保留中断状态
+            Thread.currentThread().interrupt();
+            markJobFailure(request.getId(), "Job was interrupted: " + e.getMessage());
         } catch (Exception e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
