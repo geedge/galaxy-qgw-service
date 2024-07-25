@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+
 //clickhouse-benchmark  -i 93  --host 127.0.0.1 --port 9001 --user default --password "ceiec2019" --database tsg_galaxy_v3 < /root/session_record_queries_20210113203103.sql
 @EnableAutoConfiguration
 public class ClickHouseTest extends GalaxyQGWApplicationTests {
@@ -38,31 +39,29 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Test
     public void testSqlParser() {
         String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBEngineType.CLICKHOUSE.getValue(), null);
-        Optional<File> ckTestFile =  Optional.of(new File(pocFile));
-        if (ckTestFile.isPresent()) {
-            if (!ckTestFile.get().isFile()) {
-                log.warn("Not a file." + ckTestFile.get());
+        Optional<File> ckTestFile = Optional.of(new File(pocFile));
+        if (!ckTestFile.get().isFile()) {
+            log.warn("Not a file." + ckTestFile.get());
+            return;
+        }
+
+        List<String> rawLines = new FileReader(ckTestFile.get()).readLines();
+        rawLines.stream().forEach(line -> {
+            if (Strings.isNullOrEmpty(line)) {
                 return;
             }
+            Statement parse = null;
+            try {
+                parse = CCJSqlParserUtil.parse(line);
+            } catch (JSQLParserException e) {
+                log.error("Parse SQL ERROR : {}, SQL is {} ", e, line);
+            }
 
-            List<String> rawLines = new FileReader(ckTestFile.get()).readLines();
-            rawLines.stream().forEach(line -> {
-                if (Strings.isNullOrEmpty(line)) {
-                    return;
-                }
-                Statement parse = null;
-                try {
-                    parse = CCJSqlParserUtil.parse(line);
-                } catch (JSQLParserException e) {
-                    log.error("Parse SQL ERROR : {}, SQL is {} " , e, line);
-                }
+            Assert.notNull(parse);
+        });
 
-                Assert.notNull(parse);
-            });
+        FileUtil.del(ckTestFile.get());
 
-            FileUtil.del(ckTestFile.get());
-
-        }
     }
 
     @After

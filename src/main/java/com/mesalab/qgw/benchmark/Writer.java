@@ -41,8 +41,13 @@ public abstract class Writer {
     protected String generatePocSQL(List<String> list, FileWriter writer) {
         String pocSQL = "";
         try {
-            if (writer.getFile().exists()) {
-                writer.getFile().createNewFile();
+            File file = writer.getFile();
+            if (file.exists()) {
+                if (!file.createNewFile()) {
+                    log.error("create new File error.");
+                    throw new IOException("create new File error.");
+                }
+
             }
             List<LinkedHashMap> variables = Lists.newArrayList();
             Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
