@@ -1,7 +1,5 @@
 package com.mesalab.common.utils.sqlparser;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -9,16 +7,15 @@ import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
-import com.mesalab.cn.enums.CDQueryType;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.enums.MetricType;
-import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DruidIoHttpSource;
@@ -38,7 +35,6 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author wangwei
@@ -67,12 +63,14 @@ public class SQLFunctionUtil {
     public static final String COUNT_DISTINCT = "COUNT_DISTINCT";
     public static final String UNIQUE_COUNT = "UNIQUE_COUNT";
     public static final String APPROX_COUNT_DISTINCT_HLLD = "APPROX_COUNT_DISTINCT_HLLD";
+    public static final String GROUP_UNIQ_ARRAY = "groupUniqArray";
 
     public static final String CONCAT = "concat";
     public static final String NOT_EMPTY = "notEmpty";
     public static final String EMPTY = "empty";
 
     private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
+    private static EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private static ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private static HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
@@ -106,6 +104,7 @@ public class SQLFunctionUtil {
     public static final Pattern pUniqueCount = Pattern.compile("\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pGroupUniqArray = Pattern.compile("\\b" + GROUP_UNIQ_ARRAY + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final HashMap<String, String> federationUDFFunctions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
@@ -404,6 +403,7 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pCountDistinct);
         resultSql = translateByPattern(resultSql, dbType, pUniqueCount);
         resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
+        resultSql = translateByPattern(resultSql, dbType, pGroupUniqArray);
         return resultSql;
     }
 
@@ -1857,33 +1857,41 @@ public class SQLFunctionUtil {
             if (!matcher.find()) {
                 return sql;
             }
+
             String sqlParse = sql.substring(matcher.start());
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
-
-            if (bracketsMatch[0] >= 1) {
-                int start = StringUtils.indexOf(sqlParse, "(");
-                Function function = new Function();
-                function.setName(sqlParse.substring(0, start));
-                int end = bracketsMatch[1];
-                List<String> strings = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(sqlParse.substring(start + 1, end));
-                StringBuffer sb = new StringBuffer();
-                for (String str : strings) {
-                    sb.append(str);
-                    int[] a = StringUtil.getBracketsMatch(sb.toString(), "(", true);
-                    if (a[0] != -1) {
-                        function.getParamsList().add(sb.toString());
-                        sb = new StringBuffer();
-                        continue;
-                    } else {
-                        sb.append(",");
-                    }
-                }
-
-                String replace = translateFunction(function, dbType);
-                sql = sql.substring(0, matcher.start()) + replace + sql.substring(matcher.start() + 1 + end);
+            if (bracketsMatch[0] < 1) {
+                continue;
             }
+
+            int start = StringUtils.indexOf(sqlParse, "(");
+            int end = bracketsMatch[1];
+
+            String functionName = sqlParse.substring(0, start).trim();
+            String params = sqlParse.substring(start + 1, end).trim();
+            List<String> paramsList = new ArrayList<>();
+
+            StringBuilder sb = new StringBuilder();
+            for (String str : Splitter.on(",").trimResults().omitEmptyStrings().split(params)) {
+                sb.append(str);
+                int[] a = StringUtil.getBracketsMatch(sb.toString(), "(", true);
+                if (a[0] != -1) {
+                    paramsList.add(sb.toString());
+                    sb.setLength(0);
+                } else {
+                    sb.append(",");
+                }
+            }
+
+            Function function = new Function();
+            function.setName(functionName);
+            function.setParamsList(paramsList);
+
+            String replace = translateFunction(function, dbType);
+            sql = sql.substring(0, matcher.start()) + replace + sql.substring(matcher.start() + 1 + end);
         }
     }
+
 
     /**
      * 转义函数
@@ -1927,6 +1935,9 @@ public class SQLFunctionUtil {
             case P99_PERCENTILE_HDR:
             case APPROX_COUNT_DISTINCT_HLLD:
                 data = translateHdrHistogram(fun, dbType);
+                break;
+            case GROUP_UNIQ_ARRAY:
+                data = translateGroupUniqArray(fun, dbType);
                 break;
             case COUNT_DISTINCT:
             case UNIQUE_COUNT:
@@ -2185,6 +2196,27 @@ public class SQLFunctionUtil {
         }
         return fun.toString();
     }
+
+    /**
+     * Desc 转义 groupUniqArray
+     *
+     * @param fun
+     * @param dbType
+     * @return
+     */
+    private static String translateGroupUniqArray(Function fun, String dbType) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType) && fun != null) {
+            List<String> paramsList = fun.getParamsList();
+            if (paramsList == null || paramsList.isEmpty()) {
+                throw new IllegalArgumentException("Parameter list cannot be null or empty");
+            }
+            String expr = paramsList.get(0);
+            String maxSize = paramsList.size() >= 2 ? paramsList.get(1) : String.valueOf(engineConfigSource.getDefaultResultNum());
+            return String.format("groupUniqArray#[%s#]#[%s#]", maxSize, expr);
+        }
+        return fun != null ? fun.toString() : "";
+    }
+
 
     /**
      * Desc: 转义concat

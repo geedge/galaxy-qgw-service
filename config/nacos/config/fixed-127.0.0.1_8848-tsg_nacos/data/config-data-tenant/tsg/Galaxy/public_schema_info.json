@@ -110,8 +110,7 @@
         "name": "PERCENTILES_HDR",
         "label": "PERCENTILES_HDR",
         "function": "PERCENTILES_HDR(expr)",
-        "metric_type": "histogram",
-        "unit": "short"
+        "metric_type": "distribution"
       },
       {
         "name": "APPROX_COUNT_DISTINCT_HLLD",
@@ -140,6 +139,12 @@
         "function": "RATE(<expr>, <duration>, [interval]) * 8",
         "metric_type": "gauge",
         "unit": "bps"
+      },
+      {
+        "name": "UNIQUE_ARRAY",
+        "label": "UNIQUE_ARRAY",
+        "function": "groupUniqArray(<expr>)",
+        "metric_type": "unique_array"
       }
     ],
     "date": [
@@ -272,47 +277,47 @@
       "aggregation": [
         {
           "type": "int",
-          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE,UNIQUE_ARRAY"
         },
         {
           "type": "long",
-          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE,UNIQUE_ARRAY"
         },
         {
           "type": "float",
-          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE,UNIQUE_ARRAY"
         },
         {
           "type": "double",
-          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE"
+          "functions": "COUNT,UNIQUE_COUNT,AVG,SUM,MAX,MIN,MEDIAN,P95_PERCENTILE,P99_PERCENTILE,RATE,UNIQUE_ARRAY"
         },
         {
           "type": "string",
-          "functions": "COUNT,UNIQUE_COUNT"
+          "functions": "COUNT,UNIQUE_COUNT,UNIQUE_ARRAY"
         },
         {
           "type": "date",
-          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN,UNIQUE_ARRAY"
         },
         {
           "type": "datetime",
-          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN,UNIQUE_ARRAY"
         },
         {
           "type": "timestamp",
-          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN,UNIQUE_ARRAY"
         },
         {
           "type": "unix_timestamp",
-          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN"
+          "functions": "COUNT,UNIQUE_COUNT,MAX,MIN,UNIQUE_ARRAY"
         },
         {
           "type": "array",
-          "functions": "COUNT,UNIQUE_COUNT"
+          "functions": "COUNT,UNIQUE_COUNT,UNIQUE_ARRAY"
         },
         {
           "type": "bit",
-          "functions": "COUNT,UNIQUE_COUNT"
+          "functions": "COUNT,UNIQUE_COUNT,UNIQUE_ARRAY"
         }
       ],
       "operator": [
