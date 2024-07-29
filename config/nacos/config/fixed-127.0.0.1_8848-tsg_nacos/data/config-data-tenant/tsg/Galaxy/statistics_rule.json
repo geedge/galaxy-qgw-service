@@ -20,9 +20,6 @@
         "template_id",
         "chart_id",
         "version",
-        "client_ip_object",
-        "server_ip_object",
-        "fqdn_category",
         "client_ip_object_list",
         "server_ip_object_list",
         "fqdn_category_list",
@@ -34,7 +31,6 @@
         "server_asn",
         "server_fqdn",
         "server_domain",
-        "application",
         "app",
         "app_category",
         "c2s_ttl",
@@ -64,32 +60,7 @@
         "distribution_1",
         "distribution_2",
         "distribution_3",
-        "distribution_4",
-        "in_bytes",
-        "out_bytes",
-        "bytes",
-        "in_pkts",
-        "out_pkts",
-        "pkts",
-        "new_c2s_flows",
-        "new_s2c_flows",
-        "new_in_sessions",
-        "new_out_sessions",
-        "sessions",
-        "new_unestablished_sessions",
-        "syn_pkts",
-        "c2s_ip_fragments",
-        "s2c_ip_fragments",
-        "ip_fragments",
-        "session_identifier_sketch",
-        "client_ip_sketch",
-        "server_ip_sketch",
-        "in_latency_ms_sketch",
-        "out_latency_ms_sketch",
-        "latency_ms_sketch",
-        "in_pkt_length_sketch",
-        "out_pkt_length_sketch",
-        "pkt_length_sketch"
+        "distribution_4"
       ],
       "filters": [
         "device_id",
@@ -214,7 +185,7 @@
       "name": "client_ip_object",
       "label": "Client IP Matched Objects(Deprecated)",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "type": "string"
     },
@@ -222,7 +193,7 @@
       "name": "server_ip_object",
       "label": "Server IP Matched Objects(Deprecated)",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "type": "string"
     },
