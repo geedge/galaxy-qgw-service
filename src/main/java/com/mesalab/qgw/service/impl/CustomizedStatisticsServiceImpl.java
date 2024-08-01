@@ -72,7 +72,9 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
             List<Map<String, Object>> dimensions = (List<Map<String, Object>>) customRequestParam.get(DIMENSIONS);
             for (Map<String, Object> dimension : dimensions) {
                 CustomStatisticsObj customStatisticsObj = BeanUtil.copyProperties(dimension, CustomStatisticsObj.class);
-                if (times.contains(customStatisticsObj.getMetricName()) && customStatisticsObj.getFunction().getName().equalsIgnoreCase(SQLFunctionUtil.TIME_FLOOR_WITH_FILL)) {
+                if (times.contains(customStatisticsObj.getMetricName())
+                        && customStatisticsObj.getFunction() != null
+                        && SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(customStatisticsObj.getFunction().getName())) {
                     isTimeSeries = true;
                 }
                 selectItems.add(customStatisticsObj.buildSelectItem(isTimeSeries, param.getStart(), param.getEnd(), partitionKeyLogicalType));
@@ -164,7 +166,7 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
                 , String.join(", ", subQuerySelectExprItems)
                 , String.join(", ", subQuerySelectExprItems)
                 , subQuerySelectExprItems.isEmpty() ? "" : "GROUP BY " + String.join(", ", subQuerySelectExprItems)
-                , StrUtil.isEmpty(subQueryOrderByMetric) ? "" : "ORDER BY " + subQueryOrderByMetric);
+                , StrUtil.isEmpty(subQueryOrderByMetric) ? "" : "ORDER BY " + subQueryOrderByMetric + "DESC");
     }
 
     @Override
