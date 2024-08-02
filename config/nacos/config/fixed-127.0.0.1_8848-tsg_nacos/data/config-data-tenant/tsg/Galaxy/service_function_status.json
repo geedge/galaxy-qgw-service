@@ -29,7 +29,7 @@
       }
     },
     "measurements": {
-      "ingestion_period": "PT1S",
+     "retentions": "1s:1800d",
       "ingestion_delay": 5
     }
   },

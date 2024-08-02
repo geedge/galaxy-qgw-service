@@ -33,7 +33,7 @@
       }
     },
     "measurements": {
-      "ingestion_period": "PT1M",
+     "retentions": "1m:1800d",
       "ingestion_delay": 5,
       "aggregated_metric_unit": {
         "SUM": {
