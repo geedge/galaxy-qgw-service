@@ -951,7 +951,7 @@
         "visibility": "enabled",
         "constraints": {
           "type": "port",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -1026,7 +1026,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -1052,7 +1052,7 @@
         "visibility": "enabled",
         "constraints": {
           "type": "port",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -1127,7 +1127,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },

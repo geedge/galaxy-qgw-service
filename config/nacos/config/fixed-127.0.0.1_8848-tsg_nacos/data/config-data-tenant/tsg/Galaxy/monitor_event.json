@@ -1499,7 +1499,7 @@
       "label": "Client-to-Server TTL",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1511,7 +1511,7 @@
       "label": "Server-to-Client TTL",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1835,7 +1835,7 @@
       "doc": {
         "constraints": {
           "type": "port",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1910,7 +1910,7 @@
       "label": "Client ASN",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1997,7 +1997,7 @@
       "doc": {
         "constraints": {
           "type": "port",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "enabled",
         "ttl": null
@@ -2072,7 +2072,7 @@
       "label": "Server ASN",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "enabled",
         "ttl": null
@@ -2694,7 +2694,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY",
           "type": "http_code"
         },
         "ttl": null
@@ -2922,7 +2922,7 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/dns_opcode/data"
@@ -2938,7 +2938,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -2981,7 +2981,7 @@
         "visibility": "enabled",
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -3050,7 +3050,7 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/dns_qtype/data"
@@ -3067,7 +3067,7 @@
         "visibility": "enabled",
         "constraints": {
           "operator_functions": "=,!=,in,not in",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },

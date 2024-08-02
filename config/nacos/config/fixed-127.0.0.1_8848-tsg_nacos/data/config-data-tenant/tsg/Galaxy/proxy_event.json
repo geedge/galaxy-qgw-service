@@ -1063,7 +1063,7 @@
       "label": "Client-to-Server TTL",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "hidden",
         "ttl": null
@@ -1075,7 +1075,7 @@
       "label": "Server-to-Client TTL",
       "doc": {
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "visibility": "hidden",
         "ttl": null
@@ -1428,7 +1428,7 @@
         "visibility": "enabled",
         "constraints": {
           "type": "port",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -1503,7 +1503,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -1590,7 +1590,7 @@
         "visibility": "enabled",
         "constraints": {
           "type": "port",
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -1665,7 +1665,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT"
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
         },
         "ttl": null
       },
@@ -2286,7 +2286,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
-          "aggregation_functions": "COUNT, UNIQUE_COUNT",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY",
           "type": "http_code"
         },
         "ttl": null
