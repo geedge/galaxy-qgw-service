@@ -80,8 +80,8 @@ public class SQLFunctionUtil {
      */
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pRate = Pattern.compile("\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pBitRate = Pattern.compile("\\b" + BITRATE + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pRate = Pattern.compile("(?<![\"])\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pBitRate = Pattern.compile("(?<![\"])\\b" + BITRATE + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -96,12 +96,12 @@ public class SQLFunctionUtil {
 
     public static final Pattern pQuantileHdr = Pattern.compile("\\b" + QUANTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
-    public static final Pattern pPercentilesHdr = Pattern.compile("\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pP95PercentileHdr = Pattern.compile("\\b" + P95_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pP99PercentileHdr = Pattern.compile("\\b" + P99_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pPercentilesHdr = Pattern.compile("(?<![\"])\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pP95PercentileHdr = Pattern.compile("(?<![\"])\\b" + P95_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pP99PercentileHdr = Pattern.compile("(?<![\"])\\b" + P99_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
-    public static final Pattern pCountDistinct = Pattern.compile("\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pUniqueCount = Pattern.compile("\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pCountDistinct = Pattern.compile("(?<![\"])\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pUniqueCount = Pattern.compile("(?<![\"])\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupUniqArray = Pattern.compile("\\b" + GROUP_UNIQ_ARRAY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -168,7 +168,7 @@ public class SQLFunctionUtil {
      * 标准函数
      */
     //time functions
-    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|UNIQUE_COUNT|APPROX_COUNT_DISTINCT_HLLD)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|UNIQUE_COUNT|APPROX_COUNT_DISTINCT_HLLD|groupUniqArray)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -183,7 +183,6 @@ public class SQLFunctionUtil {
     public static final Pattern pLastDateFunc = Pattern.compile("\\W(LAST_DAY)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pCKTimeStamp = Pattern.compile("\\s+TIMESTAMP\\s+([^'])", Pattern.CASE_INSENSITIVE);
     public static final Pattern pNow = Pattern.compile("NOW\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMergeFunction = Pattern.compile("\\WDATE_FORMAT\\(FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pTimeZone = Pattern.compile("\\W(CONVERT_TZ)\\s*\\(", Pattern.CASE_INSENSITIVE);
