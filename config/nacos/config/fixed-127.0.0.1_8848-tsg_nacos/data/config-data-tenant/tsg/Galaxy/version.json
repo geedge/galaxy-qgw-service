@@ -2,67 +2,62 @@
   "product": "TSG OLAP",
   "version": "24.01",
   "registered": "Geedge Networks",
-  "updated": "2024-01-23 12:00:00",
+  "updated": "2024-08-05 12:00:00",
   "components": [
     {
-      "name": "zookeeper",
+      "name": "Apache Zookeeper",
       "version": "3.5.9",
-      "description": "分布式应用程序协调服务"
+      "description": "Apache ZooKeeper is a distributed coordination service designed to manage and synchronize large-scale distributed systems."
     },
     {
-      "name": "kafka",
+      "name": "Apache Kafka",
       "version": "3.4.1",
-      "description": "消息队列"
+      "description": "Apache Kafka is a high-throughput, distributed messaging system designed for real-time data streaming and processing."
     },
     {
-      "name": "Hadoop",
-      "version": "2.7.1",
-      "description": "分布式文件系统用于HBase、Druid等组件深度存储"
+      "name": "Flink on Yarn",
+      "version": "2.7.1-1.13.1",
+      "description": "Running Apache Flink on YARN (Yet Another Resource Negotiator) involves deploying and managing Flink jobs in a Hadoop ecosystem."
     },
     {
-      "name": "hbase",
+      "name": "Apache HBase",
       "version": "2.2.3",
-      "description": "用于文件系统和存储Radius数据"
+      "description": "Apache HBase is a distributed, scalable, NoSQL database built on top of the Hadoop Distributed File System (HDFS)."
     },
     {
-      "name": "Flink",
-      "version": "1.13.1",
-      "description": "流数据计算框架用于日志预处理及部分统计"
+      "name": "ClickHouse",
+      "version": "23.3.19.32",
+      "description": "ClickHouse is an open-source, columnar database management system designed for real-time analytical processing of large volumes of data."
     },
     {
-      "name": "clickHouse",
-      "version": "21.8.13.1",
-      "description": "OLAP Analytic storage"
-    },
-    {
-      "name": "druid",
+      "name": "Apache Druid",
       "version": "26.0.0",
-      "description": "分析实时数据并提供低延迟查询的OLAP应用程序"
+      "description": "Apache Druid is a high-performance, real-time analytics database designed for fast, interactive queries on large-scale data."
     },
     {
-      "name":"nacos",
+      "name":"Nacos",
       "version": "2.0.2",
-      "description": "分布式配置中心"
+      "description": "Nacos (Naming and Configuration Service) is an open-source platform designed for dynamic service discovery, configuration management, and service management in microservices architectures."
     },
     {
-      "name": "hos",
-      "version": "20.07.17",
-      "description": "对象存储服务"
+      "name": "HOS",
+      "version": "2.3.0",
+      "description": "HOS is a distributed object storage service designed for storing and managing large volumes of unstructured data."
     },
     {
-      "name": "jobAdmin",
+      "name": "XXL-JOB",
       "version": "2.2.0",
-      "description": "分布式任务调度平台"
+      "description": "XXL-JOB is a distributed task scheduling platform designed for managing and executing batch jobs in a distributed environment."
     },
     {
-      "name": "mariaDB",
+      "name": "MariaDB",
       "version": "10.5.3",
-      "description": "传统数据库用于nacos/druid/galaxy-job-service/dataset数据存储"
+      "description": "MariaDB is an open-source relational database management system designed for high-performance, scalable, and secure data storage."
     },
     {
-      "name":"arango",
+      "name":"ArangoDB",
       "version": "3.6.4",
-      "description": "图数据库用于存储IPlearning统计结果"
+      "description": "ArangoDB is a graph database management system designed for storing, querying, and analyzing graph data."
     }
   ]
 }
