@@ -254,6 +254,7 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
         @Data
         class Function {
             private String name;
+            private Object[] variables;
         }
 
         public String buildSelectItem(boolean isTimeSeries, DateTime start, DateTime end, String logicalType) {
@@ -279,11 +280,15 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
                             funNewName, metricName, start, end);
                 }
             } else if (StrUtil.equalsIgnoreCase(SQLFunctionUtil.RATE, function.getName()) || StrUtil.equalsIgnoreCase(SQLFunctionUtil.BITRATE, function.getName())) {
+                Object[] variables = function.getVariables();
+                boolean hasVariables = variables != null && variables.length >= 1;
+                long intervalSeconds = (end.getTime() - start.getTime()) / 1000;
                 if (isTimeSeries) {
-                    return String.format("%s(%s, CHART_GRANULARITY('%s', '%s'))", funNewName, metricName, start, end);
+                    return hasVariables ? String.format("%s(%s, CHART_GRANULARITY('%s', '%s'), %s)", funNewName, metricName, start, end, variables[0])
+                            : String.format("%s(%s, CHART_GRANULARITY('%s', '%s'))", funNewName, metricName, start, end);
                 } else {
-                    long intervalSeconds = (end.getTime() - start.getTime()) / 1000;
-                    return String.format("%s(%s, %s)", funNewName, metricName, intervalSeconds);
+                    return hasVariables ? String.format("%s(%s, %s, %s)", funNewName, metricName, intervalSeconds, variables[0])
+                            : String.format("%s(%s, %s)", funNewName, metricName, intervalSeconds);
                 }
             } else {
                 return String.format("%s(%s)", funNewName, metricName);
