@@ -12,19 +12,17 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Component("HOS")
 public class HosHealthIndicator extends AbstractHealthIndicator {
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
     private HosConfig hosConfig;
-    private final static String APP = "Hos";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         if (StrUtil.contains(hosConfig.getUri(),"127.0.0.1")){
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -35,12 +33,10 @@ public class HosHealthIndicator extends AbstractHealthIndicator {
         Map<String, String> resultMap = httpClientService.httpGet(url, headers, 3000);
         if (Integer.parseInt(resultMap.get("status")) == HttpStatusCodeEnum.SUCCESS.getCode()) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("url", url)
                     .withDetail("message", "ok");
         } else {
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", resultMap.get("message"));
         }
     }

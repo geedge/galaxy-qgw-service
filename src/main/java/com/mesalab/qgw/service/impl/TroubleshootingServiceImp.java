@@ -158,7 +158,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Set<String> componentNameSet = componentHealthResult.keySet();
             boolean isStatusUp = true;
             for (Map component : componentList) {
-                String componentName = String.valueOf(component.get("name"));
+                String componentName = StrUtil.removeAll(String.valueOf(component.get("name")), " ");
                 if (componentNameSet.contains(componentName)) {
                     Map<String, String> healthMap = buildHealth(componentName, componentHealthResult);
                     if (healthMap.get("status").equals("DOWN")) {
@@ -400,7 +400,6 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Object> componentMap = (Map<String, Object>) map.get(componentName);
         Map<String, String> healthMap = (Map<String, String>) componentMap.get("details");
         healthMap.put("status", String.valueOf(componentMap.get("status")));
-        healthMap.remove("app");
         return healthMap;
     }
 

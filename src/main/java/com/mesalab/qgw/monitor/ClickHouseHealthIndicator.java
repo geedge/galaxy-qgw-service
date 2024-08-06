@@ -13,20 +13,18 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-@Component
+@Component("ClickHouse")
 public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
 
 
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
-    private final static String APP = "ClickHouse";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(clickHouseHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -55,7 +53,6 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                 String curDatetime = data.get("timestamp").toString();
                 String version = StrUtil.subBefore(data.get("version").toString(), ".", true);
                 builder.up()
-                        .withDetail("app", APP)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok")
                         .withDetail("timeZone", dbTimeZone)
@@ -63,12 +60,10 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("version", version);
             } else {
                 builder.down()
-                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }

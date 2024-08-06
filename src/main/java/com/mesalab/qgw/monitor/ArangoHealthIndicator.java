@@ -18,20 +18,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-@Component
+@Component("ArangoDB")
 public class ArangoHealthIndicator extends AbstractHealthIndicator {
 
     @Autowired
     private ArangoConfig arangoConfig;
     @Autowired
     HttpClientService httpClientService;
-    private final static String APP = "Arango";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(arangoConfig.getJwturl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -45,7 +43,6 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                 Map resMap = JSON.parseObject(res, Map.class);
                 if (StringUtil.isEmpty(resMap) || StringUtil.isEmpty(resMap.get(Constant.JWT))) {
                     builder.down()
-                            .withDetail("app", APP)
                             .withDetail("message", "获取Arango jwt 失败: " + arangoConfig.getServer());
                     return;
                 } else {
@@ -59,11 +56,9 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
             if (StringUtil.isEmpty(map) || StringUtil.isEmpty(map.get("version"))) {
                 JwtCache.remove(Constant.ARANGO_CACHE_JWT);
                 builder.down()
-                        .withDetail("app", APP)
                         .withDetail("message", "连接Arango 失败: " + result);
             } else {
                 builder.up()
-                        .withDetail("app", APP)
                         .withDetail("url", arangoConfig.getServer())
                         .withDetail("message", "ok")
                         .withDetail("version", map.get("version"));
@@ -71,7 +66,6 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
         } catch (RuntimeException e) {
             JwtCache.remove(Constant.ARANGO_CACHE_JWT);
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", "连接Arango 失败");
         }
     }

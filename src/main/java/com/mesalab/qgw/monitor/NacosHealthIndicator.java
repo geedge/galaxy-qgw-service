@@ -23,19 +23,17 @@ import java.util.Objects;
  * @Date 2021/4/22 1:57 下午
  * @Author wWei
  */
-@Component
+@Component("Nacos")
 public class NacosHealthIndicator extends AbstractHealthIndicator {
 
     @Autowired
     private NacosConfig nacosConfig;
     private final RestTemplate restTemplate = new RestTemplate();
-    private final static String APP = "Nacos";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(nacosConfig.getServerAddr(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -46,18 +44,15 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
                     && responseEntity.getStatusCodeValue() == HttpStatusCodeEnum.SUCCESS.getCode()
                     && "UP".equalsIgnoreCase(JsonPath.read(JSONUtil.toJsonStr(responseEntity.getBody()), "$.status"))) {
                 builder.up()
-                        .withDetail("app", APP)
                         .withDetail("url", nacosConfig.getServerAddr())
                         .withDetail("version", Objects.requireNonNull(resMap.getBody(), "body is null").get("version"))
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
         }
     }

@@ -14,12 +14,11 @@ import java.util.TimeZone;
  * @Date 2022/2/17 10:41 上午
  * @Author wWei
  */
-@Component
+@Component("JVM")
 public class JVMHealthIndicator extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         builder.up()
-                .withDetail("app", "JVM")
                 .withDetail("timeZone", TimeZone.getDefault().getID())
                 .withDetail("timestamp", DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
     }

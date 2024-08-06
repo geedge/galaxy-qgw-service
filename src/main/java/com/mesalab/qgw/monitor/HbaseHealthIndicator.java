@@ -15,12 +15,11 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 
 
-@Component
+@Component("ApacheHBase")
 public class HbaseHealthIndicator extends AbstractHealthIndicator {
     private static final Log log = LogFactory.get();
     @Autowired
     private HBaseAPISource hBaseAPISource;
-    private final static String APP = "Hbase";
 
     static {
         try {
@@ -34,7 +33,6 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         if (StrUtil.contains(hBaseAPISource.getZookeeperQuorum(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -48,17 +46,14 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
              ResultSet resultSet = ps.executeQuery()) {
             if (resultSet.next()) {
                 builder.up()
-                        .withDetail("app", APP)
                         .withDetail("url", hBaseAPISource.getZookeeperQuorum())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", APP)
                         .withDetail("message", "error");
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
         }
     }

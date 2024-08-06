@@ -21,20 +21,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
+@Component("ApacheDruid")
 public class DruidHealthIndicator extends AbstractHealthIndicator {
 
 
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-    private final static String APP = "Druid";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(druidIoHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -59,14 +57,12 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
                 Object timeZone = firstElement.get("timeZone");
                 Object curDatetime = firstElement.get("curTimestamp");
                 builder.up()
-                        .withDetail("app", APP)
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok")
                         .withDetail("timeZone", timeZone)
                         .withDetail("timestamp", curDatetime);
             } else {
                 builder.down()
-                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
             }
@@ -74,7 +70,6 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
 
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }

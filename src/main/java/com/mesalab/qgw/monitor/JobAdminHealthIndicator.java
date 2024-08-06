@@ -19,20 +19,18 @@ import java.util.Map;
 import java.util.Optional;
 
 
-@Component
+@Component("XXL-JOB")
 public class JobAdminHealthIndicator extends AbstractHealthIndicator {
 
 
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
-    private final static String APP = "xxl-job-admin";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(jobAdminHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", APP)
                     .withDetail("message", "DISABLED");
             return;
         }
@@ -55,22 +53,18 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
                         .orElseThrow(() -> new IllegalArgumentException("Code is missing in the response body")));
                 if (code == HttpStatusCodeEnum.SUCCESS.getCode()) {
                     builder.up()
-                            .withDetail("app", APP)
                             .withDetail("url", jobAdminHttpSource.getUrl())
                             .withDetail("message", "ok");
                 } else {
                     builder.down()
-                            .withDetail("app", APP)
                             .withDetail("message", body.get("msg") + ", status code " + code);
                 }
             } else {
                 builder.down()
-                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }
