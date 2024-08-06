@@ -248,9 +248,16 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
         private Function function;
         @JsonProperty("metric_name")
         private String metricName;
+        @JsonProperty("dimension_name")
+        private String dimensionName;
         @JsonProperty("metric_type")
         private String metricType;
+        private String expression;
         private String label;
+
+        private String getName() {
+            return metricName == null ? dimensionName : metricName;
+        }
 
         @Data
         class Function {
@@ -259,41 +266,40 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
         }
 
         public String buildSelectItem(boolean isTimeSeries, DateTime start, DateTime end, String logicalType) {
-            if (function != null) {
             String expr = buildExprItem(isTimeSeries, start, end, logicalType);
             return String.format("%s AS \"%s\"", expr, label);
-            } else {
-                return String.format("%s AS \"%s\"", metricName, label);
-            }
         }
 
         public String buildExprItem(boolean isTimeSeries, DateTime start, DateTime end, String logicalType) {
+            if (expression != null) {
+                return expression;
+            }
             if (function == null) {
-                return metricName;
+                return getName();
             }
             String funNewName = SQLFunctionUtil.generateFunctionWithMetricType(function.getName(), metricType);
             if (StrUtil.equalsIgnoreCase(SQLFunctionUtil.TIME_FLOOR_WITH_FILL, function.getName())
                     || StrUtil.equalsIgnoreCase(SQLFunctionUtil.DATETIME_FLOOR_WITH_FILL, function.getName())) {
                 if (StrUtil.equalsIgnoreCase(DataTypeConst.TIMESTAMP, logicalType)) {
                     return String.format("%s(UNIX_TIMESTAMP(%s), CHART_GRANULARITY('%s', '%s'), 'zero')",
-                            funNewName, metricName, start, end);
+                            funNewName, getName(), start, end);
                 } else {
                     return String.format("%s(%s, CHART_GRANULARITY('%s', '%s'), 'zero')",
-                            funNewName, metricName, start, end);
+                            funNewName, getName(), start, end);
                 }
             } else if (StrUtil.equalsIgnoreCase(SQLFunctionUtil.RATE, function.getName()) || StrUtil.equalsIgnoreCase(SQLFunctionUtil.BITRATE, function.getName())) {
                 Object[] variables = function.getVariables();
                 boolean hasVariables = variables != null && variables.length >= 1;
                 long intervalSeconds = (end.getTime() - start.getTime()) / 1000;
                 if (isTimeSeries) {
-                    return hasVariables ? String.format("%s(%s, CHART_GRANULARITY('%s', '%s'), %s)", funNewName, metricName, start, end, variables[0])
-                            : String.format("%s(%s, CHART_GRANULARITY('%s', '%s'))", funNewName, metricName, start, end);
+                    return hasVariables ? String.format("%s(%s, CHART_GRANULARITY('%s', '%s'), %s)", funNewName, getName(), start, end, variables[0])
+                            : String.format("%s(%s, CHART_GRANULARITY('%s', '%s'))", funNewName, getName(), start, end);
                 } else {
-                    return hasVariables ? String.format("%s(%s, %s, %s)", funNewName, metricName, intervalSeconds, variables[0])
-                            : String.format("%s(%s, %s)", funNewName, metricName, intervalSeconds);
+                    return hasVariables ? String.format("%s(%s, %s, %s)", funNewName, getName(), intervalSeconds, variables[0])
+                            : String.format("%s(%s, %s)", funNewName, getName(), intervalSeconds);
                 }
             } else {
-                return String.format("%s(%s)", funNewName, metricName);
+                return String.format("%s(%s)", funNewName, getName());
             }
         }
     }

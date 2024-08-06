@@ -5,7 +5,7 @@
     "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
     "custom.statistics.dimensions": [
       {
-        "metric_name": "server_fqdn",
+        "dimension_name": "server_fqdn",
         "label": "Server FQDN"
       }
     ],
@@ -48,9 +48,9 @@
     "custom.statistics.dimensions": [
       {
         "function": {
-          "name": "TIME_FLOOR_WITH_FILL"
+          "name": "DATETIME_FLOOR_WITH_FILL"
         },
-        "metric_name": "__time",
+        "dimension_name": "__time",
         "label": "Stat Time"
       }
     ],
@@ -83,9 +83,9 @@
     "custom.statistics.dimensions": [
       {
         "function": {
-          "name": "TIME_FLOOR_WITH_FILL"
+          "name": "DATETIME_FLOOR_WITH_FILL"
         },
-        "metric_name": "__time",
+        "dimension_name": "__time",
         "label": "Stat Time"
       },
       {
