@@ -4,6 +4,7 @@ import com.mesalab.qgw.dialect.ClickHouseDialect;
 import com.mesalab.qgw.dialect.DruidDialect;
 import com.mesalab.qgw.model.basic.SelectStatement;
 import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
+import com.mesalab.qgw.model.basic.udf.DATETIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.statement.select.OrderByElement;
@@ -30,7 +31,8 @@ public class QueryTypeHelper {
         Set<UDF> udfSet = dbSelectStatement.getUdfSet();
         if (udfSet != null && !udfSet.isEmpty()) {
             for (UDF udf : udfSet) {
-                if (udf instanceof TIME_FLOOR_WITH_FILL) {
+                if (udf instanceof TIME_FLOOR_WITH_FILL
+                        || udf instanceof DATETIME_FLOOR_WITH_FILL) {
                     return ExampleDataHelper.QUERY_TYPE_TIMESERIES;
                 }
             }
@@ -78,6 +80,24 @@ public class QueryTypeHelper {
                     }
                 }
             }
+
+            DATETIME_FLOOR_WITH_FILL datetimeUdfElements = dbSelectStatement.getUdfSet().stream()
+                    .filter(udf -> udf instanceof DATETIME_FLOOR_WITH_FILL)
+                    .map(udf -> (DATETIME_FLOOR_WITH_FILL) udf)
+                    .findFirst()
+                    .orElse(null);
+
+            if (datetimeUdfElements != null) {
+                String name = datetimeUdfElements.getName();
+                String timestamp = datetimeUdfElements.getTimestamp();
+                Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
+                for (String groupKey : groupDimension.keySet()) {
+                    if (groupDimension.get(groupKey).contains(name) && groupDimension.get(groupKey).contains(timestamp)) {
+                        return groupKey;
+                    }
+                }
+            }
+
         } else if (ExampleDataHelper.QUERY_TYPE_GROUP_BY.equals(queryType)) {
             List<OrderByElement> orderByElements = dbSelectStatement.getOrderByElements();
             if (orderByElements != null && !orderByElements.isEmpty()) {

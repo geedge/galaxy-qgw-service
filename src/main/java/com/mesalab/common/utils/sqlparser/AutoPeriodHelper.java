@@ -32,6 +32,7 @@ public class AutoPeriodHelper {
     private static final Log log = LogFactory.get();
     private static final DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
+    private static final String DATETIME_FLOOR_WITH_FILL = "DATETIME_FLOOR_WITH_FILL";
     private static final String RATE = "RATE";
     private static final String BITRATE = "BITRATE";
     private static final String CHART_GRANULARITY = "CHART_GRANULARITY";
@@ -441,6 +442,8 @@ public class AutoPeriodHelper {
         public void visit(Function function) {
             if (isTimeFloorWithFill(function)) {
                 buildNewFunction(function);
+            } else if (isDatetimeFloorWithFill(function)) {
+                buildNewFunction(function);
             } else if (isRate(function)) {
                 buildNewFunction(function);
             } else if (isBitRate(function)) {
@@ -497,6 +500,15 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return TIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
+                && function.getParameters().getExpressions().size() >= 2;
+    }
+
+    private static boolean isDatetimeFloorWithFill(Expression expression) {
+        if (!(expression instanceof Function)) {
+            return false;
+        }
+        Function function = (Function) expression;
+        return DATETIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
                 && function.getParameters().getExpressions().size() >= 2;
     }
 

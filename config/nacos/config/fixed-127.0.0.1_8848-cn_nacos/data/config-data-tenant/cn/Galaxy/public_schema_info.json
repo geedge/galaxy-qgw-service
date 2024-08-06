@@ -177,6 +177,11 @@
         "name": "TIME_FLOOR_WITH_FILL",
         "label": "TIME_FLOOR_WITH_FILL",
         "function": "TIME_FLOOR_WITH_FILL(expr, period, fill)"
+      },
+      {
+        "name": "DATETIME_FLOOR_WITH_FILL",
+        "label": "DATETIME_FLOOR_WITH_FILL",
+        "function": "DATETIME_FLOOR_WITH_FILL(expr, period, fill)"
       }
     ],
     "operator": [

@@ -7,8 +7,6 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.geedgenetworks.utils.Encodes;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
-import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
-import com.mesalab.qgw.model.basic.udf.UDF;
 import lombok.Data;
 
 import java.util.*;

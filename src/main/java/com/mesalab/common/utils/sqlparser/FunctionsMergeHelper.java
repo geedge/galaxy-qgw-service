@@ -26,6 +26,7 @@ public class FunctionsMergeHelper {
 
     private static final String FROM_UNIXTIME = "FROM_UNIXTIME";
     private static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
+    private static final String DATETIME_FLOOR_WITH_FILL = "DATETIME_FLOOR_WITH_FILL";
     private static final String UNIX_TIMESTAMP = "UNIX_TIMESTAMP";
     private static final String TIME_FORMAT = "TIME_FORMAT";
     private static final String DATE_TIME_FORMAT_PATTERN = "'yyyy-MM-dd HH:mm:ss'";
@@ -39,20 +40,20 @@ public class FunctionsMergeHelper {
     /**
      * Desc: Merge the TIME_FLOOR_WITH_FILL functions in the SQL statement
      * 1. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *])) ==>
-     *  1.1 Select Item: TIME_FORMAT(TIME_FLOOR(column, *), 'yyyy-MM-dd HH:mm:ss')
-     *  1.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     * 1.1 Select Item: TIME_FORMAT(TIME_FLOOR(column, *), 'yyyy-MM-dd HH:mm:ss')
+     * 1.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
      *
      * 2. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(column, *[, *])) ==>
-     *  2.1 Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *), 'yyyy-MM-dd HH:mm:ss')
-     *  2.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)]
+     * 2.1 Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *), 'yyyy-MM-dd HH:mm:ss')
+     * 2.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)]
      *
      * 3. TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *]) ==>
-     *  3.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
-     *  3.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     * 3.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
+     * 3.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
      *
      * 4. TIME_FLOOR_WITH_FILL(column, *[, *]) ==>
-     *  4.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
-     *  4.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
+     * 4.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
+     * 4.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
      *
      * @param sql
      * @return {@link String}
@@ -138,6 +139,16 @@ public class FunctionsMergeHelper {
         }
         Function function = (Function) expression;
         return TIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
+                && function.getParameters().getExpressions().size() >= 2
+                && function.getParameters().getExpressions().size() <= 3;
+    }
+
+    private static boolean isDateTimeFloorWithFillFunction(Expression expression) {
+        if (!(expression instanceof Function)) {
+            return false;
+        }
+        Function function = (Function) expression;
+        return DATETIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
                 && function.getParameters().getExpressions().size() >= 2
                 && function.getParameters().getExpressions().size() <= 3;
     }
@@ -248,6 +259,8 @@ public class FunctionsMergeHelper {
 
                     selectExpressionItem.setExpression(division);
                 }
+            } else if (isDateTimeFloorWithFillFunction(mainFunction)) {
+                // TODO DATETIME_FLOOR_WITH_FILL function merge
             }
         }
 

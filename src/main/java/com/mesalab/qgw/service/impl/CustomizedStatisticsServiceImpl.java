@@ -74,7 +74,8 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
                 CustomStatisticsObj customStatisticsObj = BeanUtil.copyProperties(dimension, CustomStatisticsObj.class);
                 if (times.contains(customStatisticsObj.getMetricName())
                         && customStatisticsObj.getFunction() != null
-                        && SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(customStatisticsObj.getFunction().getName())) {
+                        && (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(customStatisticsObj.getFunction().getName())
+                        || SQLFunctionUtil.DATETIME_FLOOR_WITH_FILL.equals(customStatisticsObj.getFunction().getName()))) {
                     isTimeSeries = true;
                 }
                 selectItems.add(customStatisticsObj.buildSelectItem(isTimeSeries, param.getStart(), param.getEnd(), partitionKeyLogicalType));
@@ -259,8 +260,8 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
 
         public String buildSelectItem(boolean isTimeSeries, DateTime start, DateTime end, String logicalType) {
             if (function != null) {
-                String expr = buildExprItem(isTimeSeries, start, end, logicalType);
-                return String.format("%s AS \"%s\"", expr, label);
+            String expr = buildExprItem(isTimeSeries, start, end, logicalType);
+            return String.format("%s AS \"%s\"", expr, label);
             } else {
                 return String.format("%s AS \"%s\"", metricName, label);
             }
@@ -271,7 +272,8 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
                 return metricName;
             }
             String funNewName = SQLFunctionUtil.generateFunctionWithMetricType(function.getName(), metricType);
-            if (StrUtil.equalsIgnoreCase(SQLFunctionUtil.TIME_FLOOR_WITH_FILL, function.getName())) {
+            if (StrUtil.equalsIgnoreCase(SQLFunctionUtil.TIME_FLOOR_WITH_FILL, function.getName())
+                    || StrUtil.equalsIgnoreCase(SQLFunctionUtil.DATETIME_FLOOR_WITH_FILL, function.getName())) {
                 if (StrUtil.equalsIgnoreCase(DataTypeConst.TIMESTAMP, logicalType)) {
                     return String.format("%s(UNIX_TIMESTAMP(%s), CHART_GRANULARITY('%s', '%s'), 'zero')",
                             funNewName, metricName, start, end);

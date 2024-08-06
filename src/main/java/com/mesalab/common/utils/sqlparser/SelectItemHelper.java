@@ -100,6 +100,7 @@ public class SelectItemHelper {
                 functionDateTypeMap.put("FROM_UNIXTIME_MILLIS", DataTypeConst.TIMESTAMP_MS_FORMAT);
                 functionDateTypeMap.put("UNIX_TIMESTAMP", DataTypeConst.UNIX_TIMESTAMP);
                 functionDateTypeMap.put("TIME_FLOOR_WITH_FILL", DataTypeConst.UNIX_TIMESTAMP);
+                functionDateTypeMap.put("DATETIME_FLOOR_WITH_FILL", DataTypeConst.TIMESTAMP_FORMAT);
                 functionDateTypeMap.put("UNIX_TIMESTAMP_MILLIS", DataTypeConst.UNIX_TIMESTAMP_MS);
                 functionDateTypeMap.put("PERCENTILES_HDR", DataTypeConst.HDR_HISTOGRAM);
                 functionDateTypeMap.put("IP_TO_GEO", DataTypeConst.IP);

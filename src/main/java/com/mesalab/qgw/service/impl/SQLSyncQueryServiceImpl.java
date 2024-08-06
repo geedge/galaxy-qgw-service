@@ -21,10 +21,7 @@ import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.model.basic.udf.ROLLUP;
-import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
-import com.mesalab.qgw.model.basic.udf.UDF;
-import com.mesalab.qgw.model.basic.udf.UDFElements;
+import com.mesalab.qgw.model.basic.udf.*;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.StringUtil;
@@ -335,6 +332,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                     if (isDrilldown(select, sqlQuerySource.getAliasFields())) {
                         addRollUpToUDF(sqlQuerySource.getUdfSet(), (Function) groupBy.getGroupByExpressionList().getExpressions().get(0));
                         sqlQuerySource.getUdfSet().removeIf(udf -> udf instanceof TIME_FLOOR_WITH_FILL);
+                        sqlQuerySource.getUdfSet().removeIf(udf -> udf instanceof DATETIME_FLOOR_WITH_FILL);
                     }
                 }
                 sqlQuerySource.setOrderByElements(select.getOrderByElements());

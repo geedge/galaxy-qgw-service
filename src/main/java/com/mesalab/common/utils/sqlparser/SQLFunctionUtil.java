@@ -44,6 +44,7 @@ public class SQLFunctionUtil {
 
     private static final boolean CONVERT_DEFAULT_TIMEZONE_INTO_UTC;
     public static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
+    public static final String DATETIME_FLOOR_WITH_FILL = "DATETIME_FLOOR_WITH_FILL";
     public static final String IP_TO_GEO = "IP_TO_GEO";
     public static final String IP_TO_CITY = "IP_TO_CITY";
     public static final String IP_TO_COUNTRY = "IP_TO_COUNTRY";
@@ -79,6 +80,7 @@ public class SQLFunctionUtil {
      * 自定义函数
      */
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pDateTimeFloorWithFill = Pattern.compile("\\b" + DATETIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pRate = Pattern.compile("(?<![\"])\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pBitRate = Pattern.compile("(?<![\"])\\b" + BITRATE + "\\(", Pattern.CASE_INSENSITIVE);
@@ -142,6 +144,7 @@ public class SQLFunctionUtil {
 
     static {
         federationUDFFunctions.put(TIME_FLOOR_WITH_FILL, null);
+        federationUDFFunctions.put(DATETIME_FLOOR_WITH_FILL, null);
         federationUDFFunctions.put(IP_TO_GEO, null);
         federationUDFFunctions.put(IP_TO_CITY, null);
         federationUDFFunctions.put(IP_TO_COUNTRY, null);
@@ -384,6 +387,7 @@ public class SQLFunctionUtil {
      */
     private static String translateUDF(String dbType, String resultSql) {
         resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
+        resultSql = translateByPattern(resultSql, dbType, pDateTimeFloorWithFill);
         resultSql = translateByPattern(resultSql, dbType, pMaxDuration);
         resultSql = translateByPattern(resultSql, dbType, pRate);
         resultSql = translateByPattern(resultSql, dbType, pBitRate);
@@ -1912,6 +1916,9 @@ public class SQLFunctionUtil {
             case TIME_FLOOR_WITH_FILL:
                 data = translateTimeFloorWithFill(fun, dbType);
                 break;
+            case DATETIME_FLOOR_WITH_FILL:
+                data = translateDateTimeFloorWithFill(fun, dbType);
+                break;
             case MAX_DURATION:
                 data = translateDuration(fun, dbType);
                 break;
@@ -2063,6 +2070,62 @@ public class SQLFunctionUtil {
                 return String.format(format, timestamp, num);
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
+                return String.format(format, timestamp, period);
+            }
+        }
+        return function.toString();
+    }
+
+
+    /**
+     * 转义datetime_floor_with_fill
+     *
+     * @param function
+     * @param dbType
+     * @return
+     */
+    private static String translateDateTimeFloorWithFill(Function function, String dbType) {
+        String timestamp = function.getParamsList().get(0);
+        String period = function.getParamsList().get(1);
+
+        Matcher matcherPT = periodOfPT.matcher(period);
+        if (matcherPT.find()) {
+            String num = matcherPT.group(1);
+            String unit = matcherPT.group(2);
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+                String format = null;
+                if ("S".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s SECOND))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s SECOND))";
+                } else if ("M".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s MINUTE))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MINUTE))";
+                } else if ("H".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s HOUR))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s HOUR))";
+                }
+                return String.format(format, timestamp, num);
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
+                String format = "TIME_FORMAT(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s), 'YYYY-MM-dd HH:mm:ss')";
+                return String.format(format, timestamp, period);
+            }
+        }
+
+        Matcher matcherP = periodOfP.matcher(period);
+        if (matcherP.find()) {
+            String num = matcherP.group(1);
+            String unit = matcherP.group(2);
+            if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+                String format = null;
+                if ("D".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s DAY))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s DAY))";
+                } else if ("W".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s WEEK))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s WEEK))";
+                } else if ("M".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s MONTH))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MONTH))";
+                } else if ("Y".equalsIgnoreCase(unit)) {
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s YEAR))" : "toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s YEAR))";
+                }
+                return String.format(format, timestamp, num);
+            } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
+                String format = "TIME_FORMAT(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s), 'YYYY-MM-dd HH:mm:ss')";
                 return String.format(format, timestamp, period);
             }
         }
