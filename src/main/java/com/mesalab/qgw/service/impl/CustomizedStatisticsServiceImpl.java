@@ -72,7 +72,7 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
             List<Map<String, Object>> dimensions = (List<Map<String, Object>>) customRequestParam.get(DIMENSIONS);
             for (Map<String, Object> dimension : dimensions) {
                 CustomStatisticsObj customStatisticsObj = BeanUtil.copyProperties(dimension, CustomStatisticsObj.class);
-                if (times.contains(customStatisticsObj.getMetricName())
+                if (times.contains(customStatisticsObj.getDimensionName())
                         && customStatisticsObj.getFunction() != null
                         && (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(customStatisticsObj.getFunction().getName())
                         || SQLFunctionUtil.DATETIME_FLOOR_WITH_FILL.equals(customStatisticsObj.getFunction().getName()))) {
