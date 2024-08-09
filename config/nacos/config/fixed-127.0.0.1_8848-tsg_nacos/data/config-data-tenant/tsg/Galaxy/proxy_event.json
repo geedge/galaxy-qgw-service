@@ -1412,7 +1412,7 @@
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1574,7 +1574,7 @@
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1690,7 +1690,7 @@
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
