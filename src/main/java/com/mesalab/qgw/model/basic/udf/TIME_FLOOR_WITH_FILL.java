@@ -37,7 +37,7 @@ import java.util.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class TIME_FLOOR_WITH_FILL implements UDF{
+public class TIME_FLOOR_WITH_FILL implements UDF {
     private static final Log log = LogFactory.get();
     private DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
@@ -91,8 +91,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Override
     public Object execute(SelectStatement selectStatement, boolean isDryRun, BaseResult baseResult) {
-        List<Object> results = (List<Object>)baseResult.getData();
-        if(isDryRun) {
+        List<Object> results = (List<Object>) baseResult.getData();
+        if (isDryRun) {
             return results;
         }
         List<Map<String, Object>> targetResult = Lists.newArrayList();
@@ -216,26 +216,31 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
         targetResult.forEach(x -> {
             for (String key : x.keySet()) {
+                Object v = x.get(key);
+                if (v == null || "null".equalsIgnoreCase(v.toString())) {
+                    x.put(key, null);
+                    continue;
+                }
                 if (DataTypeMapping.STRING.equals(keyType.get(key))) {
                     continue;
                 }
                 if (DataTypeMapping.INT.equals(keyType.get(key))) {
-                    x.put(key, Integer.parseInt(String.valueOf(x.get(key))));
+                    x.put(key, Integer.parseInt(String.valueOf(v)));
                 } else if (DataTypeMapping.LONG.equals(keyType.get(key))) {
-                    x.put(key, Long.parseLong(String.valueOf(x.get(key))));
+                    x.put(key, Long.parseLong(String.valueOf(v)));
                 } else if (DataTypeMapping.DOUBLE.equals(keyType.get(key))) {
-                    x.put(key, Double.parseDouble(String.valueOf(x.get(key))));
+                    x.put(key, Double.parseDouble(String.valueOf(v)));
                 } else if (DataTypeMapping.FLOAT.equals(keyType.get(key))) {
-                    x.put(key, Float.parseFloat(String.valueOf(x.get(key))));
+                    x.put(key, Float.parseFloat(String.valueOf(v)));
                 } else if (DataTypeMapping.BOOLEAN.equals(keyType.get(key))) {
-                    x.put(key, Boolean.parseBoolean(String.valueOf(x.get(key))));
+                    x.put(key, Boolean.parseBoolean(String.valueOf(v)));
                 }
             }
         });
     }
 
     private void sortByTime(SelectStatement sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
-        if(StringUtil.isEmpty(sqlQuerySource.getOrderByElements())){
+        if (StringUtil.isEmpty(sqlQuerySource.getOrderByElements())) {
             return;
         }
         orderBy:
@@ -282,6 +287,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     /**
      * 获取基准时间
+     *
      * @param firstElement
      * @param timeGranLabel
      * @return
@@ -291,7 +297,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         Object benchmarkDateObject = firstElement.get(timeGranLabel);
 
         if (StringUtil.isNumeric(benchmarkDateObject.toString())) {
-            benchmarkDate = new DateTime(Long.valueOf(benchmarkDateObject.toString())*1000).toDate();
+            benchmarkDate = new DateTime(Long.valueOf(benchmarkDateObject.toString()) * 1000).toDate();
         } else {
             benchmarkDate = DateUtils.convertStringToDate(benchmarkDateObject.toString(), DateUtils.YYYY_MM_DD_HH24_MM_SS);
         }
@@ -302,6 +308,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     /**
      * 获取where查询时间范围
+     *
      * @param sqlQuerySource
      * @return
      */
@@ -353,13 +360,14 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     /**
      * 解析where表达式并设置数据的时间范围
+     *
      * @param whereTimeRange
      * @param whereExpression
      * @param partitionKey
      * @param dbType
      */
     private void parserWhereExpressionForWhereTimeRange(WhereTimeRange whereTimeRange, Expression whereExpression,
-                                                                String partitionKey, String dbType) {
+                                                        String partitionKey, String dbType) {
         if (StringUtil.isEmpty(whereExpression) || StringUtil.isBlank(partitionKey)) {
             return;
         }
