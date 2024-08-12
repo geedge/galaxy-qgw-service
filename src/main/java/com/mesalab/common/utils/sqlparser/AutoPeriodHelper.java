@@ -396,9 +396,6 @@ public class AutoPeriodHelper {
                 return;
             }
             for (Expression expression : groupByElement.getGroupByExpressionList().getExpressions()) {
-                if (!(expression instanceof Function)) {
-                    continue;
-                }
                 FunctionAdapter functionAdapter = new FunctionAdapter(now, retentionMap);
                 expression.accept(functionAdapter);
             }
@@ -417,9 +414,6 @@ public class AutoPeriodHelper {
         @Override
         public void visit(OrderByElement orderBy) {
             if (orderBy.getExpression() == null) {
-                return;
-            }
-            if (!(orderBy.getExpression() instanceof Function)) {
                 return;
             }
             FunctionAdapter functionAdapter = new FunctionAdapter(now, retentionMap);
