@@ -50,7 +50,7 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
     private static final String CUSTOMIZED_STATISTICS = "CUSTOMIZED_STATISTICS";
     private static final String CUSTOMIZED_STATISTICS_SUBQUERY_TOPK = "CUSTOMIZED_STATISTICS_SUBQUERY_TOPK";
     private static final String LABEL = "label";
-    private static final String METRIC_NAME = "metric_name";
+    private static final String DIMENSION_NAME = "dimension_name";
     private static final String METRIC_TYPE = "metric_type";
 
     private Environment environment;
@@ -121,12 +121,16 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
             Iterator<Map<String, Object>> iterator = dimensions.iterator();
             while (iterator.hasNext()) {
                 Map<String, Object> next = iterator.next();
-                if (times.contains(String.valueOf(next.get(METRIC_NAME)))) {
+                if (times.contains(String.valueOf(next.get(DIMENSION_NAME)))) {
                     iterator.remove();
                     break;
                 }
             }
-            subQueryDimensions.addAll(dimensions);
+            if (dimensions.size() < 1) {
+                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Get top-k dimension error"));
+            }
+            subQueryDimensions.add(dimensions.get(0));
         } else {
             subQueryDimensions.addAll(dimensions.stream()
                     .filter(dimension -> dimensionLabelsOfSubQuery.contains(String.valueOf(dimension.get(LABEL))))
@@ -212,6 +216,10 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
     private void validateTopK(List<Map<String, Object>> dimensions, List<Map<String, Object>> metrics, Map<String, Object> topKMap) {
         if (topKMap != null) {
             List<String> topKDimensions = getListFromMapOrEmpty(topKMap, SUBQUERY_TOPK_DIMENSIONS);
+            if (topKDimensions.size() > 1) {
+                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The top-k limited to one dimension"));
+            }
             if (!topKDimensions.stream().allMatch(d -> dimensions.stream()
                     .anyMatch(dim -> d.equals(dim.get(LABEL))))) {
                 throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
