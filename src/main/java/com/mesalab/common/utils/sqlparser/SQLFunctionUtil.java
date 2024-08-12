@@ -61,6 +61,8 @@ public class SQLFunctionUtil {
     public static final String PERCENTILES_HDR = "PERCENTILES_HDR";
     public static final String P95_PERCENTILE_HDR = "P95_PERCENTILE_HDR";
     public static final String P99_PERCENTILE_HDR = "P99_PERCENTILE_HDR";
+    public static final String P95_PERCENTILE = "P95_PERCENTILE";
+    public static final String P99_PERCENTILE = "P99_PERCENTILE";
     public static final String COUNT_DISTINCT = "COUNT_DISTINCT";
     public static final String UNIQUE_COUNT = "UNIQUE_COUNT";
     public static final String APPROX_COUNT_DISTINCT_HLLD = "APPROX_COUNT_DISTINCT_HLLD";
@@ -101,6 +103,9 @@ public class SQLFunctionUtil {
     public static final Pattern pPercentilesHdr = Pattern.compile("(?<![\"])\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pP95PercentileHdr = Pattern.compile("(?<![\"])\\b" + P95_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pP99PercentileHdr = Pattern.compile("(?<![\"])\\b" + P99_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pP95Percentile = Pattern.compile("(?<![\"])\\b" + P95_PERCENTILE + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pP99Percentile = Pattern.compile("(?<![\"])\\b" + P99_PERCENTILE + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pCountDistinct = Pattern.compile("(?<![\"])\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUniqueCount = Pattern.compile("(?<![\"])\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
@@ -171,7 +176,7 @@ public class SQLFunctionUtil {
      * 标准函数
      */
     //time functions
-    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|UNIQUE_COUNT|APPROX_COUNT_DISTINCT_HLLD|groupUniqArray)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|P95_PERCENTILE|P99_PERCENTILE|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|UNIQUE_COUNT|APPROX_COUNT_DISTINCT_HLLD|groupUniqArray)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -403,6 +408,8 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pPercentilesHdr);
         resultSql = translateByPattern(resultSql, dbType, pP95PercentileHdr);
         resultSql = translateByPattern(resultSql, dbType, pP99PercentileHdr);
+        resultSql = translateByPattern(resultSql, dbType, pP95Percentile);
+        resultSql = translateByPattern(resultSql, dbType, pP99Percentile);
         resultSql = translateByPattern(resultSql, dbType, pCountDistinct);
         resultSql = translateByPattern(resultSql, dbType, pUniqueCount);
         resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
@@ -1942,6 +1949,10 @@ public class SQLFunctionUtil {
             case APPROX_COUNT_DISTINCT_HLLD:
                 data = translateHdrHistogram(fun, dbType);
                 break;
+            case P95_PERCENTILE:
+            case P99_PERCENTILE:
+                data = translatePercentile(fun, dbType);
+                break;
             case GROUP_UNIQ_ARRAY:
                 data = translateGroupUniqArray(fun, dbType);
                 break;
@@ -2239,6 +2250,34 @@ public class SQLFunctionUtil {
                     return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 5)", hdrSketchExpr);
                 case APPROX_COUNT_DISTINCT_HLLD:
                     return String.format("APPROX_COUNT_DISTINCT_HLLD#[%s#]", hdrSketchExpr);
+            }
+        }
+        return fun.toString();
+    }
+
+    /**
+     * Desc: 转义自定义函数 P95_PERCENTILES、P99_PERCENTILES
+     *
+     * @param fun
+     * @param dbType
+     * @return
+     */
+
+    private static String translatePercentile(Function fun, String dbType) {
+        String expr0 = fun.getParamsList().get(0);
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+            switch (fun.getName()) {
+                case P95_PERCENTILE:
+                    return String.format("quantile#[%s#]#[0.95#]", expr0);
+                case P99_PERCENTILE:
+                    return String.format("quantile#[%s#]#[0.99#]", expr0);
+            }
+        } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
+            switch (fun.getName()) {
+                case P95_PERCENTILE:
+                    return String.format("APPROX_QUANTILE_DS#[%s, 0.95#]", expr0);
+                case P99_PERCENTILE:
+                    return String.format("APPROX_QUANTILE_DS#[%s, 0.99#]", expr0);
             }
         }
         return fun.toString();
