@@ -1,0 +1,66 @@
+{
+  "type": "record",
+  "name": "match_sequence",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "match_id",
+    "index_key": [
+      "match_id",
+      "start_time"
+    ]
+  },
+  "fields": [
+    {
+      "name": "match_id",
+      "type": "long"
+    },
+    {
+      "name": "rule_id",
+      "type": "long"
+    },
+    {
+      "name": "rule_version",
+      "type": "string"
+    },
+    {
+      "name": "rule_type",
+      "type": "string"
+    },
+    {
+      "name": "is_builtin",
+      "type": "long"
+    },
+    {
+      "name": "event_type",
+      "type": "string"
+    },
+    {
+      "name": "event_name",
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "type": "long"
+    },
+    {
+      "name": "key_fields",
+      "type": "string"
+    },
+    {
+      "name": "key_values",
+      "type": "string"
+    },
+    {
+      "name": "event_info",
+      "type": "string"
+    },
+    {
+      "name": "start_time",
+      "type": "long"
+    },
+    {
+      "name": "end_time",
+      "type": "long"
+    }
+  ]
+}

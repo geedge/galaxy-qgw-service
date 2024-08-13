@@ -1,0 +1,122 @@
+{
+  "type": "record",
+  "name": "match_indicator",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "match_id",
+    "index_key": [
+      "match_id",
+      "match_time"
+    ]
+  },
+  "fields": [
+    {
+      "name": "match_id",
+      "type": "long"
+    },
+    {
+      "name": "rule_id",
+      "type": "long"
+    },
+    {
+      "name": "rule_version",
+      "type": "string"
+    },
+    {
+      "name": "rule_type",
+      "type": "string"
+    },
+    {
+      "name": "is_builtin",
+      "type": "long"
+    },
+    {
+      "name": "event_type",
+      "type": "string"
+    },
+    {
+      "name": "event_name",
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "type": "long"
+    },
+    {
+      "name": "indicator_fields",
+      "type": "string"
+    },
+    {
+      "name": "indicator_values",
+      "type": "string"
+    },
+    {
+      "name": "match_num",
+      "type": "long"
+    },
+    {
+      "name": "reset",
+      "type": "long"
+    },
+    {
+      "name": "client_ip",
+      "type": "string"
+    },
+    {
+      "name": "client_country_region",
+      "type": "string"
+    },
+    {
+      "name": "client_super_admin_area",
+      "type": "string"
+    },
+    {
+      "name": "client_admin_area",
+      "type": "string"
+    },
+    {
+      "name": "client_longitude",
+      "type": "double"
+    },
+    {
+      "name": "client_latitude",
+      "type": "double"
+    },
+    {
+      "name": "server_ip",
+      "type": "string"
+    },
+    {
+      "name": "server_country_region",
+      "type": "string"
+    },
+    {
+      "name": "server_super_admin_area",
+      "type": "string"
+    },
+    {
+      "name": "server_admin_area",
+      "type": "string"
+    },
+    {
+      "name": "server_longitude",
+      "type": "double"
+    },
+    {
+      "name": "server_latitude",
+      "type": "double"
+    },
+    {
+      "name": "domain",
+      "type": "string"
+    },
+    {
+      "name": "app",
+      "type": "string"
+    },
+    {
+      "name": "match_time",
+      "type": "long"
+    }
+  ]
+}

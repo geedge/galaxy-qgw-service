@@ -1,0 +1,69 @@
+{
+  "type": "record",
+  "name": "cn_event",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "event_id",
+    "index_key": [
+      "event_id"
+    ]
+  },
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "long"
+    },
+    {
+      "name": "match_ids",
+      "type": "string"
+    },
+    {
+      "name": "key_fields",
+      "type": "string"
+    },
+    {
+      "name": "key_values",
+      "type": "string"
+    },
+    {
+      "name": "rule_id",
+      "type": "string"
+    },
+    {
+      "name": "rule_version",
+      "type": "string"
+    },
+    {
+      "name": "rule_type",
+      "type": "string"
+    },
+    {
+      "name": "is_builtin",
+      "type": "string"
+    },
+    {
+      "name": "event_type",
+      "type": "string"
+    },
+    {
+      "name": "event_name",
+      "type": "string"
+    },
+    {
+      "name": "start_time",
+      "type": "string"
+    },
+    {
+      "name": "end_time",
+      "type": "string"
+    },
+    {
+      "name": "duration_s",
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "type": "string"
+    }
+  ]
+}
