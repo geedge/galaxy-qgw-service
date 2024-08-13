@@ -136,13 +136,17 @@ public class SQLFunctionUtil {
         p95PercentileMap.put(MetricType.DISTRIBUTION.getValue(), "P95_PERCENTILE_HDR");
         FUNCTION_METRIC_TYPE_MAP.put("P95_PERCENTILE", p95PercentileMap);
 
-        Map<String, String> histogramMap = new HashMap<>();
-        histogramMap.put(MetricType.DISTRIBUTION.getValue(), "P99_PERCENTILE_HDR");
-        FUNCTION_METRIC_TYPE_MAP.put("P99_PERCENTILE", histogramMap);
-
         Map<String, String> p99PercentileMap = new HashMap<>();
-        p99PercentileMap.put(MetricType.DISTRIBUTION.getValue(), "PERCENTILES_HDR");
-        FUNCTION_METRIC_TYPE_MAP.put("HISTOGRAM", p99PercentileMap);
+        p99PercentileMap.put(MetricType.DISTRIBUTION.getValue(), "P99_PERCENTILE_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("P99_PERCENTILE", p99PercentileMap);
+
+        Map<String, String> histogramMap = new HashMap<>();
+        histogramMap.put(MetricType.DISTRIBUTION.getValue(), "PERCENTILES_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("HISTOGRAM", histogramMap);
+
+        Map<String, String> quantileMap = new HashMap<>();
+        quantileMap.put(MetricType.DISTRIBUTION.getValue(), "QUANTILE_HDR");
+        FUNCTION_METRIC_TYPE_MAP.put("QUANTILE", quantileMap);
     }
 
     public static final Map<String, String> timeSlicingFunction = Maps.newHashMap();

@@ -307,7 +307,10 @@ public class CustomizedStatisticsServiceImpl implements CustomizedStatisticsServ
                             : String.format("%s(%s, %s)", funNewName, getName(), intervalSeconds);
                 }
             } else {
-                return String.format("%s(%s)", funNewName, getName());
+                Object[] variables = function.getVariables();
+                boolean hasVariables = variables != null && variables.length >= 1;
+                return hasVariables ? String.format("%s(%s, %s)", funNewName, getName(), Arrays.stream(variables).map(Object::toString).collect(Collectors.joining(", ")))
+                        : String.format("%s(%s)", funNewName, getName());
             }
         }
     }

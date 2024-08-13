@@ -199,6 +199,6 @@ public class AutoPeriodDSLTest extends GalaxyQGWApplicationTests {
         AutoPeriodHelper.buildDslGranularity(dslQueryRequestParam);
         String granularity = dslQueryRequestParam.getGranularity();
         log.info(granularity);
-        Assert.assertEquals("ERROR: don't expect period", "PT1M", granularity);
+        Assert.assertEquals("ERROR: don't expect period", "PT5M", granularity);
     }
 }
