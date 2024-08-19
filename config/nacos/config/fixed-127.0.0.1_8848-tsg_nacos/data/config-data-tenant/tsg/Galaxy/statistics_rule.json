@@ -77,7 +77,7 @@
     },
     "measurements": {
       "retentions": "1s:1d,1m:1800d",
-      "ingestion_delay": 5
+      "ingestion_delay": 15
     }
   },
   "fields": [

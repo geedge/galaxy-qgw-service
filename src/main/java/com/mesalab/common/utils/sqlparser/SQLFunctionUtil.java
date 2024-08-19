@@ -81,24 +81,24 @@ public class SQLFunctionUtil {
     /**
      * 自定义函数
      */
-    public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pDateTimeFloorWithFill = Pattern.compile("\\b" + DATETIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pTimeFloorWithFill = Pattern.compile("(?<![\"])\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pDateTimeFloorWithFill = Pattern.compile("(?<![\"])\\b" + DATETIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pMaxDuration = Pattern.compile("(?<![\"])\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pRate = Pattern.compile("(?<![\"])\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pBitRate = Pattern.compile("(?<![\"])\\b" + BITRATE + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToIsp = Pattern.compile("\\b" + IP_TO_ISP + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToAsn = Pattern.compile("\\b" + IP_TO_ASN + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToAsnDetail = Pattern.compile("\\b" + IP_TO_ASN_DETAIL + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pIpToAsnOrg = Pattern.compile("\\b" + IP_TO_ASN_ORG + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToGeo = Pattern.compile("(?<![\"])\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToCity = Pattern.compile("(?<![\"])\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToCountry = Pattern.compile("(?<![\"])\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToIsp = Pattern.compile("(?<![\"])\\b" + IP_TO_ISP + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToAsn = Pattern.compile("(?<![\"])\\b" + IP_TO_ASN + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToAsnDetail = Pattern.compile("(?<![\"])\\b" + IP_TO_ASN_DETAIL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToAsnOrg = Pattern.compile("(?<![\"])\\b" + IP_TO_ASN_ORG + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
 
-    public static final Pattern pMedianHdr = Pattern.compile("\\b" + MEDIAN_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pMedianHdr = Pattern.compile("(?<![\"])\\b" + MEDIAN_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
-    public static final Pattern pQuantileHdr = Pattern.compile("\\b" + QUANTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pQuantileHdr = Pattern.compile("(?<![\"])\\b" + QUANTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final Pattern pPercentilesHdr = Pattern.compile("(?<![\"])\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pP95PercentileHdr = Pattern.compile("(?<![\"])\\b" + P95_PERCENTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
@@ -110,8 +110,8 @@ public class SQLFunctionUtil {
     public static final Pattern pCountDistinct = Pattern.compile("(?<![\"])\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUniqueCount = Pattern.compile("(?<![\"])\\b" + UNIQUE_COUNT + "\\(", Pattern.CASE_INSENSITIVE);
 
-    public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pGroupUniqArray = Pattern.compile("\\b" + GROUP_UNIQ_ARRAY + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pApproxCountDistinctHlld = Pattern.compile("(?<![\"])\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pGroupUniqArray = Pattern.compile("(?<![\"])\\b" + GROUP_UNIQ_ARRAY + "\\(", Pattern.CASE_INSENSITIVE);
 
     public static final HashMap<String, String> federationUDFFunctions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
@@ -204,7 +204,7 @@ public class SQLFunctionUtil {
     //other
     public static final Pattern pRollUp = Pattern.compile("\\Wrollup\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
-    public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
+    public static final Pattern pMedian = Pattern.compile("\\W(?<![\"])MEDIAN\\s*\\(");
     public static final Pattern pCast = Pattern.compile("\\WCAST\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");

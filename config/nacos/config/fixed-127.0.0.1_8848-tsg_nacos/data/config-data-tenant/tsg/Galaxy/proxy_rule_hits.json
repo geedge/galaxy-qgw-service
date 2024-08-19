@@ -39,7 +39,7 @@
     },
     "measurements": {
      "retentions": "1s:1800d",
-      "ingestion_delay": 5,
+      "ingestion_delay": 15,
       "aggregated_metric_unit": {
         "SUM": {
           "hit_count": "sessions",

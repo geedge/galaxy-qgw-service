@@ -127,7 +127,7 @@
       ]
     },
     "measurements": {
-      "retentions": "5m:1800d"
+      "retentions": "1m:1800d"
     }
   },
   "fields": [
