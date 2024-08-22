@@ -165,6 +165,7 @@
         "sip_responder_sdp_content",
         "sip_duration_s",
         "sip_bye",
+        "sip_bye_reason",
         "ssh_version",
         "ssh_auth_success",
         "ssh_client_version",
@@ -471,6 +472,7 @@
         "sip_responder_sdp_content",
         "sip_duration_s",
         "sip_bye",
+        "sip_bye_reason",
         "rtp_payload_type_c2s",
         "rtp_payload_type_s2c",
         "rtp_originator_dir",
@@ -658,6 +660,7 @@
           "sip_responder_sdp_content",
           "sip_duration_s",
           "sip_bye",
+          "sip_bye_reason",
           "rtp_payload_type_c2s",
           "rtp_payload_type_s2c",
           "rtp_pcap_path",
@@ -3710,6 +3713,15 @@
     {
       "name": "sip_bye",
       "label": "SIP.Bye",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_bye_reason",
+      "label": "SIP.Bye Reason",
       "doc": {
         "visibility": "enabled",
         "ttl": null
