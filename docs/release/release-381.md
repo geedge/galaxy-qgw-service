@@ -4,6 +4,7 @@ Release 381 (TSG-24.08)
 * 扩展DSL接口，支持Customized Statistics查询(TSG-21708)
 * 扩展Schema，增加client_ip_tags、server_ip_tags、server_fqdn_tags 字段(TSG-21877)
 * 扩展Schema，traffic_shaping_rule_hits Metric 增加latency_distribution_us字段(TSG-21916)
+* 扩展Schema，SIP协议新增sip_bye_reason字段(TSG-22315)
 * 修改Schema，fqdn_category_list、GeoIP 日志字段 标注过期(TSG-21837)
 * 修改Schema，durations 支持定义多级数据储存粒度(TSG-21985)
 * 修改Schema，traffic_sketch_metric 数据粒度更新为5min
