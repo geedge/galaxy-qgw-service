@@ -91,7 +91,8 @@
         "sip_responder_sdp_media_type",
         "sip_responder_sdp_content",
         "sip_duration_s",
-        "sip_bye"
+        "sip_bye",
+        "sip_bye_reason"
       ],
       "metrics": [
         "log_id",
@@ -172,7 +173,8 @@
         "sip_responder_sdp_media_type",
         "sip_responder_sdp_content",
         "sip_duration_s",
-        "sip_bye"
+        "sip_bye",
+        "sip_bye_reason"
       ],
       "filters": [
         "session_id",
@@ -255,7 +257,8 @@
         "sip_responder_sdp_media_type",
         "sip_responder_sdp_content",
         "sip_duration_s",
-        "sip_bye"
+        "sip_bye",
+        "sip_bye_reason"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -470,7 +473,8 @@
           "sip_responder_sdp_media_type",
           "sip_responder_sdp_content",
           "sip_duration_s",
-          "sip_bye"
+          "sip_bye",
+          "sip_bye_reason"
         ],
         "default_columns": [
           "recv_time",
@@ -1463,6 +1467,15 @@
     {
       "name": "sip_bye",
       "label": "SIP.Bye",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_bye_reason",
+      "label": "SIP.Bye Reason",
       "doc": {
         "visibility": "enabled",
         "ttl": null
