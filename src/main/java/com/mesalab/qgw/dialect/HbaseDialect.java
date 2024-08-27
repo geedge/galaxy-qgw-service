@@ -186,7 +186,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         List<String> metaList = Lists.newArrayList();
         List<Map<String, String>> metaDataList = new ArrayList<>();
         for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
-            metaList.add(resultSetMetaData.getColumnName(i + 1));
+            metaList.add(resultSetMetaData.getColumnLabel(i + 1));
             Map<String, String> metaData = Maps.newHashMap();
             metaData.put("name", metaList.get(i));
             metaData.put("type", metaMap.get(resultSetMetaData.getColumnTypeName(i + 1)));
