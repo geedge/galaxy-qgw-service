@@ -3,12 +3,12 @@ package com.mesalab.qgw.controller;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson2.JSON;
-import com.clearspring.analytics.util.Lists;
 import com.google.common.collect.Sets;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.MetadataType;
+import com.mesalab.common.enums.StorageQuotaLogType;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -75,13 +75,13 @@ public class DatabaseController {
 
     @GetMapping(value = "/storage/quota", consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.storageQuota")
-    public BaseResult storageQuota() {
-        return databaseService.getStorageQuota();
+    public BaseResult getStorageQuotaCfg() {
+        return databaseService.getStorageQuotaCfg();
     }
 
     @PutMapping(value = "/storage/quota", consumes = "application/json")
     @AuditLog("DatabaseController.storageSetting")
-    public BaseResult storageSetting(@RequestBody List<StorageDeletionInfo> list) {
+    public BaseResult putStorageQuotaCfg(@RequestBody List<StorageDeletionInfo> list) {
         log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
             return BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
@@ -101,18 +101,17 @@ public class DatabaseController {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.MAXDAYS_ERROR));
             }
         }
-        return databaseService.deleteStorage(list);
+        return databaseService.updateStorageQuatoCfg(list);
     }
 
     @RequestMapping(value = "/storage/quota", method = RequestMethod.DELETE, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.storageDeletion")
-    public BaseResult storageDeletion(@RequestParam String type) {
-        List<StorageDeletionInfo> deletionInfoList = Lists.newArrayList();
-        StorageDeletionInfo deletionInfo = new StorageDeletionInfo();
-        deletionInfo.setType(type);
-        deletionInfo.setMaxDays(0);
-        deletionInfoList.add(deletionInfo);
-        return databaseService.deleteStorage(deletionInfoList);
+    public BaseResult cleanData(@RequestParam String type) {
+        if (Arrays.stream(StorageQuotaLogType.values()).noneMatch(value -> value.getValue().equals(type))) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "not exist type: " + type));
+        }
+        return databaseService.cleanDataByType(type);
     }
 
     @RequestMapping(value = "/storage/quota/daily_usage", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")

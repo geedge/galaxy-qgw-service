@@ -25,6 +25,7 @@ import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.nacos.NacosConfig;
@@ -32,7 +33,6 @@ import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.model.metadata.MetadataBean;
@@ -41,10 +41,7 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.beans.BeanMap;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -53,7 +50,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.time.Duration;
 import java.util.*;
 
 import static com.mesalab.services.service.impl.SQLDatasetServiceImpl.QUERY_ID_SEPARATOR;
@@ -280,41 +276,30 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getStorageQuota() {
-        List<Record> storageData = Db.find(env.getProperty("SYSTEM_STORAGE_QUOTA"));
-        List<Map> result = Lists.newArrayList();
-        BaseResult storageUsageStatus = getStorageUsageStatus();
-        List<Map<String, Object>> usageData = Lists.newArrayList();
-        if (storageUsageStatus.isSuccess()) {
-            usageData = (List<Map<String, Object>>) storageUsageStatus.getData();
+    public BaseResult getStorageQuotaCfg() {
+        List<Map> result = new ArrayList<>();
+        List<Record> storageDataList = Db.find(env.getProperty("SYSTEM_STORAGE_QUOTA"));
+        Object systemManagementCfgObj = getCfg(NacosConst.SYSTEM_MANAGEMENT);
+        List<LinkedHashMap> storageCfgList = new ArrayList<>();
+        if (StringUtil.isNotEmpty(systemManagementCfgObj)) {
+            LinkedHashMap storageConfig = JSON.parseObject(JSON.toJSON(systemManagementCfgObj).toString(), LinkedHashMap.class);
+            storageCfgList = JSON.parseArray(JSON.toJSON(storageConfig.get(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA)).toString(), LinkedHashMap.class);
         }
-        for (LogType value : LogType.values()) {
-            if (value.getValue().equals(LogType.ALL.getValue())) {
+
+        for (StorageQuotaLogType logType : StorageQuotaLogType.values()) {
+            if (logType.getValue().equals(StorageQuotaLogType.ALL.getValue())) {
                 continue;
             }
-            Map<String, Object> resultItem = Maps.newHashMap();
-            storageData.forEach(record -> {
-                Map<String, Object> columns = record.getColumns();
-                if (value.getValue().equals(columns.get("type"))) {
-                    resultItem.putAll(columns);
-                }
-            });
+            Map<String, Object> resultItem = new LinkedHashMap<>();
 
-            BaseResult deleteStorageStatus = getDeleteStorageStatus(value.getValue());
-            if (deleteStorageStatus.isSuccess()) {
-                List<StorageDeletionInfo> data = (List<StorageDeletionInfo>) deleteStorageStatus.getData();
-                resultItem.put("type", value.getLabel());
-                resultItem.put("max_days", data.get(0).getMaxDays());
-                resultItem.put("default_max_days", data.get(0).getDefaultMaxDays());
-            }
-            usageData.forEach(o -> {
-                Map<String, Object> map = JSON.parseObject(String.valueOf(o.get("executorParam")), Map.class);
-                if (value.getValue().equals(map.get("logType"))) {
-                    resultItem.put("max_usage", map.get("maxUsage"));
-                }
-            });
+            storageCfgList.stream()
+                    .filter(o -> logType.getValue().equals(o.get("type")))
+                    .forEach(resultItem::putAll);
+            storageDataList.stream()
+                    .filter(o -> logType.getValue().equals(o.getColumns().get("type")))
+                    .forEach(o -> resultItem.putAll(o.getColumns()));
+
             result.add(resultItem);
-
         }
         return BaseResultGenerator.success(result);
     }
@@ -333,9 +318,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             List<Record> data = Db.find(sql);
             List<Map<String, Object>> result = Lists.newArrayList();
             data.forEach(record -> {
-                Map<String, Object> columns = record.getColumns();
-                columns.put("type", LogType.getLabelByValue(String.valueOf(columns.get("type"))));
-                result.add(columns);
+                result.add(record.getColumns());
             });
             return BaseResultGenerator.success(result);
         } else {
@@ -345,13 +328,40 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
-        if (!logTypeValid(list)) {
-            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Match failed, please check log type!"));
+    public BaseResult updateStorageQuatoCfg(List<StorageDeletionInfo> list) {
+        Object systemManagementCfgObj = getCfg(NacosConst.SYSTEM_MANAGEMENT);
+        LinkedHashMap storageConfig = JSON.parseObject(JSON.toJSON(systemManagementCfgObj).toString(), LinkedHashMap.class);
+        List<LinkedHashMap> storageCfgList = JSON.parseArray(JSON.toJSON(storageConfig.get(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA)).toString(), LinkedHashMap.class);
+        for (StorageDeletionInfo storageDeletionInfo : list) {
+            Integer maxDays = storageDeletionInfo.getMaxDays();
+            storageCfgList.stream()
+                    .filter(o -> storageDeletionInfo.getType().equals(o.get("type")))
+                    .forEach(o -> o.put("max_days", maxDays));
         }
+        storageConfig.put(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA, JSON.toJSON(storageCfgList));
+        try {
+            boolean b = systemConfigService.publishConfig(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA, nacosConfig.getGroup(), JSONUtil.toJsonPrettyStr(storageConfig));
+            if (b) {
+                return BaseResultGenerator.success("ok");
+            } else {
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        "Failed to set storage quota");
+            }
+        } catch (NacosException e) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    e.getMessage());
+        }
+    }
 
-        preProcessOfLogType(list);
+    @Override
+    public BaseResult cleanDataByType(String type) {
+        List<String> list = new ArrayList<>();
+        if (StorageQuotaLogType.ALL.getValue().equalsIgnoreCase(type)) {
+            list.add(StorageQuotaLogType.TRAFFIC_LOGS.getValue());
+            list.add(StorageQuotaLogType.METRICS.getValue());
+            list.add(StorageQuotaLogType.FILES.getValue());
+        }
+        list.add(type);
 
         if (jobIsBusy(list)) {
             return BaseResultGenerator.failure(HttpStatusCodeEnum.LOCKED.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
@@ -359,47 +369,12 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
 
         BaseResult baseResult = null;
-        for (StorageDeletionInfo info : list) {
-            baseResult = executeDeleteStorageJob(info);
+        for (String str : list) {
+            String jobHandler = getDeleteAllHandlerByLogType(str);
+            XxlJobInfo xxlJobInfo = getDataByHandler(jobHandler);
+            baseResult = triggerXXLJobById(xxlJobInfo.getId());
         }
         return baseResult;
-    }
-
-    @Override
-    public BaseResult getDeleteStorageStatus(String logType) {
-        setCookie();
-        List<StorageDeletionInfo> list = new ArrayList<>();
-        if (StringUtil.isBlank(logType)) {
-
-            StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(LogType.TRAFFIC_LOGS.getValue(), JobHandlerOption.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            list.add(trafficInfo);
-
-            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(LogType.METRICS.getValue(), JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            list.add(reportInfo);
-
-            StorageDeletionInfo fileInfo = getStorageDeletionInfoByHandler(LogType.FILES.getValue(), JobHandlerOption.DELETE_FILES_JOB_HANDLER.getValue());
-            list.add(fileInfo);
-        } else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
-            StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(logType, JobHandlerOption.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            list.add(trafficInfo);
-        } else if (LogType.METRICS.getValue().equalsIgnoreCase(logType)) {
-            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            list.add(reportInfo);
-        } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
-            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerOption.DELETE_FILES_JOB_HANDLER.getValue());
-            list.add(reportInfo);
-        } else {
-            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "No matching log type: " + logType);
-        }
-        list.forEach(o -> o.setType(LogType.getLabelByValue(o.getType())));
-        return BaseResultGenerator.success("ok", list);
-    }
-
-    @Override
-    public BaseResult getStorageUsageStatus() {
-        setCookie();
-        List<Map> trafficDate = getAllDataByHandler(JobHandlerOption.DELETE_OLD_LOG_JOB_HANDLER.getValue());
-        return BaseResultGenerator.success("ok", trafficDate);
     }
 
     @Override
@@ -747,76 +722,21 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         return schemaMap;
     }
 
-    private boolean logTypeValid(List<StorageDeletionInfo> list) {
-        for (StorageDeletionInfo info : list) {
-            String value = DatabaseServiceImpl.LogType.getValueByLabel(info.getType());
-            if (StringUtil.isEmpty(value)) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-    /**
-     * @Description 涉及对ALL、LogType(value，label)处理
-     * @Param list:
-     * @return: java.util.List<com.mesalab.qgw.model.job.StorageDeletionInfo>
-     * @Created by wWei
-     */
-    private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
-        if (list.size() == 1) {
-            StorageDeletionInfo deletionInfo = list.get(0);
-            Integer maxDays = deletionInfo.getMaxDays();
-            Integer defaultMaxDays = deletionInfo.getDefaultMaxDays();
-            if (LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getType())) {
-                list.clear();
-                list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays, defaultMaxDays));
-                list.add(new StorageDeletionInfo(LogType.METRICS.getValue(), maxDays, defaultMaxDays));
-                list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
-                return list;
-            } else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(list.get(0).getType()) |
-                    LogType.FILES.getValue().equalsIgnoreCase(list.get(0).getType()) |
-                    LogType.METRICS.getLabel().equalsIgnoreCase(list.get(0).getType())) {
-                list.clear();
-                list.add(new StorageDeletionInfo(LogType.getValueByLabel(deletionInfo.getType()), maxDays, defaultMaxDays));
-                return list;
-            }
-        }
-        list.forEach(o -> o.setType(LogType.getValueByLabel(o.getType())));
-        return list;
-    }
-
-    private boolean jobIsBusy(List<StorageDeletionInfo> list) {
+    private boolean jobIsBusy(List<String> list) {
         setCookie();
-        for (StorageDeletionInfo info : list) {
-
-            String handler = getDeletePartHandlerByLogType(info.getType());
-            if (jobIsBusyByHandler(handler)) {
-                return true;
-            }
-            handler = getDeleteAllHandlerByLogType(info.getType());
-            if (jobIsBusyByHandler(handler)) {
+        for (String type : list) {
+            String deleteAllHandler = getDeleteAllHandlerByLogType(type);
+            if (jobIsBusyByHandler(deleteAllHandler)) {
                 return true;
             }
         }
         return false;
     }
 
-    private String getDeletePartHandlerByLogType(String logType) {
-        String jobHandler = StringUtil.EMPTY;
-        if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
-            jobHandler = JobHandlerOption.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue();
-        } else if (LogType.METRICS.getValue().equalsIgnoreCase(logType)) {
-            jobHandler = JobHandlerOption.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue();
-        } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
-            jobHandler = JobHandlerOption.DELETE_FILES_JOB_HANDLER.getValue();
-        }
-        return jobHandler;
-    }
-
     private boolean jobIsBusyByHandler(String handler) {
-        Map dataByHandler = getDataByHandler(handler);
-        String id = String.valueOf(dataByHandler.get("id"));
+        XxlJobInfo xxlJobInfo = getDataByHandler(handler);
+        String id = String.valueOf(xxlJobInfo.getId());
         BaseResult result = queryJobStatusByJobId(Integer.parseInt(id));
         if (result.getStatus().equals(HttpStatusCodeEnum.LOCKED.getCode())) {
             return true;
@@ -827,73 +747,14 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         return false;
     }
 
-    private void updateSchema(StorageDeletionInfo info, Map dataByHandler) {
-        Map<String, Map> previous = Maps.newHashMap();
-        try {
-            Map schemaInfo = getSchemaInfo(MetadataType.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
-            Object tables = schemaInfo.get("symbols");
-            if (StringUtil.isEmpty(tables)) {
-                return;
-            }
-            long ttl = Duration.ofDays(info.getMaxDays()).getSeconds();
-            List<String> list = (List) tables;
-            for (String tableName : list) {
-                Map schemaMap = getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, false);
-                List<Object> schemaDocTTL = JsonPath.read(schemaMap, "$.[?(@.doc.ttl != null)].doc.ttl");
-                List<Object> fieldDocTTL = JsonPath.read(schemaMap, "$.fields[?(@.doc.ttl != null)].doc.ttl");
-                if (schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
-                    continue;
-                }
-                previous.put(tableName, getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, false));
-                Object schemaDoc = schemaMap.get("doc");
-                Map<String, Object> map = Maps.newHashMap();
-                if (StringUtil.isNotEmpty(schemaDoc)) {
-                    map = (Map<String, Object>) schemaDoc;
-                }
-                if (StringUtil.isNotEmpty(map.get("ttl")) && ttl < Long.parseLong(map.get("ttl").toString())) {
-                    map.put("ttl", ttl);
-                    schemaMap.put("doc", map);
-                }
-                List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
-                List<String> indexKey = getIndexKey(tableName);
-                for (Map<String, Object> field : fields) {
-                    Object doc = field.get("doc");
-                    if (StringUtil.isEmpty(doc)) {
-                        doc = Maps.newHashMap();
-                    }
-                    Map<String, Object> fieldDoc = (Map<String, Object>) doc;
-                    if (indexKey.contains(field.get("name").toString())) {
-                        fieldDoc.put("ttl", null);
-                        field.put("doc", fieldDoc);
-                        continue;
-                    }
-                    if (StringUtil.isNotEmpty(fieldDoc.get("ttl")) && ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
-                        fieldDoc.put("ttl", ttl);
-                        field.put("doc", fieldDoc);
-                    }
-                }
-                updateSchema(tableName, schemaMap);
-            }
-        } catch (RuntimeException ex) {
-            for (String tableName : previous.keySet()) {
-                updateSchema(tableName, previous.get(tableName));
-            }
-            XxlJobInfo xxlJobInfo = BeanUtil.copyProperties(dataByHandler, XxlJobInfo.class);
-            executeManageJob("update", xxlJobInfo);
-            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
-                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "up schema error in storage set ", ex.getMessage()));
-        }
-    }
-
 
     /**
-     * 通过handler Value获取jobInfo数据
+     * 通过 handler 获取 XxlJobInfo
      *
      * @param handlerValue
      * @return
      */
-    private Map getDataByHandler(String handlerValue) {
+    private XxlJobInfo getDataByHandler(String handlerValue) {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
@@ -906,7 +767,8 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
-                return data.get(0);
+                Map map = data.get(0);
+                return BeanUtil.copyProperties(map, XxlJobInfo.class);
             } else {
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                         String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "The scheduled task has no task information matching executorHandler (" + handlerValue + ")"));
@@ -916,28 +778,6 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                 String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get scheduled task exception: " + JSON.toJSONString(resultPageList)));
     }
 
-    /**
-     * 通过Handler获取全量数据
-     *
-     * @param handlerValue
-     * @return
-     */
-    private List<Map> getAllDataByHandler(String handlerValue) {
-        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
-                append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
-                append(handlerValue);
-        Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
-        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()))) {
-            Map<String, Object> maps = JSON.parseObject(resultPageList.get("result"), Map.class);
-            if (StringUtil.isEmpty(maps)) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get or package result exception: " + JSON.toJSONString(resultPageList)));
-            }
-            return (List) maps.get("data");
-        }
-        throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get scheduled task exception: " + JSON.toJSONString(resultPageList)));
-    }
 
     /**
      * 查询任务状态
@@ -986,11 +826,11 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     private String getDeleteAllHandlerByLogType(String logType) {
         String jobHandler = StringUtil.EMPTY;
-        if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
+        if (StorageQuotaLogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue();
-        } else if (LogType.METRICS.getValue().equalsIgnoreCase(logType)) {
+        } else if (StorageQuotaLogType.METRICS.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue();
-        } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
+        } else if (StorageQuotaLogType.FILES.getValue().equalsIgnoreCase(logType)) {
             jobHandler = JobHandlerOption.DELETE_ALL_FILES_JOB_HANDLER.getValue();
         }
         return jobHandler;
@@ -1049,113 +889,20 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     /**
-     * 执行日志删除任务: 调用调度任务任务
+     * 执行 xxl-job ID 任务
      *
-     * @param info
+     * @param id
      * @return
      */
-    private BaseResult executeDeleteStorageJob(StorageDeletionInfo info) {
-
-        BaseResult baseResult;
-        String jobHandler;
-        String logType = info.getType();
-        ExecutorParam executorParam = new ExecutorParam();
-        if (0 == info.getMaxDays()) {
-            jobHandler = getDeleteAllHandlerByLogType(logType);
-            Map dataByHandler = getDataByHandler(jobHandler);
-
-            StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, getDeletePartHandlerByLogType(logType));
-            executorParam.setMaxDays(storageDeletionInfoByHandler.getMaxDays());
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
-            baseResult = executeTriggerAndUpdate(xxlJobInfo);
-        } else {
-            jobHandler = getDeletePartHandlerByLogType(info.getType());
-            executorParam.setMaxDays(info.getMaxDays());
-            Map oldData = getDataByHandler(jobHandler);
-            XxlJobInfo newData = setXxlJobInfoParam(oldData, executorParam);
-            baseResult = executeManageJob("update", newData);
-            if (baseResult.isSuccess() && LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(info.getType())) {
-                updateSchema(info, oldData);
-            }
-            if (baseResult.isSuccess()) {
-                baseResult = executeManageJob("trigger", newData);
-            }
-        }
-        if (!baseResult.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), QGWMessageConst.SCHEDULED_TASK_ERROR));
-        }
-        return baseResult;
-    }
-
-    /**
-     * 触发执行器并更新任务
-     *
-     * @param xxlJobInfo
-     * @return
-     */
-    private BaseResult executeTriggerAndUpdate(XxlJobInfo xxlJobInfo) {
-        BaseResult baseResult;
-        BaseResult resultExecute = executeManageJob("trigger", xxlJobInfo);
-        if (resultExecute.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
-            BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
-            if (resultUpdate.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
-                baseResult = BaseResultGenerator.success("ok", null);
-            } else {
-                baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Update task failed:" + xxlJobInfo.getExecutorHandler()));
-            }
-        } else {
-            baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Failed to execute task:" + xxlJobInfo.getExecutorHandler()));
-        }
-        return baseResult;
-    }
-
-    private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
-        Map trafficDate = getDataByHandler(jobHandlerValue);
-        XxlJobInfo xxlJobInfo = BeanUtil.copyProperties(trafficDate, XxlJobInfo.class);
-        StorageDeletionInfo executorParam = JSON.parseObject(StrUtil.toUnderlineCase(xxlJobInfo.getExecutorParam()), StorageDeletionInfo.class);
-        executorParam.setType(logType);
-        return executorParam;
-    }
-
-    public static <T> T mapToBean(Map<String, Object> map, Class<T> clazz) {
-        T bean = null;
-        try {
-            bean = clazz.newInstance();
-        } catch (InstantiationException e) {
-            log.error("Instantiation Exception: ", e);
-        } catch (IllegalAccessException e) {
-            log.error("Illegal Access Exception: ", e);
-        }
-        BeanMap beanMap = BeanMap.create(bean);
-        beanMap.putAll(map);
-        return bean;
-    }
-
-    private XxlJobInfo setXxlJobInfoParam(Map data, ExecutorParam executorParam) {
-        XxlJobInfo xxlJobInfo = BeanUtil.copyProperties(data, XxlJobInfo.class);
-        ExecutorParam executor = JSON.parseObject(xxlJobInfo.getExecutorParam(), ExecutorParam.class);
-        executorParam.setDefaultMaxDays(executor.getDefaultMaxDays());
-        xxlJobInfo.setExecutorParam(JSON.toJSONString(executorParam));
-        return xxlJobInfo;
-    }
-
-    /**
-     * 执行调度平台任务更新
-     *
-     * @param executeType
-     * @param xxlJobInfo
-     * @return
-     */
-    private BaseResult executeManageJob(String executeType, XxlJobInfo xxlJobInfo) {
-        BaseResult baseResult = null;
-        String params = getUrlParamsByMap(getObjectToMap(xxlJobInfo));
-        String url = String.format("%s/jobinfo/%s/?%s", jobAdminHttpSource.getUrl(), executeType, params);
+    private BaseResult triggerXXLJobById(Integer id) {
+        String url = String.format("%s/jobinfo/trigger/?id=%s", jobAdminHttpSource.getUrl(), id);
         Map<String, String> resultMap = httpClientService.httpGet(url, headers, httpConfig.getServerResponseTimeOut());
-        log.warn("请求调度任务" + executeType + "接口" + url);
-        baseResult = resultEncapsulationOfJob(resultMap);
+        log.warn("Execution XXL-JOB Scheduling Task: " + url);
+        BaseResult baseResult = resultEncapsulationOfJob(resultMap);
+        if (!baseResult.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Failed to execute task:" + baseResult.getMessage()));
+        }
         return baseResult;
     }
 
@@ -1164,33 +911,4 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         this.env = environment;
     }
 
-    @Getter
-    @AllArgsConstructor
-    enum LogType {
-        TRAFFIC_LOGS("Traffic Logs", "Traffic Logs"),
-        METRICS("Metrics", "Metrics"),
-        FILES("Files", "Files"),
-        ALL("All", "All");
-        private final String value;
-        private final String label;
-
-
-        public static String getValueByLabel(String label) {
-            for (LogType enums : LogType.values()) {
-                if (enums.getLabel().equals(label)) {
-                    return enums.getValue();
-                }
-            }
-            return "";
-        }
-
-        public static String getLabelByValue(String value) {
-            for (LogType enums : LogType.values()) {
-                if (enums.getValue().equals(value)) {
-                    return enums.getLabel();
-                }
-            }
-            return "";
-        }
-    }
 }

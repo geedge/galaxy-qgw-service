@@ -189,7 +189,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Object> logDiff = Maps.newHashMap();
         Map tables = databaseService.getSchemaInfo(MetadataType.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
         List<String> symbols = (List<String>) tables.get("symbols");
-        logDiff.put("logType", DatabaseServiceImpl.LogType.TRAFFIC_LOGS.getValue());
+        logDiff.put("logType", StorageQuotaLogType.TRAFFIC_LOGS.getValue());
         Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
         List<String> ipPorts = getClusterAddressOfCK();
         try {

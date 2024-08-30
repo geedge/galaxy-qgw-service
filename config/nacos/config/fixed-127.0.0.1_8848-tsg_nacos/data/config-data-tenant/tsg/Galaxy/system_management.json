@@ -1,0 +1,63 @@
+{
+  "storage_quota": [
+    {
+      "type": "Traffic Logs",
+      "source_list": [
+        "session_record",
+        "transaction_record",
+        "voip_record",
+        "security_event",
+        "proxy_event",
+        "dos_event",
+        "monitor_event",
+        "datapath_telemetry_record",
+        "traffic_sketch_metric"
+      ],
+      "max_days": 30,
+      "default_max_days": 30,
+      "max_usage": 90
+    },
+    {
+      "type": "Metrics",
+      "source_list": [
+        "top_client_ips",
+        "top_server_ips",
+        "top_internal_ips",
+        "top_external_ips",
+        "top_server_domains",
+        "top_server_fqdns",
+        "top_client_countries",
+        "top_server_countries",
+        "application_protocol_stat",
+        "traffic_shaping_rule_hits",
+        "service_chaining_rule_hits",
+        "service_function_status",
+        "security_rule_hits",
+        "proxy_rule_hits",
+        "statistics_rule",
+        "object_statistics",
+        "statistics_rule_hits",
+        "monitor_rule_hits",
+        "dos_protection_rule_hits",
+        "dos_protection_rule_metric"
+      ],
+      "max_days": 30,
+      "default_max_days": 365,
+      "max_usage": 90
+    },
+    {
+      "type": "Files",
+      "source_list": [
+        "traffic_file_bucket",
+        "troubleshooting_file_bucket",
+        "traffic_policy_capture_file_bucket",
+        "traffic_rtp_file_bucket",
+        "traffic_http_file_bucket",
+        "traffic_eml_file_bucket"
+      ],
+      "max_days": 30,
+      "default_max_days": 30,
+      "max_usage": 90
+    }
+  ]
+}
