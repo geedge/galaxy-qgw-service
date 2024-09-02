@@ -340,7 +340,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
         storageConfig.put(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA, JSON.toJSON(storageCfgList));
         try {
-            boolean b = systemConfigService.publishConfig(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA, nacosConfig.getGroup(), JSONUtil.toJsonPrettyStr(storageConfig));
+            boolean b = systemConfigService.publishConfig(NacosConst.SYSTEM_MANAGEMENT, nacosConfig.getGroup(), JSONUtil.toJsonPrettyStr(storageConfig));
             if (b) {
                 return BaseResultGenerator.success("ok");
             } else {

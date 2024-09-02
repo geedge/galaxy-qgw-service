@@ -3,7 +3,7 @@ package com.mesalab.qgw.service.impl;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.base.Stopwatch;

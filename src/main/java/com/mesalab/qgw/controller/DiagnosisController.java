@@ -1,7 +1,7 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.http.HttpStatus;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.qgw.constant.QGWMessageConst;

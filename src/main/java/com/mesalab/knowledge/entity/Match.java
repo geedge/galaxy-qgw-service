@@ -1,7 +1,5 @@
 package com.mesalab.knowledge.entity;
 
-import cn.hutool.core.util.TypeUtil;
-import com.alibaba.fastjson.util.TypeUtils;
 import com.google.common.base.CharMatcher;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.geedgenetworks.utils.StringUtil;
