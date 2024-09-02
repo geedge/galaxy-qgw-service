@@ -171,11 +171,14 @@ public class FederationDialect extends AbstractEngineDialect {
         if (baseResult.getMeta() != null) {
             List<Map<String, Object>> metaList = (List<Map<String, Object>>) baseResult.getMeta();
             metaList.forEach(x -> {
-                x.remove(MetaConst.META_CATEGORY);
-                x.remove(MetaConst.META_DATA_TYPE);
-                x.remove(MetaConst.META_FIELD_NAME);
+                Iterator<String> iterator = x.keySet().iterator();
+                while (iterator.hasNext()) {
+                    String key = iterator.next();
+                    if (!key.equals(MetaConst.META_NAME) && !key.equals(MetaConst.META_TYPE)) {
+                        iterator.remove();
+                    }
+                }
             });
-
         }
         if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();

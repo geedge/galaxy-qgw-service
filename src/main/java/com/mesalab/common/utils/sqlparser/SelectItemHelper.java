@@ -7,6 +7,8 @@ import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.RowConstructor;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
@@ -21,6 +23,27 @@ import java.util.*;
  * @Author wWei
  */
 public class SelectItemHelper {
+
+    private static final Map<String, String> FUNCTION_DATE_TYPE_MAPPING = Maps.newHashMap();
+
+    static {
+        FUNCTION_DATE_TYPE_MAPPING.put("FROM_UNIXTIME", DataTypeConst.TIMESTAMP_FORMAT);
+        FUNCTION_DATE_TYPE_MAPPING.put("DATE_FORMAT", DataTypeConst.TIMESTAMP_FORMAT);
+        FUNCTION_DATE_TYPE_MAPPING.put("CONVERT_TZ", DataTypeConst.TIMESTAMP_FORMAT);
+        FUNCTION_DATE_TYPE_MAPPING.put("TIME_FORMAT", DataTypeConst.TIMESTAMP_FORMAT);
+        FUNCTION_DATE_TYPE_MAPPING.put("FROM_UNIXTIME_MILLIS", DataTypeConst.TIMESTAMP_MS_FORMAT);
+        FUNCTION_DATE_TYPE_MAPPING.put("UNIX_TIMESTAMP", DataTypeConst.UNIX_TIMESTAMP);
+        FUNCTION_DATE_TYPE_MAPPING.put("TIME_FLOOR_WITH_FILL", DataTypeConst.UNIX_TIMESTAMP);
+        FUNCTION_DATE_TYPE_MAPPING.put("UNIX_TIMESTAMP_MILLIS", DataTypeConst.UNIX_TIMESTAMP_MS);
+        FUNCTION_DATE_TYPE_MAPPING.put("PERCENTILES_HDR", DataTypeConst.HDR_HISTOGRAM);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_GEO", DataTypeConst.IP);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_CITY", DataTypeConst.IP);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_COUNTRY", DataTypeConst.IP);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_ISP", DataTypeConst.IP);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_ASN", DataTypeConst.IP);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_ASN_DETAIL", DataTypeConst.IP);
+        FUNCTION_DATE_TYPE_MAPPING.put("IP_TO_ASN_ORG", DataTypeConst.IP);
+    }
 
     private SelectItemHelper() {
     }
@@ -92,44 +115,56 @@ public class SelectItemHelper {
             } else if (expression instanceof Function) {
                 Function function = (Function) expression;
                 String functionName = function.getName().toUpperCase();
-                Map<String, String> functionDateTypeMap = Maps.newHashMap();
-                functionDateTypeMap.put("FROM_UNIXTIME", DataTypeConst.TIMESTAMP_FORMAT);
-                functionDateTypeMap.put("DATE_FORMAT", DataTypeConst.TIMESTAMP_FORMAT);
-                functionDateTypeMap.put("CONVERT_TZ", DataTypeConst.TIMESTAMP_FORMAT);
-                functionDateTypeMap.put("TIME_FORMAT", DataTypeConst.TIMESTAMP_FORMAT);
-                functionDateTypeMap.put("FROM_UNIXTIME_MILLIS", DataTypeConst.TIMESTAMP_MS_FORMAT);
-                functionDateTypeMap.put("UNIX_TIMESTAMP", DataTypeConst.UNIX_TIMESTAMP);
-                functionDateTypeMap.put("TIME_FLOOR_WITH_FILL", DataTypeConst.UNIX_TIMESTAMP);
-                functionDateTypeMap.put("DATETIME_FLOOR_WITH_FILL", DataTypeConst.TIMESTAMP_FORMAT);
-                functionDateTypeMap.put("UNIX_TIMESTAMP_MILLIS", DataTypeConst.UNIX_TIMESTAMP_MS);
-                functionDateTypeMap.put("PERCENTILES_HDR", DataTypeConst.HDR_HISTOGRAM);
-                functionDateTypeMap.put("IP_TO_GEO", DataTypeConst.IP);
-                functionDateTypeMap.put("IP_TO_CITY", DataTypeConst.IP);
-                functionDateTypeMap.put("IP_TO_COUNTRY", DataTypeConst.IP);
-                functionDateTypeMap.put("IP_TO_ISP", DataTypeConst.IP);
-                functionDateTypeMap.put("IP_TO_ASN", DataTypeConst.IP);
-                functionDateTypeMap.put("IP_TO_ASN_DETAIL", DataTypeConst.IP);
-                functionDateTypeMap.put("IP_TO_ASN_ORG", DataTypeConst.IP);
-
-                if (functionDateTypeMap.containsKey(functionName)) {
+                if (SQLFunctionUtil.GROUP_UNIQ_ARRAY.equalsIgnoreCase(functionName)
+                        && function.getParameters() != null
+                        && function.getParameters().getExpressions() != null) {
+                    List<Expression> paramExpressions = function.getParameters().getExpressions();
+                    Expression expr1 = paramExpressions.get(0);
+                    if (expr1 instanceof Column) {
+                        Column column = (Column) expr1;
+                        AliasColumn aliasColumn = new AliasColumn();
+                        aliasColumn.setName(name);
+                        aliasColumn.setFieldName(column.getColumnName());
+                        aliasColumn.setArray(true);
+                        this.aliasExpr = aliasColumn;
+                        return;
+                    } else if ((expr1 instanceof Parenthesis) && ((Parenthesis) expr1).getExpression() instanceof Column) {
+                        Column column = (Column) ((Parenthesis) expr1).getExpression();
+                        AliasColumn aliasColumn = new AliasColumn();
+                        aliasColumn.setName(name);
+                        aliasColumn.setFieldName(column.getColumnName());
+                        aliasColumn.setArray(true);
+                        this.aliasExpr = aliasColumn;
+                        return;
+                    } else if (expr1 instanceof RowConstructor
+                            && ((RowConstructor) expr1).getExprList() != null
+                            && ((RowConstructor) expr1).getExprList().getExpressions().get(0) instanceof Column) {
+                        AliasColumn aliasColumn = new AliasColumn();
+                        aliasColumn.setName(name);
+                        aliasColumn.setArray(true);
+                        this.aliasExpr = aliasColumn;
+                        return;
+                    }
+                }
+                if (FUNCTION_DATE_TYPE_MAPPING.containsKey(functionName)) {
                     AliasFunExpr aliasFunExpr = new AliasFunExpr();
                     aliasFunExpr.setName(name);
-                    aliasFunExpr.setDateType(functionDateTypeMap.get(functionName));
+                    aliasFunExpr.setDateType(FUNCTION_DATE_TYPE_MAPPING.get(functionName));
                     this.aliasExpr = aliasFunExpr;
                     return;
                 }
+                AliasObject aliasObject = new AliasObject();
+                aliasObject.setName(name);
+                this.aliasExpr = aliasObject;
             }
-            AliasObject aliasObject = new AliasObject();
-            aliasObject.setName(name);
-            this.aliasExpr = aliasObject;
         }
-
     }
 
     @Data
     public static class AliasObject {
         private String name;
         private int index;
+        private boolean isArray;
     }
 
     @Data

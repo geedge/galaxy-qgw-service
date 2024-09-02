@@ -38,7 +38,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -46,7 +45,7 @@ import java.util.regex.Pattern;
 
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
-    private static final Pattern pNullable = Pattern.compile("\\bNullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pNullable = Pattern.compile("^Nullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pDateTime = Pattern.compile("\\b(DateTime|DateTime64|Date)\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pIn = Pattern.compile("(?<!\\bnot)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pNotIn = Pattern.compile("\\bnot\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
@@ -820,6 +819,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             SelectItemHelper.AliasColumn aliasColumn = (SelectItemHelper.AliasColumn) aliasObject;
             String fieldName = aliasColumn.getFieldName();
             meta.put(MetaConst.META_FIELD_NAME, fieldName);
+            meta.put(MetaConst.IS_ARRAY, String.valueOf(aliasColumn.isArray()));
             Map schemaInfo = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
             Object dateType = JSONPath.extract(JSON.toJSONString(schemaInfo), "$.fields[?(@.name == \"" + fieldName + "\")].doc.constraints.type");
             if (dateType instanceof List && ((List<?>) dateType).size() > 0) {

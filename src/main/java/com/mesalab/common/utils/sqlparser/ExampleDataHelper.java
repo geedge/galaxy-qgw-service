@@ -3,8 +3,10 @@ package com.mesalab.common.utils.sqlparser;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.CharsetUtil;
 import com.alibaba.fastjson2.JSONPath;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -211,31 +213,37 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List getExampleValue(Map<String, String> meta, Object initValue, Boolean isDesc, boolean canRepeat, int size, Map<String, List<Object>> schemaDataDict) {
+    private static List getExampleValue(Map<String, String> meta, Object initValue, Boolean isDesc, boolean repeatable, int size, Map<String, List<Object>> schemaDataDict) {
+        boolean isArray = BooleanUtil.toBoolean(meta.get(MetaConst.IS_ARRAY));
+        List result = inExampleData(meta, schemaDataDict)
+                ? getExampleDataValues(meta, repeatable, size, schemaDataDict)
+                : getOtherExampleValues(meta, isDesc, size);
+        return isArray ? convertToArrayList(result) : result;
+    }
 
-        if (inExampleData(meta, schemaDataDict)) {
-            return getExampleDataValues(meta, canRepeat, size, schemaDataDict);
-        }
+    private static List<List<Object>> convertToArrayList(List<Object> result) {
+        return result.stream()
+                .map(Lists::newArrayList)
+                .collect(Collectors.toList());
+    }
+
+    private static List getOtherExampleValues(Map<String, String> meta, Boolean isDesc, int size) {
         String dataType = meta.get(MetaConst.META_DATA_TYPE) == null ? meta.get(MetaConst.META_TYPE) : meta.get(MetaConst.META_DATA_TYPE);
-
         if (DataTypeMapping.LONG.equals(dataType) || DataTypeMapping.INT.equals(dataType)) {
             return getExampleIntegerValues(null, isDesc, size);
-        }
-        if (DataTypeMapping.DOUBLE.equals(dataType) || DataTypeMapping.FLOAT.equals(dataType)) {
+        } else if (DataTypeMapping.DOUBLE.equals(dataType) || DataTypeMapping.FLOAT.equals(dataType)) {
             return getExampleDoubleValues(null, isDesc, size);
-        }
-        if (DataTypeMapping.BOOLEAN.equals(dataType)) {
+        } else if (DataTypeMapping.BOOLEAN.equals(dataType)) {
             return getExampleBooleanValues(size);
-        }
-        if (DataTypeMapping.DATE.equals(dataType) || DataTypeMapping.TIMESTAMP.equals(dataType)
+        } else if (DataTypeMapping.DATE.equals(dataType) || DataTypeMapping.TIMESTAMP.equals(dataType)
                 || DataTypeConst.TIMESTAMP_FORMAT.equals(dataType)
                 || DataTypeConst.TIMESTAMP_MS_FORMAT.equals(dataType) || DataTypeConst.UNIX_TIMESTAMP.equals(dataType)
                 || DataTypeConst.UNIX_TIMESTAMP_MS.equals(dataType)
-                || DataTypeConst.DATE_TIME_64.equals(dataType)
-        ) {
+                || DataTypeConst.DATE_TIME_64.equals(dataType)) {
             return getExampleDateTimeValues(dataType, size);
+        } else {
+            return getExampleStrValues(size);
         }
-        return getExampleStrValues(size);
     }
 
     private static List<Object> getExampleDateTimeValues(String dataType, int rowCount) {
@@ -254,6 +262,7 @@ public class ExampleDataHelper {
                 value = DateUtil.format(DateUtil.offsetHour(DateUtil.beginOfHour(currentDate), -rowCount), DatePattern.UTC_WITH_ZONE_OFFSET_PATTERN);
                 break;
             case DataTypeConst.TIMESTAMP_MS_FORMAT:
+            case DataTypeConst.DATE_TIME_64:
                 value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATETIME_MS_FORMAT);
                 break;
             case DataTypeConst.UNIX_TIMESTAMP:
@@ -264,9 +273,6 @@ public class ExampleDataHelper {
                 break;
             case DataTypeConst.DATE:
                 value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATE_PATTERN);
-                break;
-            case DataTypeConst.DATE_TIME_64:
-                value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATETIME_MS_FORMAT);
                 break;
             default:
                 value = DateUtil.format(DateUtil.offsetHour(currentDate, -rowCount), DatePattern.NORM_DATETIME_FORMAT);
@@ -303,12 +309,12 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Object> getExampleDataValues(Map<String, String> meta, boolean canRepeat, int size, Map<String, List<Object>> schemaDataDict) {
+    private static List<Object> getExampleDataValues(Map<String, String> meta, boolean repeatable, int size, Map<String, List<Object>> schemaDataDict) {
         List<Object> result = new ArrayList<>();
 
         if (schemaDataDict.containsKey(meta.get(MetaConst.META_FIELD_NAME))) {
             List<Object> list = schemaDataDict.get(meta.get(MetaConst.META_FIELD_NAME));
-            buildEnumDataList(canRepeat, size, result, list);
+            buildEnumDataList(repeatable, size, result, list);
             return result;
         }
 
@@ -329,7 +335,7 @@ public class ExampleDataHelper {
             }
         } else if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
-            buildEnumDataList(canRepeat, size, result, list);
+            buildEnumDataList(repeatable, size, result, list);
         } else if (ExampleDataModeConst.SEQUENCE.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
             result.addAll(list.subList(0, size));
@@ -337,15 +343,15 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static void buildEnumDataList(boolean canRepeat, int size, List<Object> result, List<Object> list) {
-        if (canRepeat) {
+    private static void buildEnumDataList(boolean repeatable, int size, List<Object> result, List<Object> list) {
+        if (repeatable) {
             for (int i = 0; i < size; i++) {
                 int index = RandomNumberGenerator.generateRangeRandomInt(0, list.size() - 1);
                 result.add(list.get(index));
             }
         } else {
             Collections.shuffle(list);
-            result.addAll(list.subList(0, Math.min(size, list.size() )));
+            result.addAll(list.subList(0, Math.min(size, list.size())));
         }
     }
 

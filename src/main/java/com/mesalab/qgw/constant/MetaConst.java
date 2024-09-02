@@ -9,10 +9,12 @@ package com.mesalab.qgw.constant;
  */
 public class MetaConst {
     public static final String META_CATEGORY = "category";
+    public static final String META_CATEGORY_METRIC = "Metric";
+    public static final String META_CATEGORY_DIMENSION = "Dimension";
     public static final String META_NAME = "name";
     public static final String META_TYPE = "type";
     public static final String META_DATA_TYPE = "data_type";
     public static final String META_FIELD_NAME = "field_name";
-    public static final String META_CATEGORY_METRIC = "Metric";
-    public static final String META_CATEGORY_DIMENSION = "Dimension";
+    public static final String IS_ARRAY = "is_array";
+
 }
