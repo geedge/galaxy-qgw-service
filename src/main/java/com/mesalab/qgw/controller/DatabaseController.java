@@ -41,8 +41,7 @@ public class DatabaseController {
     @RequestMapping(value = "/table/{table_name}/schema", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getSchemaByTable")
     public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
-        log.debug("SCHEMA信息获取,参数为{}", tableName);
-
+        log.debug("get Schema api, params is: {}", tableName);
         if (StringUtil.isBlank(tableName)) {
             return BaseResultGenerator.success4Message("ok");
         }
@@ -64,8 +63,7 @@ public class DatabaseController {
     @RequestMapping(value = "/{dbName}/table", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getTableByDB")
     public BaseResult getTableByDB(@PathVariable String dbName) {
-        log.debug("SCHEMA信息获取,参数为{}", dbName);
-
+        log.debug("get tables api, params is: {}", dbName);
         if (StringUtil.isBlank(dbName)) {
 
             return BaseResultGenerator.success4Message("ok");
@@ -82,7 +80,7 @@ public class DatabaseController {
     @PutMapping(value = "/storage/quota", consumes = "application/json")
     @AuditLog("DatabaseController.storageSetting")
     public BaseResult putStorageQuotaCfg(@RequestBody List<StorageDeletionInfo> list) {
-        log.warn("数据配额设置, 参数: params is {}", list);
+        log.warn("setting storage quota, params is :{}", list);
         if (StringUtil.isEmpty(list)) {
             return BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.PARAMETER_NOT_OBTAINED));
@@ -101,12 +99,13 @@ public class DatabaseController {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.MAXDAYS_ERROR));
             }
         }
-        return databaseService.updateStorageQuatoCfg(list);
+        return databaseService.updateStorageQuotaCfg(list);
     }
 
     @RequestMapping(value = "/storage/quota", method = RequestMethod.DELETE, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.storageDeletion")
     public BaseResult cleanData(@RequestParam String type) {
+        log.warn("clean storage quota, params is :{}", type);
         if (Arrays.stream(StorageQuotaLogType.values()).noneMatch(value -> value.getValue().equals(type))) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "not exist type: " + type));
@@ -117,6 +116,7 @@ public class DatabaseController {
     @RequestMapping(value = "/storage/quota/daily_usage", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.dailyTrendOfStorage")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
+        log.debug("get storage quota trend api, params is: {}", param);
         String searchStartTime = StringUtil.stripToEmpty((String) param.get("start_time"));
         String searchEndTime = StringUtil.stripToEmpty((String) param.get("end_time"));
         return databaseService.dailyTrendOfStorage(searchStartTime, searchEndTime);

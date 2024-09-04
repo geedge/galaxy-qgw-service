@@ -328,7 +328,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult updateStorageQuatoCfg(List<StorageDeletionInfo> list) {
+    public BaseResult updateStorageQuotaCfg(List<StorageDeletionInfo> list) {
         Object systemManagementCfgObj = getCfg(NacosConst.SYSTEM_MANAGEMENT);
         LinkedHashMap storageConfig = JSON.parseObject(JSON.toJSON(systemManagementCfgObj).toString(), LinkedHashMap.class);
         List<LinkedHashMap> storageCfgList = JSON.parseArray(JSON.toJSON(storageConfig.get(NacosConst.SYSTEM_MANAGEMENT_STORAGE_QUOTA)).toString(), LinkedHashMap.class);
@@ -360,8 +360,10 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             list.add(StorageQuotaLogType.TRAFFIC_LOGS.getValue());
             list.add(StorageQuotaLogType.METRICS.getValue());
             list.add(StorageQuotaLogType.FILES.getValue());
+        } else {
+            list.add(type);
         }
-        list.add(type);
+
 
         if (jobIsBusy(list)) {
             return BaseResultGenerator.failure(HttpStatusCodeEnum.LOCKED.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),

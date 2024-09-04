@@ -125,7 +125,7 @@ public interface DatabaseService {
      * @param list
      * @return
      */
-    BaseResult updateStorageQuatoCfg(List<StorageDeletionInfo> list);
+    BaseResult updateStorageQuotaCfg(List<StorageDeletionInfo> list);
 
     BaseResult cleanDataByType(String type);
 
