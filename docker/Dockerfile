@@ -1,7 +1,7 @@
 ARG JDK_IMAGE
-ARG GOLANG_IMAGE
+ARG GO_IMAGE
 #编译环境，生成二进制文件
-FROM ${GOLANG_IMAGE} as builder
+FROM ${GO_IMAGE} as builder
 WORKDIR /build
 COPY xjar.go /build/
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o xjar .
