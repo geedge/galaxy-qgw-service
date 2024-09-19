@@ -48,7 +48,6 @@
     {
       "type": "Files",
       "source_list": [
-        "traffic_file_bucket",
         "troubleshooting_file_bucket",
         "traffic_policy_capture_file_bucket",
         "traffic_rtp_file_bucket",
