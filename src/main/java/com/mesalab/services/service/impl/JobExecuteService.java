@@ -21,6 +21,7 @@ import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
+import com.mesalab.common.utils.sqlparser.AutoPeriodHelper;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.DslIdentifierNameConst;
@@ -79,6 +80,7 @@ public class JobExecuteService implements EnvironmentAware {
     private DSLService dslService;
     private PacketCombineDslService packetCombineDslService;
     private TrafficSpectrumDslService trafficSpectrumDslService;
+    private LogQueryService logQueryService;
     private EngineConfigSource engineConfigSource;
     private JobConfig jobCfg;
     private CustomizedStatisticsService customizedStatisticsService;
@@ -196,6 +198,24 @@ public class JobExecuteService implements EnvironmentAware {
             markJobBegin(request.getId());
             customizedStatisticsService.validate(request);
             updateJobResultOnQueryCache(request.getId(), customizedStatisticsService.run(request), null);
+        } catch (RuntimeException e) {
+            markJobFailure(request.getId(), e.getMessage());
+        } finally {
+            try {
+                markJobCompletion(request.getId());
+            } finally {
+                if (countDownLatch != null) {
+                    countDownLatch.countDown();
+                }
+            }
+        }
+    }
+
+    @Async("lightWeightThreadPool")
+    public void addDslExecutorLogQueryWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
+        try {
+            markJobBegin(request.getId());
+            updateJobResultOnQueryCache(request.getId(), logQueryService.run(request), null);
         } catch (RuntimeException e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -969,5 +989,10 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     public void setJobCfg(CustomizedStatisticsService customizedStatisticsService) {
         this.customizedStatisticsService = customizedStatisticsService;
+    }
+
+    @Autowired
+    public void setLogQueryService(LogQueryService logQueryService) {
+        this.logQueryService = logQueryService;
     }
 }

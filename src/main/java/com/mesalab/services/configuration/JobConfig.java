@@ -32,6 +32,9 @@ public class JobConfig {
     public static final String LINKS = "links";
     public static final String LINKS_STATUS = "status";
     public static final String LINKS_RESULT = "result";
+    public static final String LINKS_TIMELINE = "timeline";
+    public static final String LINKS_LIST = "list";
+    public static final String LINKS_COUNT = "count";
     public static final String DURATION_TIME = "duration_time";
     public static final String LAST_QUERY_TIME = "last_query_time";
     public static final String LONG_TERM_RESULT = "result";
@@ -53,6 +56,7 @@ public class JobConfig {
     public static final String QUERY_DATA_SOURCE = "query.data_source";
     public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY = "field_discovery";
+    public static final String LOG_QUERY = "log-query";
     public static final String DATAPATH_PACKET_COMBINE = "datapath_telemetry_packet_combine";
     public static final String TRAFFIC_SPECTRUM_SUMMARY = "traffic-spectrum-summary";
     public static final String TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS = "traffic-spectrum-unique-client-and-server-ips";

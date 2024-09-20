@@ -54,10 +54,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private SQLSyncQueryService sqlSyncQueryService;
     private JobService jobService;
     private JobExecuteService jobExecuteService;
+    private DatabaseService databaseService;
     private DSLService dslService;
     private TrafficSpectrumDslService trafficSpectrumDslService;
     private EngineConfigSource engineConfigSource;
     private JobConfig jobConfig;
+    private LogQueryService logQueryService;
 
 
     @Override
@@ -85,7 +87,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     .format(sqlQueryRequestParam.getOutputMode().getValue())
                     .build());
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            HazelcastInstanceMapUtil.put(sqlQueryRequestParam.getId(), new QueryCache(sqlQueryRequestParam.getId()));
+            HazelcastInstanceMapUtil.put(sqlQueryRequestParam.getId(), new QueryCache(sqlQueryRequestParam.getId(), null));
             jobExecuteService.addExecutorSql(sqlQueryRequestParam);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(sqlQueryRequestParam.getId()));
         } else if (ExecutionMode.BLOCKING.equals(execMode)) {
@@ -124,8 +126,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId());
-                queryCache.setType(request.getName());
+                QueryCache queryCache = new QueryCache(request.getId(), request.getName());
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
@@ -154,9 +155,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
             }
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            QueryCache queryCache = new QueryCache(request.getId());
+            QueryCache queryCache = new QueryCache(request.getId(), request.getName());
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                queryCache.setType(JobConfig.FIELD_DISCOVERY);
                 validFieldDiscovery(request);
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addExecutorFieldDiscovery(request);
@@ -174,6 +174,11 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addDslExecutorCustomizedStatisticsWithCache(request, null);
+            } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
+                queryCache.setType(JobConfig.LOG_QUERY);
+                queryCache.setRequestParam(request);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addDslExecutorLogQueryWithCache(request, null);
             } else {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addExecutorDsl(request);
@@ -184,7 +189,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 execAdnWaitFieldDiscoveryDone(request.getId(), request);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId());
+                QueryCache queryCache = new QueryCache(request.getId(), null);
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
@@ -203,8 +208,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
                     || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId());
-                queryCache.setType(request.getName());
+                QueryCache queryCache = new QueryCache(request.getId(), request.getName());
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
@@ -231,8 +235,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     private void execAdnWaitFieldDiscoveryDone(String id, DSLQueryRequestParam request) {
-        QueryCache queryCacheStart = new QueryCache(id);
-        queryCacheStart.setType(JobConfig.FIELD_DISCOVERY);
+        QueryCache queryCacheStart = new QueryCache(id, JobConfig.FIELD_DISCOVERY);
         validFieldDiscovery(request);
         HazelcastInstanceMapUtil.put(id, queryCacheStart);
         Future<Boolean> booleanFuture = jobExecuteService.addExecutorFieldDiscovery(request);
@@ -245,7 +248,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     private QueryCache buildQueryCacheOfDone(String id, long start, BaseResult baseResult) {
-        QueryCache queryCache = new QueryCache(id);
+        QueryCache queryCache = new QueryCache(id, null);
         Map<String, Object> jobInfo = queryCache.getBaseResult().getJob();
         jobInfo.put(JobConfig.IS_DONE, true);
         jobInfo.put(JobConfig.DONE_PROGRESS, 1);
@@ -270,9 +273,42 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         } else if (JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(queryCache.getType())) {
             queryCache = rebuildTrafficSpectrumCIPConnectAppUsageQueryCache(queryCache);
+        } else if (JobConfig.LOG_QUERY.equals(queryCache.getType())) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The log-query DSL does not have a result API."));
         }
         BaseResult<Object> baseResult = queryCache.getBaseResult();
         return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
+    }
+
+    @Override
+    public BaseResult getAdHocQueryTimelineById(String id) {
+        QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+        if (queryCache == null) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "No job found for ID " + id + ", or the cache has expired."));
+        }
+        return logQueryService.getQueryTimelineByQueryContext(queryCache);
+    }
+
+    @Override
+    public BaseResult getAdHocQueryCountById(String id) {
+        QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+        if (queryCache == null) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "No job found for ID " + id + ", or the cache has expired."));
+        }
+        return logQueryService.getQueryCountByQueryContext(queryCache);
+    }
+
+    @Override
+    public BaseResult getAdHocQueryListById(String id, String fields, int limit, int offset) {
+        QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
+        if (queryCache == null) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "No job found for ID " + id + ", or the cache has expired."));
+        }
+        return logQueryService.getQueryListByQueryContext(queryCache, fields, limit, offset);
     }
 
     @Override
@@ -504,5 +540,15 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Autowired
     public void setJobConfig(JobConfig jobConfig) {
         this.jobConfig = jobConfig;
+    }
+
+    @Autowired
+    public void setDatabaseService(DatabaseService databaseService) {
+        this.databaseService = databaseService;
+    }
+
+    @Autowired
+    public void setDatabaseService(LogQueryService logQueryService) {
+        this.logQueryService = logQueryService;
     }
 }

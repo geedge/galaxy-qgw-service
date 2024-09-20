@@ -115,6 +115,43 @@ public class QueryController {
         return deferredResult;
     }
 
+    @GetMapping(value = "/v1/query/job/{id}/timeline", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobTimelineById")
+    public BaseResult getJobTimelineById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+        if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
+        } else {
+            return queryJobService.getAdHocQueryTimelineById(id);
+        }
+    }
+
+    @GetMapping(value = "/v1/query/job/{id}/count", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobTimelineById")
+    public BaseResult getJobCountById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+        if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
+        } else {
+            return queryJobService.getAdHocQueryCountById(id);
+        }
+    }
+
+    @GetMapping(value = "/v1/query/job/{id}/list", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobTimelineById")
+    public BaseResult getJobListById(@PathVariable String id
+            , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery
+            , @RequestParam(value = "fields", required = false, defaultValue = "*") String fields
+            , @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit
+            , @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) {
+        if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
+        } else {
+            return queryJobService.getAdHocQueryListById(id, fields, limit, offset);
+        }
+    }
+
     @GetMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
     @AuditLog("QueryController.getJobStatusById")
     public DeferredResult<BaseResult> getJobStatusById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
