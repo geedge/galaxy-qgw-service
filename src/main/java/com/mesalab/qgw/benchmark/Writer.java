@@ -5,25 +5,19 @@ import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.DatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public abstract class Writer {
@@ -57,7 +51,7 @@ public abstract class Writer {
             }
             List<String> resultLines = Lists.newArrayList();
             for (String line : list) {
-                String sql = datasetService.buildExecSQL(variables, line);
+                String sql = datasetService.buildExecDSL(variables, line);
                 resultLines.add(sql);
             }
             writer.appendLines(resultLines);

@@ -63,11 +63,11 @@ public class DatasetServiceImp
                 String key = String.valueOf(variable.get("key"));
                 String def = String.valueOf(variable.get("default"));
                 Date currentDate = DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                if ("start_time".equals(key)&& StringUtil.isBlank(def)){
+                if ("start_time".equals(key) && StringUtil.isBlank(def)) {
                     def = DateUtils.getFormatDate(DateUtils.getSomeHour(currentDate, -1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
                     variable.put("default", def);
                 }
-                if ("end_time".equals(key)&& StringUtil.isBlank(def)){
+                if ("end_time".equals(key) && StringUtil.isBlank(def)) {
                     def = DateUtils.getFormatDate(currentDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
                     variable.put("default", def);
                 }
@@ -82,7 +82,7 @@ public class DatasetServiceImp
         List<Record> list = Db.find(buildGetDatasetSQL(Lists.newArrayList(datasetId), null, null));
         if (CollectionUtils.isEmpty(list)) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),QGWMessageConst.DATASET_ID_NOT_EXIST));
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), QGWMessageConst.DATASET_ID_NOT_EXIST));
         }
         List<Map<String, Object>> results = formatResultData(list);
         Map<String, Object> result = results.get(0);
@@ -114,7 +114,7 @@ public class DatasetServiceImp
     @Override
     public BaseResult getPreview(String datasetId) {
         Map<String, Object> dataset = getDataset(datasetId);
-        String template = buildExecSQL(getVariable(), String.valueOf(dataset.get(TEMPLATE)));
+        String template = buildExecDSL(getVariable(), String.valueOf(dataset.get(TEMPLATE)));
         String datasetType = String.valueOf(dataset.get(DATASET_TYPE));
         if (datasetType.equalsIgnoreCase("sql")) {
             SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(template, SqlQueryRequestParam.class);
@@ -134,22 +134,24 @@ public class DatasetServiceImp
 
 
     @Override
-    public String buildExecSQL(List<LinkedHashMap> variables, String sql) {
-        Matcher matcher = pLeftRightFlag.matcher(sql);
+    public String buildExecDSL(List<LinkedHashMap> variables, String template) {
+        Matcher matcher = pLeftRightFlag.matcher(template);
         while (matcher.find()) {
-            sql = processOptionalClause(sql, "[[", "]]");
+            template = processOptionalClause(template, "[[", "]]");
         }
-        sql = processFieldVariable(sql);
         for (LinkedHashMap linkedHashMap : variables) {
             String variable = String.valueOf(linkedHashMap.get("key"));
-            String def = String.valueOf(linkedHashMap.get("default"));
-            if ("filter".equals(variable) && StringUtil.isBlank(def)) {
-                def = " 1 = 1";
+            Object def = linkedHashMap.get("default");
+            String parameter;
+            if (def instanceof Map) {
+                parameter = "\"${".concat(variable).concat("}\"");
+            } else {
+                parameter = "${".concat(variable).concat("}");
             }
-            String parameter = "${".concat(variable).concat("}");
-            sql = sql.replace(parameter, def);
+            template = template.replace(parameter, String.valueOf(def));
         }
-        return sql;
+        template = processFieldVariable(template);
+        return template;
     }
 
     private String buildGetDatasetSQL(List<String> ids, String category, String backendEngine) {

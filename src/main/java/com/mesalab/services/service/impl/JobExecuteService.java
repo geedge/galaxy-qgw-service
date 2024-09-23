@@ -14,14 +14,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
-import com.mesalab.common.utils.sqlparser.AutoPeriodHelper;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.DslIdentifierNameConst;
@@ -52,7 +50,6 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -79,6 +76,7 @@ public class JobExecuteService implements EnvironmentAware {
     private DatabaseService databaseService;
     private DSLService dslService;
     private PacketCombineDslService packetCombineDslService;
+    private FieldDiscoveryService fieldDiscoveryService;
     private TrafficSpectrumDslService trafficSpectrumDslService;
     private LogQueryService logQueryService;
     private EngineConfigSource engineConfigSource;
@@ -95,7 +93,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     @Async("lightWeightThreadPool")
-    public Future<Boolean> addExecutorFieldDiscovery(DSLQueryRequestParam request) {
+    public Future<Boolean> addExecutorFieldDiscoveryDeprecatedV2410(DSLQueryRequestParam request) {
         try {
             markJobBegin(request.getId());
             JobInfo jobInfo = new JobInfo(request.getId());
@@ -110,6 +108,20 @@ public class JobExecuteService implements EnvironmentAware {
             // 处理 InterruptedException 并保留中断状态
             Thread.currentThread().interrupt();
             markJobFailure(request.getId(), "Job was interrupted: " + e.getMessage());
+        } catch (Exception e) {
+            markJobFailure(request.getId(), e.getMessage());
+        } finally {
+            markJobCompletion(request.getId());
+        }
+        return new AsyncResult<>(true);
+    }
+
+    @Async("lightWeightThreadPool")
+    public Future<Boolean> addExecutorFieldDiscovery(DSLQueryRequestParam request) {
+        try {
+            markJobBegin(request.getId());
+            fieldDiscoveryService.validate(request);
+            fieldDiscoveryService.asyncRun(request);
         } catch (Exception e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -823,7 +835,7 @@ public class JobExecuteService implements EnvironmentAware {
         return map;
     }
 
-    private static DecimalFormat getDecimalFormat() {
+    public static DecimalFormat getDecimalFormat() {
         DecimalFormat format = new DecimalFormat("#0.####");
         format.applyPattern("0.0000");
         format.setRoundingMode(RoundingMode.FLOOR);
@@ -994,5 +1006,10 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     public void setLogQueryService(LogQueryService logQueryService) {
         this.logQueryService = logQueryService;
+    }
+
+    @Autowired
+    public void setFieldDiscoveryService(FieldDiscoveryService fieldDiscoveryService) {
+        this.fieldDiscoveryService = fieldDiscoveryService;
     }
 }

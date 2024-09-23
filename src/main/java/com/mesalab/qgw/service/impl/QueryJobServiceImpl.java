@@ -107,7 +107,19 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         long start = System.currentTimeMillis();
         ExecutionMode execMode = request.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
+                execAdnWaitFieldDiscoveryDoneDeprecatedV2410(request.getId(), request);
+                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
+                HazelcastInstanceMapUtil.remove(request.getId());
+                BaseResult<Object> baseResult = queryCache.getBaseResult();
+                Map<String, Object> job = baseResult.getJob();
+                if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
+                        && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                        && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                    return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
+                }
+                return BaseResultGenerator.error(baseResult.getMessage());
+            } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(request.getId(), request);
                 QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
                 HazelcastInstanceMapUtil.remove(request.getId());
@@ -156,8 +168,11 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             }
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
             QueryCache queryCache = new QueryCache(request.getId(), request.getName());
-            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
                 validFieldDiscovery(request);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addExecutorFieldDiscoveryDeprecatedV2410(request);
+            } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 jobExecuteService.addExecutorFieldDiscovery(request);
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
@@ -185,7 +200,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             }
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
         } else if (ExecutionMode.BLOCKING.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
+                execAdnWaitFieldDiscoveryDoneDeprecatedV2410(request.getId(), request);
+                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+            } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(request.getId(), request);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
@@ -234,9 +252,21 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
     }
 
-    private void execAdnWaitFieldDiscoveryDone(String id, DSLQueryRequestParam request) {
-        QueryCache queryCacheStart = new QueryCache(id, JobConfig.FIELD_DISCOVERY);
+    private void execAdnWaitFieldDiscoveryDoneDeprecatedV2410(String id, DSLQueryRequestParam request) {
+        QueryCache queryCacheStart = new QueryCache(id, JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410);
         validFieldDiscovery(request);
+        HazelcastInstanceMapUtil.put(id, queryCacheStart);
+        Future<Boolean> booleanFuture = jobExecuteService.addExecutorFieldDiscoveryDeprecatedV2410(request);
+        while (true) {
+            if (!booleanFuture.isDone()) {
+                continue;
+            }
+            break;
+        }
+    }
+
+    private void execAdnWaitFieldDiscoveryDone(String id, DSLQueryRequestParam request) {
+        QueryCache queryCacheStart = new QueryCache(id, request.getName());
         HazelcastInstanceMapUtil.put(id, queryCacheStart);
         Future<Boolean> booleanFuture = jobExecuteService.addExecutorFieldDiscovery(request);
         while (true) {
@@ -246,6 +276,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             break;
         }
     }
+
 
     private QueryCache buildQueryCacheOfDone(String id, long start, BaseResult baseResult) {
         QueryCache queryCache = new QueryCache(id, null);
@@ -269,7 +300,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         if (queryCache == null) {
             return BaseResultGenerator.success(Lists.newArrayList());
         }
-        if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
+        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(queryCache.getType())) {
+            queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
+        } else if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         } else if (JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(queryCache.getType())) {
             queryCache = rebuildTrafficSpectrumCIPConnectAppUsageQueryCache(queryCache);
@@ -345,7 +378,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             if (queryCache == null) {
                 continue;
             }
-            if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
+            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(queryCache.getType())) {
                 queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
             }
             baseResult = queryCache.getBaseResult();

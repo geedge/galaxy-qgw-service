@@ -272,7 +272,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         datasetList.forEach(record -> {
             Map<String, String> map = Maps.newHashMap();
             map.put(IDENTIFIER_NAME, String.valueOf(record.getColumns().get(IDENTIFIER_NAME)));
-            map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(variables, String.valueOf(record.getColumns().get(TEMPLATE)))));
+            map.put(TEMPLATE, String.valueOf(datasetService.buildExecDSL(variables, String.valueOf(record.getColumns().get(TEMPLATE)))));
             if (record.getColumns().get(DATASET_TYPE).equals("sql")) {
                 sqlDatasetList.add(map);
             } else if (record.getColumns().get(DATASET_TYPE).equals("dsl")) {
@@ -346,7 +346,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                     Map<String, String> map = Maps.newHashMap();
                     map.put(IDENTIFIER_NAME, identifierName);
                     map.put(TYPE, type);
-                    map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(variables, template)));
+                    map.put(TEMPLATE, String.valueOf(datasetService.buildExecDSL(variables, template)));
                     if (DBEngineType.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
                         druidDatasetList.add(map);
                     } else if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {

@@ -1,5 +1,11 @@
 [
   {
+    "key": "dimension_list",
+    "default": {
+      "dimension_name": "client_ip"
+    }
+  },
+  {
     "key": "start_time",
     "default": ""
   },

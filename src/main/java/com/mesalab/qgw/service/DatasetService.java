@@ -1,6 +1,5 @@
 package com.mesalab.qgw.service;
 
-import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 
 import java.util.LinkedHashMap;
@@ -52,6 +51,6 @@ public interface DatasetService
      * @param
      * @return
      */
-    String buildExecSQL(List<LinkedHashMap> variables, String sql);
+    String buildExecDSL(List<LinkedHashMap> variables, String sql);
 
 }

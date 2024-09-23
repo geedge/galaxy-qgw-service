@@ -110,7 +110,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         }
         log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
-        if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
+        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(queryType)) {
             initFieldDiscoveryJob(id, reqBody, property);
             //jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
         } else if (JobConfig.STATISTICS.equals(queryType)) {
@@ -394,7 +394,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
     }
 
     private void initFieldDiscoveryJob(String id, HashMap<String, Object> body, Map<String, Object> property) {
-        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
+        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410);
         List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         List<String> interim = Lists.newArrayList(fields);
         BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOption.REAL_TIME.getValue()).build());
@@ -407,7 +407,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         meta.forEach(m -> metaName.add(m.get("name").toString()));
         interim.removeAll(metaName);
         for (String field : interim) {
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410, field));
         }
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, String.join(",", fields));
         execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
@@ -599,7 +599,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
 
     private void validateAdHocQuery(HashMap<String, Object> body) {
         Object type = body.get(JobConfig.KEY_QUERY_TYPE);
-        if (JobConfig.FIELD_DISCOVERY.equals(type)) {
+        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(type)) {
             //validCustomParamsOfFieldDiscovery(body);
             //List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
             //body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));

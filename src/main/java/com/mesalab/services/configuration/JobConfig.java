@@ -55,7 +55,8 @@ public class JobConfig {
     public static final String FILTER = "filter";
     public static final String QUERY_DATA_SOURCE = "query.data_source";
     public static final String SAVED_QUERY = "saved_query";
-    public static final String FIELD_DISCOVERY = "field_discovery";
+    public static final String FIELD_DISCOVERY_DEPRECATED_V2410 = "field_discovery";
+    public static final String FIELD_DISCOVERY = "field-discovery";
     public static final String LOG_QUERY = "log-query";
     public static final String DATAPATH_PACKET_COMBINE = "datapath_telemetry_packet_combine";
     public static final String TRAFFIC_SPECTRUM_SUMMARY = "traffic-spectrum-summary";
