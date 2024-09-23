@@ -145,6 +145,8 @@
         "ssl_cn",
         "ssl_ja3_hash",
         "ssl_ja3s_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "ssl_esni_flag",
@@ -309,6 +311,8 @@
         "ssl_handshake_latency_ms",
         "ssl_ja3_hash",
         "ssl_ja3s_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "dtls_sni",
@@ -473,6 +477,8 @@
         "ssl_handshake_latency_ms",
         "ssl_ja3_hash",
         "ssl_ja3s_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "ssl_esni_flag",
@@ -676,6 +682,8 @@
           "ssl_handshake_latency_ms",
           "ssl_ja3_hash",
           "ssl_ja3s_hash",
+          "ssl_ja4_fingerprint",
+          "ssl_ja4s_fingerprint",
           "ssl_cert_issuer",
           "ssl_cert_subject",
           "ssl_esni_flag",
@@ -3188,6 +3196,24 @@
     {
       "name": "ssl_ja3s_hash",
       "label": "SSL.JA3S Hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja4_fingerprint",
+      "label": "SSL.JA4",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja4s_fingerprint",
+      "label": "SSL.JA4S",
       "doc": {
         "visibility": "enabled",
         "ttl": null
