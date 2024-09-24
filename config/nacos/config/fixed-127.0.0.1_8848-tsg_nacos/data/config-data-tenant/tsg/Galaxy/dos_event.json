@@ -115,8 +115,8 @@
       "type": "long"
     },
     {
-      "name": "profile_id",
-      "label": "Profile ID(Deprecated)",
+      "name": "rule_id",
+      "label": "Rule ID(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -124,13 +124,13 @@
       "type": "long"
     },
     {
-      "name": "rule_id",
-      "label": "Rule ID",
+      "name": "rule_uuid",
+      "label": "Rule UUID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "vsys_id",
