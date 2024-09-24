@@ -16,13 +16,10 @@
         "device_id",
         "device_group",
         "data_center",
-        "rule_id",
-        "template_id",
-        "chart_id",
+        "rule_uuid",
+        "template_uuid",
+        "chart_uuid",
         "version",
-        "client_ip_object_list",
-        "server_ip_object_list",
-        "fqdn_category_list",
         "client_ip",
         "server_ip",
         "client_country",
@@ -66,9 +63,9 @@
         "device_id",
         "device_group",
         "data_center",
-        "rule_id",
-        "template_id",
-        "chart_id",
+        "rule_uuid",
+        "template_uuid",
+        "chart_uuid",
         "version"
       ],
       "references": {
@@ -145,28 +142,28 @@
       }
     },
     {
-      "name": "rule_id",
+      "name": "rule_uuid",
       "label": "Rule",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
-      "name": "template_id",
-      "label": "Template ID",
+      "name": "template_uuid",
+      "label": "Template UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
-      "name": "chart_id",
-      "label": "Chart ID",
+      "name": "chart_uuid",
+      "label": "Chart UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "version",
@@ -178,30 +175,6 @@
         "visibility": "enabled"
       },
       "type": "long"
-    },
-    {
-      "name": "client_ip_object",
-      "label": "Client IP Matched Objects(Deprecated)",
-      "doc": {
-        "visibility": "hidden"
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_ip_object",
-      "label": "Server IP Matched Objects(Deprecated)",
-      "doc": {
-        "visibility": "hidden"
-      },
-      "type": "string"
-    },
-    {
-      "name": "fqdn_category",
-      "label": "WebSketch Categories(Deprecated)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "string"
     },
     {
       "name": "client_ip_object_list",
@@ -307,17 +280,6 @@
       "doc": {
         "constraints": {
           "type": "domain"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "application",
-      "label": "Application(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "app"
         },
         "visibility": "enabled"
       },
@@ -569,306 +531,6 @@
       "doc": {
         "type": "HdrHistogramSketchMerge",
         "metric_type": "distribution",
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "in_bytes",
-      "label": "Incoming Bytes(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE, BITRATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "out_bytes",
-      "label": "Outgoing Bytes(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE, BITRATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "bytes",
-      "label": "Bytes(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE, BITRATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "in_pkts",
-      "label": "Incoming Packets(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "out_pkts",
-      "label": "Outgoing Packets(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "pkts",
-      "label": "Packets(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "new_c2s_flows",
-      "label": "New Client-to-Server Flows(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "new_s2c_flows",
-      "label": "New Server-to-Client Flows(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "new_in_sessions",
-      "label": "New Incoming Sessions(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "new_out_sessions",
-      "label": "New Outgoing Sessions(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "sessions",
-      "label": "Sessions(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "new_unestablished_sessions",
-      "label": "New Unestablished Sessions(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "syn_pkts",
-      "label": "SYN Packets(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_ip_fragments",
-      "label": "Client-to-Server IP Fragments(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_ip_fragments",
-      "label": "Server-to-Client IP Fragments(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "ip_fragments",
-      "label": "IP Fragments(Deprecated)",
-      "doc": {
-        "constraints": {
-          "metric_type": "count",
-          "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "session_identifier_sketch",
-      "label": "Session IDs(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HLLDSketchMerge",
-          "metric_type": "unique_count"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "client_ip_sketch",
-      "label": "Client IPs(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HLLDSketchMerge",
-          "metric_type": "unique_count"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_ip_sketch",
-      "label": "Server IPs(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HLLDSketchMerge",
-          "metric_type": "unique_count"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "in_latency_ms_sketch",
-      "label": "Incoming Latency(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HdrHistogramSketchMerge",
-          "metric_type": "distribution"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "out_latency_ms_sketch",
-      "label": "Outgoing Latency(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HdrHistogramSketchMerge",
-          "metric_type": "distribution"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "latency_ms_sketch",
-      "label": "Latency(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HdrHistogramSketchMerge",
-          "metric_type": "distribution"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "in_pkt_length_sketch",
-      "label": "Incoming Packet Length(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HdrHistogramSketchMerge",
-          "metric_type": "distribution"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "out_pkt_length_sketch",
-      "label": "Outgoing Packet Length(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HdrHistogramSketchMerge",
-          "metric_type": "distribution"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "pkt_length_sketch",
-      "label": "Packet Length(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "HdrHistogramSketchMerge",
-          "metric_type": "distribution"
-        },
         "visibility": "enabled"
       },
       "type": "string"

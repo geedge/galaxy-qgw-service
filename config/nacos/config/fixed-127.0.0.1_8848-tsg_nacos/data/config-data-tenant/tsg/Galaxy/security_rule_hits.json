@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "rule_id",
+        "rule_uuid",
         "action",
         "device_group",
         "data_center"
@@ -25,7 +25,7 @@
         "out_pkts"
       ],
       "filters": [
-        "rule_id",
+        "rule_uuid",
         "action",
         "device_group",
         "data_center"
@@ -124,9 +124,9 @@
       "type": "string"
     },
     {
-      "name": "rule_id",
+      "name": "rule_uuid",
       "label": "Rule",
-      "type": "long",
+      "type": "string",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"

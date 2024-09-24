@@ -2,7 +2,7 @@
   "metrics_value_statistics": {
     "name": "customized-statistics",
     "data_source": "statistics_rule",
-    "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
+    "filter": "vsys_id in (1) AND rule_uuid = '1' AND template_uuid = '1' AND chart_uuid = '1' AND version = 1",
     "custom.statistics.dimensions": [
       {
         "dimension_name": "server_fqdn",
@@ -44,7 +44,7 @@
   "metrics_value_statistics_over_time": {
     "name": "customized-statistics",
     "data_source": "statistics_rule",
-    "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
+    "filter": "vsys_id in (1) AND rule_uuid = '1' AND template_uuid = '1' AND chart_uuid = '1' AND version = 1",
     "custom.statistics.dimensions": [
       {
         "function": {
@@ -79,7 +79,7 @@
   "metrics_value_series_statistics_over_time": {
     "name": "customized-statistics",
     "data_source": "statistics_rule",
-    "filter": "vsys_id in (1) AND rule_id = 1 AND template_id = 1 AND chart_id = 1 AND version = 1",
+    "filter": "vsys_id in (1) AND rule_uuid = '1' AND template_uuid = '1' AND chart_uuid = '1' AND version = 1",
     "custom.statistics.dimensions": [
       {
         "function": {

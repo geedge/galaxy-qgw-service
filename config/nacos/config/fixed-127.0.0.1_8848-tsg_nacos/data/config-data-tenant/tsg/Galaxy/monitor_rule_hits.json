@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "rule_id",
+        "rule_uuid",
         "device_group",
         "data_center"
       ],
@@ -26,7 +26,7 @@
       "filters": [
         "device_group",
         "data_center",
-        "rule_id"
+        "rule_uuid"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -122,9 +122,9 @@
       "type": "string"
     },
     {
-      "name": "rule_id",
+      "name": "rule_uuid",
       "label": "Rule",
-      "type": "long",
+      "type": "string",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"

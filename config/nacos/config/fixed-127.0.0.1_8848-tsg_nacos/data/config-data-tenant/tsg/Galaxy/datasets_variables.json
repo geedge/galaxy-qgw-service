@@ -18,16 +18,16 @@
     "default": 1
   },
   {
-    "key": "rule_id",
-    "default": 1
+    "key": "rule_uuid",
+    "default": "1"
   },
   {
-    "key": "template_id",
-    "default": 1
+    "key": "template_uuid",
+    "default": "1"
   },
   {
-    "key": "chart_id",
-    "default": 1
+    "key": "chart_uuid",
+    "default": "1"
   },
   {
     "key": "version",
@@ -38,12 +38,12 @@
     "default": "ip"
   },
   {
-    "key": "object_id",
-    "default": 1
+    "key": "object_uuid",
+    "default": "1"
   },
   {
-    "key": "item_id",
-    "default": 40
+    "key": "item_uuid",
+    "default": "40"
   },
   {
     "key": "limit",
@@ -70,16 +70,16 @@
     "default": "bytes"
   },
   {
-    "key": "sf_profile_id",
-    "default": 10011
+    "key": "sf_profile_uuid",
+    "default": "10011"
   },
   {
-    "key": "sff_profile_id",
-    "default": 4035
+    "key": "sff_profile_uuid",
+    "default": "4035"
   },
   {
-    "key": "profile_id",
-    "default": 275
+    "key": "profile_uuid",
+    "default": "275"
   },
   {
     "key": "subscriber_id",

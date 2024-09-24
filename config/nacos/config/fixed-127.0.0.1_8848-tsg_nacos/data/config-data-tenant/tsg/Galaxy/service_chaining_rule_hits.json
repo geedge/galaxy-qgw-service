@@ -12,9 +12,9 @@
         "__time"
       ],
       "dimensions": [
-        "rule_id",
-        "sff_profile_id",
-        "sf_profile_id",
+        "rule_uuid",
+        "sff_profile_uuid",
+        "sf_profile_uuid",
         "device_group",
         "data_center"
       ],
@@ -25,9 +25,9 @@
         "recv_pkts"
       ],
       "filters": [
-        "rule_id",
-        "sff_profile_id",
-        "sf_profile_id",
+        "rule_uuid",
+        "sff_profile_uuid",
+        "sf_profile_uuid",
         "device_group",
         "data_center"
       ],
@@ -123,7 +123,7 @@
       "default": 1
     },
     {
-      "name": "rule_id",
+      "name": "rule_uuid",
       "label": "Rule",
       "doc": {
         "constraints": {
@@ -131,23 +131,23 @@
         },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
-      "name": "sff_profile_id",
-      "label": "Service Function Forwarder Profile ID",
+      "name": "sff_profile_uuid",
+      "label": "Service Function Forwarder Profile UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
-      "name": "sf_profile_id",
-      "label": "Service Function Profile ID",
+      "name": "sf_profile_uuid",
+      "label": "Service Function Profile UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "recv_bytes",

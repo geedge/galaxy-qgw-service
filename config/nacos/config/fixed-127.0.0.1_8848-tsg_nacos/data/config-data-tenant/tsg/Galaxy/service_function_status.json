@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "sf_profile_id"
+        "sf_profile_uuid"
       ],
       "metrics": [
         "sf_latency_us"
@@ -22,7 +22,7 @@
         "device_group",
         "data_center",
         "sf_status",
-        "sf_profile_id"
+        "sf_profile_uuid"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -109,12 +109,12 @@
       "type": "long"
     },
     {
-      "name": "sf_profile_id",
-      "label": "Service Function Profile ID",
+      "name": "sf_profile_uuid",
+      "label": "Service Function Profile UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "sf_status",

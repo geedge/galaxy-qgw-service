@@ -15,12 +15,12 @@
         "device_id",
         "device_group",
         "data_center",
-        "template_id",
-        "chart_id",
+        "template_uuid",
+        "chart_uuid",
         "version",
         "object_type",
-        "object_id",
-        "item_id"
+        "object_uuid",
+        "item_uuid"
       ],
       "metrics": [
         "in_bytes",
@@ -34,12 +34,12 @@
         "device_id",
         "device_group",
         "data_center",
-        "template_id",
-        "chart_id",
+        "template_uuid",
+        "chart_uuid",
         "version",
         "object_type",
-        "object_id",
-        "item_id"
+        "object_uuid",
+        "item_uuid"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -138,20 +138,20 @@
       }
     },
     {
-      "name": "template_id",
-      "label": "Template ID",
+      "name": "template_uuid",
+      "label": "Template UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
-      "name": "chart_id",
-      "label": "Chart ID",
+      "name": "chart_uuid",
+      "label": "Chart UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "version",
@@ -227,20 +227,20 @@
       "type": "string"
     },
     {
-      "name": "object_id",
-      "label": "Object ID",
+      "name": "object_uuid",
+      "label": "Object UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
-      "name": "item_id",
-      "label": "Item ID",
+      "name": "item_uuid",
+      "label": "Item UUID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "in_bytes",

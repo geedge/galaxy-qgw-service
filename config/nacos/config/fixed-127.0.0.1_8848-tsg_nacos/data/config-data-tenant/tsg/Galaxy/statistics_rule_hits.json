@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "rule_id",
+        "rule_uuid",
         "device_group",
         "data_center"
       ],
@@ -24,7 +24,7 @@
         "out_pkts"
       ],
       "filters": [
-        "rule_id",
+        "rule_uuid",
         "device_group",
         "data_center"
       ],
@@ -122,7 +122,7 @@
       "default": 1
     },
     {
-      "name": "rule_id",
+      "name": "rule_uuid",
       "label": "Rule",
       "doc": {
         "constraints": {
@@ -130,7 +130,7 @@
         },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "string"
     },
     {
       "name": "hit_count",

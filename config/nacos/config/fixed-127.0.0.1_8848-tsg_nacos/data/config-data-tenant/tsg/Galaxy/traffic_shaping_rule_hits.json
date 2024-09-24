@@ -12,8 +12,8 @@
         "__time"
       ],
       "dimensions": [
-        "rule_id",
-        "profile_id",
+        "rule_uuid",
+        "profile_uuid",
         "device_group",
         "data_center"
       ],
@@ -26,8 +26,8 @@
         "out_drop_pkts"
       ],
       "filters": [
-        "rule_id",
-        "profile_id",
+        "rule_uuid",
+        "profile_uuid",
         "priority",
         "device_group",
         "data_center"
@@ -128,9 +128,9 @@
       }
     },
     {
-      "name": "rule_id",
+      "name": "rule_uuid",
       "label": "Rule",
-      "type": "long",
+      "type": "string",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
@@ -139,9 +139,9 @@
       }
     },
     {
-      "name": "profile_id",
-      "label": "Profile ID",
-      "type": "long",
+      "name": "profile_uuid",
+      "label": "Profile UUID",
+      "type": "string",
       "doc": {
         "visibility": "enabled"
       }
@@ -222,28 +222,6 @@
         "constraints": {
           "metric_type": "count",
           "aggregation_functions": "SUM, RATE"
-        },
-        "visibility": "enabled"
-      }
-    },
-    {
-      "name": "in_max_latency_us",
-      "label": "Incoming Max Latency(us)(Deprecated)",
-      "type": "long",
-      "doc": {
-        "constraints": {
-          "metric_type": "gauge"
-        },
-        "visibility": "enabled"
-      }
-    },
-    {
-      "name": "out_max_latency_us",
-      "label": "Outgoing Max Latency(us)(Deprecated)",
-      "type": "long",
-      "doc": {
-        "constraints": {
-          "metric_type": "gauge"
         },
         "visibility": "enabled"
       }
