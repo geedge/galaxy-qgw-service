@@ -220,7 +220,8 @@
         "external_port_list",
         "internal_asn_list",
         "external_asn_list",
-        "monitor_rule_id"
+        "monitor_rule_id",
+        "monitor_rule_uuid"
       ],
       "metrics": [
         "log_id",
@@ -551,7 +552,8 @@
         "external_port_list",
         "internal_asn_list",
         "external_asn_list",
-        "monitor_rule_id"
+        "monitor_rule_id",
+        "monitor_rule_uuid"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
