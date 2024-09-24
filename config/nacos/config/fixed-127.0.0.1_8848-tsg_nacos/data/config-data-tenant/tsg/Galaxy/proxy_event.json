@@ -40,6 +40,7 @@
         "direction",
         "vsys_id",
         "proxy_rule_list",
+        "proxy_rule_uuid_list",
         "proxy_action",
         "client_ip",
         "client_ip_tags",
@@ -120,7 +121,8 @@
         "external_port_list",
         "internal_asn_list",
         "external_asn_list",
-        "proxy_rule_id"
+        "proxy_rule_id",
+        "proxy_rule_uuid"
       ],
       "metrics": [
         "log_id",
@@ -177,6 +179,7 @@
         "direction",
         "vsys_id",
         "proxy_rule_list",
+        "proxy_rule_uuid_list",
         "proxy_action",
         "client_ip",
         "client_ip_tags",
@@ -260,7 +263,8 @@
         "external_port_list",
         "internal_asn_list",
         "external_asn_list",
-        "proxy_rule_id"
+        "proxy_rule_id",
+        "proxy_rule_uuid"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -695,11 +699,20 @@
       },
       {
         "name": "proxy_rule_id",
-        "label": "Proxy Rule ID",
+        "label": "Proxy Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
           "expression": "arrayJoin(IF(empty(proxy_rule_list), arrayPushFront(proxy_rule_list, null),proxy_rule_list))"
+        }
+      },
+      {
+        "name": "proxy_rule_uuid",
+        "label": "Proxy Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(proxy_rule_uuid_list), arrayPushFront(proxy_rule_uuid_list, null),proxy_rule_uuid_list))"
         }
       },
       {
@@ -1084,7 +1097,7 @@
     },
     {
       "name": "security_rule_list",
-      "label": "Security Rule List",
+      "label": "Security Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1095,6 +1108,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "security_rule_uuid_list",
+      "label": "Security Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
@@ -1114,7 +1143,38 @@
       "type": "string"
     },
     {
+      "name": "security_action",
+      "label": "Security Action",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/security_action/data"
+        },
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "monitor_rule_list",
+      "label": "Monitor Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "monitor_rule_uuid_list",
       "label": "Monitor Rule List",
       "doc": {
         "constraints": {
@@ -1125,12 +1185,28 @@
       },
       "type": {
         "type": "array",
-        "items": "long",
+        "items": "string",
         "logicalType": "array"
       }
     },
     {
       "name": "sc_rule_list",
+      "label": "Service Chaining Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rule_uuid_list",
       "label": "Service Chaining Rule List",
       "doc": {
         "constraints": {
@@ -1141,13 +1217,13 @@
       },
       "type": {
         "type": "array",
-        "items": "long",
+        "items": "string",
         "logicalType": "array"
       }
     },
     {
       "name": "statistics_rule_list",
-      "label": "Statistics Rule List",
+      "label": "Statistics Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1158,6 +1234,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "statistics_rule_uuid_list",
+      "label": "Statistics Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
@@ -1195,7 +1287,7 @@
     },
     {
       "name": "shaping_rule_list",
-      "label": "Shaping Rule List",
+      "label": "Shaping Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1210,8 +1302,24 @@
       }
     },
     {
+      "name": "shaping_rule_uuid_list",
+      "label": "Shaping Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "proxy_rule_list",
-      "label": "Proxy Rule List",
+      "label": "Proxy Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1222,6 +1330,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "proxy_rule_uuid_list",
+      "label": "Proxy Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },

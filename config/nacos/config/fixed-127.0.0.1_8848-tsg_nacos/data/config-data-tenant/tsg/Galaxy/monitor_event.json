@@ -45,6 +45,7 @@
         "c2s_ttl",
         "s2c_ttl",
         "monitor_rule_list",
+        "monitor_rule_uuid_list",
         "client_ip",
         "client_ip_tags",
         "client_port",
@@ -351,6 +352,7 @@
         "c2s_ttl",
         "s2c_ttl",
         "monitor_rule_list",
+        "monitor_rule_uuid_list",
         "monitor_mirrored_pkts",
         "monitor_mirrored_bytes",
         "client_ip",
@@ -1102,11 +1104,20 @@
       },
       {
         "name": "monitor_rule_id",
-        "label": "Monitor Rule ID",
+        "label": "Monitor Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
           "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
+        }
+      },
+      {
+        "name": "monitor_rule_uuid",
+        "label": "Monitor Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(monitor_rule_uuid_list), arrayPushFront(monitor_rule_uuid_list, null),monitor_rule_uuid_list))"
         }
       },
       {
@@ -1531,7 +1542,7 @@
     },
     {
       "name": "security_rule_list",
-      "label": "Security Rule List",
+      "label": "Security Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1542,6 +1553,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "security_rule_uuid_list",
+      "label": "Security Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
@@ -1562,7 +1589,7 @@
     },
     {
       "name": "monitor_rule_list",
-      "label": "Monitor Rule List",
+      "label": "Monitor Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1577,8 +1604,24 @@
       }
     },
     {
+      "name": "monitor_rule_uuid_list",
+      "label": "Monitor Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "sc_rule_list",
-      "label": "Service Chaining Rule List",
+      "label": "Service Chaining Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1593,8 +1636,24 @@
       }
     },
     {
+      "name": "sc_rule_uuid_list",
+      "label": "Service Chaining Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "statistics_rule_list",
-      "label": "Statistics Rule List",
+      "label": "Statistics Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1605,6 +1664,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "statistics_rule_uuid_list",
+      "label": "Statistics Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
@@ -1642,7 +1717,7 @@
     },
     {
       "name": "shaping_rule_list",
-      "label": "Shaping Rule List",
+      "label": "Shaping Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1657,8 +1732,24 @@
       }
     },
     {
+      "name": "shaping_rule_uuid_list",
+      "label": "Shaping Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "proxy_rule_list",
-      "label": "Proxy Rule List",
+      "label": "Proxy Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1669,6 +1760,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "proxy_rule_uuid_list",
+      "label": "Proxy Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },

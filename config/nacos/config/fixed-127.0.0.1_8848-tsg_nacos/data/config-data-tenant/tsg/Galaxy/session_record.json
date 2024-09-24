@@ -46,14 +46,20 @@
         "s2c_ttl",
         "security_action",
         "security_rule_list",
+        "security_rule_uuid_list",
         "monitor_rule_list",
+        "monitor_rule_uuid_list",
         "shaping_rule_list",
+        "shaping_rule_uuid_list",
         "sc_rule_list",
+        "sc_rule_uuid_list",
         "statistics_rule_list",
+        "statistics_rule_uuid_list",
         "sc_rsp_raw",
         "sc_rsp_decrypted",
         "proxy_action",
         "proxy_rule_list",
+        "proxy_rule_uuid_list",
         "client_ip",
         "client_ip_tags",
         "client_port",
@@ -229,11 +235,17 @@
         "internal_asn_list",
         "external_asn_list",
         "security_rule_id",
+        "security_rule_uuid",
         "monitor_rule_id",
+        "monitor_rule_uuid",
         "proxy_rule_id",
+        "proxy_rule_uuid",
         "statistics_rule_id",
+        "statistics_rule_uuid",
         "shaping_rule_id",
-        "sc_rule_id"
+        "shaping_rule_uuid",
+        "sc_rule_id",
+        "sc_rule_uuid"
       ],
       "metrics": [
         "log_id",
@@ -364,13 +376,19 @@
         "s2c_ttl",
         "security_action",
         "security_rule_list",
+        "security_rule_uuid_list",
         "monitor_rule_list",
+        "monitor_rule_uuid_list",
         "shaping_rule_list",
+        "shaping_rule_uuid_list",
         "sc_rule_list",
+        "sc_rule_uuid_list",
         "statistics_rule_list",
+        "statistics_rule_uuid_list",
         "sc_rsp_raw",
         "sc_rsp_decrypted",
         "proxy_rule_list",
+        "proxy_rule_uuid_list",
         "proxy_action",
         "monitor_mirrored_pkts",
         "monitor_mirrored_bytes",
@@ -571,11 +589,17 @@
         "internal_asn_list",
         "external_asn_list",
         "security_rule_id",
+        "security_rule_uuid",
         "monitor_rule_id",
+        "monitor_rule_uuid",
         "proxy_rule_id",
+        "proxy_rule_uuid",
         "statistics_rule_id",
+        "statistics_rule_uuid",
         "shaping_rule_id",
-        "sc_rule_id"
+        "shaping_rule_uuid",
+        "sc_rule_id",
+        "sc_rule_uuid"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -1133,7 +1157,7 @@
       },
       {
         "name": "security_rule_id",
-        "label": "Security Rule ID",
+        "label": "Security Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
@@ -1141,8 +1165,17 @@
         }
       },
       {
+        "name": "security_rule_uuid",
+        "label": "Security Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(security_rule_uuid_list), arrayPushFront(security_rule_uuid_list, null),security_rule_uuid_list))"
+        }
+      },
+      {
         "name": "proxy_rule_id",
-        "label": "Proxy Rule ID",
+        "label": "Proxy Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
@@ -1150,8 +1183,17 @@
         }
       },
       {
+        "name": "proxy_rule_uuid",
+        "label": "Proxy Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(proxy_rule_uuid_list), arrayPushFront(proxy_rule_uuid_list, null),proxy_rule_uuid_list))"
+        }
+      },
+      {
         "name": "monitor_rule_id",
-        "label": "Monitor Rule ID",
+        "label": "Monitor Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
@@ -1159,8 +1201,17 @@
         }
       },
       {
+        "name": "monitor_rule_uuid",
+        "label": "Monitor Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(monitor_rule_uuid_list), arrayPushFront(monitor_rule_uuid_list, null),monitor_rule_uuid_list))"
+        }
+      },
+      {
         "name": "shaping_rule_id",
-        "label": "Shaping Rule ID",
+        "label": "Shaping Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
@@ -1168,8 +1219,17 @@
         }
       },
       {
+        "name": "shaping_rule_uuid",
+        "label": "Shaping Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(shaping_rule_uuid_list), arrayPushFront(shaping_rule_uuid_list, null),shaping_rule_uuid_list))"
+        }
+      },
+      {
         "name": "sc_rule_id",
-        "label": "Service Chaining Rule ID",
+        "label": "Service Chaining Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
@@ -1177,12 +1237,30 @@
         }
       },
       {
+        "name": "sc_rule_uuid",
+        "label": "Service Chaining Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(sc_rule_uuid_list), arrayPushFront(sc_rule_uuid_list, null),sc_rule_uuid_list))"
+        }
+      },
+      {
         "name": "statistics_rule_id",
-        "label": "Statistics Rule ID",
+        "label": "Statistics Rule ID(Deprecated)",
         "type": "long",
         "doc": {
           "allow_query": "false",
           "expression": "arrayJoin(IF(empty(statistics_rule_list), arrayPushFront(statistics_rule_list, null),statistics_rule_list))"
+        }
+      },
+      {
+        "name": "statistics_rule_uuid",
+        "label": "Statistics Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": "false",
+          "expression": "arrayJoin(IF(empty(statistics_rule_uuid_list), arrayPushFront(statistics_rule_uuid_list, null),statistics_rule_uuid_list))"
         }
       },
       {
@@ -1607,7 +1685,7 @@
     },
     {
       "name": "security_rule_list",
-      "label": "Security Rule List",
+      "label": "Security Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1618,6 +1696,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "security_rule_uuid_list",
+      "label": "Security Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
@@ -1638,6 +1732,22 @@
     },
     {
       "name": "monitor_rule_list",
+      "label": "Monitor Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "monitor_rule_uuid_list",
       "label": "Monitor Rule List",
       "doc": {
         "constraints": {
@@ -1648,12 +1758,28 @@
       },
       "type": {
         "type": "array",
-        "items": "long",
+        "items": "string",
         "logicalType": "array"
       }
     },
     {
       "name": "sc_rule_list",
+      "label": "Service Chaining Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rule_uuid_list",
       "label": "Service Chaining Rule List",
       "doc": {
         "constraints": {
@@ -1664,13 +1790,13 @@
       },
       "type": {
         "type": "array",
-        "items": "long",
+        "items": "string",
         "logicalType": "array"
       }
     },
     {
       "name": "statistics_rule_list",
-      "label": "Statistics Rule List",
+      "label": "Statistics Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1681,6 +1807,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "statistics_rule_uuid_list",
+      "label": "Statistics Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
@@ -1718,7 +1860,7 @@
     },
     {
       "name": "shaping_rule_list",
-      "label": "Shaping Rule List",
+      "label": "Shaping Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1733,8 +1875,24 @@
       }
     },
     {
+      "name": "shaping_rule_uuid_list",
+      "label": "Shaping Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "proxy_rule_list",
-      "label": "Proxy Rule List",
+      "label": "Proxy Rule List(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1745,6 +1903,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "proxy_rule_uuid_list",
+      "label": "Proxy Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
