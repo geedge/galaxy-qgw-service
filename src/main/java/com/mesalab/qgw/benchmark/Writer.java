@@ -43,12 +43,7 @@ public abstract class Writer {
                 }
 
             }
-            List<LinkedHashMap> variables = Lists.newArrayList();
-            Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
-            if (StringUtil.isNotEmpty(codeInfo)) {
-                Object json = JSON.toJSON(codeInfo);
-                variables = JSON.parseArray(json.toString(), LinkedHashMap.class);
-            }
+            List<LinkedHashMap> variables = datasetService.getVariable();
             List<String> resultLines = Lists.newArrayList();
             for (String line : list) {
                 String sql = datasetService.buildExecDSL(variables, line);

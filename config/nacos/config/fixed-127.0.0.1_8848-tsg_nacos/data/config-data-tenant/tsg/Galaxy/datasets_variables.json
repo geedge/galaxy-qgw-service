@@ -1,17 +1,11 @@
 [
   {
-    "key": "dimension_list",
-    "default": {
-      "dimension_name": "client_ip"
-    }
-  },
-  {
     "key": "start_time",
-    "default": ""
+    "default": null
   },
   {
     "key": "end_time",
-    "default": ""
+    "default": null
   },
   {
     "key": "vsys_id",
@@ -176,5 +170,11 @@
   {
     "key": "app",
     "default": "unknown"
+  },
+  {
+    "key": "dimension_list",
+    "default": {
+      "dimension_name": "client_ip"
+    }
   }
 ]

@@ -41,9 +41,12 @@ public class DatasetServiceImp
     private static Pattern pFieldVariable = Pattern.compile("\\$\\{(metric|dimension)_(.*?)\\}", Pattern.CASE_INSENSITIVE);
     private static Pattern pLeftRightFlag = Pattern.compile("\\[\\[(.*?)\\]\\]", Pattern.CASE_INSENSITIVE);
     private final static String TEMPLATE = "template";
-    private final static String BACKEND_ENGINE = "backend_engine";
-
     private final static String DATASET_TYPE = "type";
+
+    private final static String VARIABLE_KEY_NAME = "key";
+    private final static String VARIABLE_KEY_VALUE = "default";
+
+
     @Autowired
     Environment env;
     @Autowired
@@ -56,25 +59,26 @@ public class DatasetServiceImp
     @Override
     public List<LinkedHashMap> getVariable() {
         Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
-        if (StringUtil.isNotEmpty(codeInfo)) {
-            Object json = JSON.toJSON(codeInfo);
-            List<LinkedHashMap> variables = JSON.parseArray(json.toString(), LinkedHashMap.class);
-            for (LinkedHashMap variable : variables) {
-                String key = String.valueOf(variable.get("key"));
-                String def = String.valueOf(variable.get("default"));
-                Date currentDate = DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                if ("start_time".equals(key) && StringUtil.isBlank(def)) {
-                    def = DateUtils.getFormatDate(DateUtils.getSomeHour(currentDate, -1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                    variable.put("default", def);
-                }
-                if ("end_time".equals(key) && StringUtil.isBlank(def)) {
-                    def = DateUtils.getFormatDate(currentDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                    variable.put("default", def);
-                }
-            }
-            return variables;
+        if (StringUtil.isEmpty(codeInfo)) {
+            return Lists.newArrayList();
         }
-        return Lists.newArrayList();
+        Object json = JSON.toJSON(codeInfo);
+        List<LinkedHashMap> variables = JSON.parseArray(json.toString(), LinkedHashMap.class);
+        for (LinkedHashMap variable : variables) {
+            Object def = variable.get(VARIABLE_KEY_VALUE);
+            if (StringUtil.isNotEmpty(def)) {
+                continue;
+            }
+            String key = String.valueOf(variable.get(VARIABLE_KEY_NAME));
+            Date currentDate = DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            if ("start_time".equals(key)) {
+                def = DateUtils.getFormatDate(DateUtils.getSomeHour(currentDate, -1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            } else if ("end_time".equals(key)) {
+                def = DateUtils.getFormatDate(currentDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            }
+            variable.put(VARIABLE_KEY_VALUE, def);
+        }
+        return variables;
     }
 
     @Override
