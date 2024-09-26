@@ -241,6 +241,10 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
+    public BaseResult addDslExecutorLogQueryWithoutCache(DSLQueryRequestParam request) {
+        return logQueryService.run(request);
+    }
+
 
     public BaseResult addDslExecutorTrafficSpectrumWithoutCache(DSLQueryRequestParam request) {
         try {

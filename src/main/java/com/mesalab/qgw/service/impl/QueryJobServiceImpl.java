@@ -131,6 +131,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
                 }
                 return BaseResultGenerator.error(baseResult.getMessage());
+            } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
+                return jobExecuteService.addDslExecutorLogQueryWithoutCache(request);
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
                 return jobExecuteService.addDslExecutorPacketCombineWithoutCache(request);
             } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
@@ -211,6 +213,22 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
+                try {
+                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                    if (await) {
+                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+                    }
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
+                } catch (InterruptedException e) {
+                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
+                }
+            } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
+                QueryCache queryCache = new QueryCache(request.getId(), request.getName());
+                queryCache.setRequestParam(request);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                CountDownLatch countDownLatch = new CountDownLatch(1);
+                jobExecuteService.addDslExecutorLogQueryWithCache(request, countDownLatch);
                 try {
                     boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
                     if (await) {
