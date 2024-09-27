@@ -56,7 +56,7 @@ SELECT %s FROM $table WHERE $intervals_and_filter %s %s %s $limit
 (%s) IN (SELECT %s FROM $table WHERE $intervals_and_filter %s %s $limit)
 #end
 #sql("LOG_QUERY_TIMELINE")
-SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(%s, '$granularity', 'zero')) AS stat_time, COUNT(1) AS count %s FROM $table WHERE $intervals_and_filter GROUP BY stat_time %s
+SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(%s, '$granularity', 'zero')) AS stat_time, COUNT(1) AS count %s FROM $table WHERE $intervals_and_filter GROUP BY stat_time %s ORDER BY stat_time DESC
 #end
 #sql("LOG_QUERY_LIST")
 SELECT %s FROM $table WHERE $intervals_and_filter ORDER BY %s $limit

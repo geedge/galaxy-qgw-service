@@ -75,7 +75,7 @@ public class LogQueryServiceImpl implements LogQueryService {
             return BaseResultGenerator.success(null, null, OutputMode.JSON.getValue(), null, Lists.newArrayList());
         }
         List<Map<String, Object>> dataList = (List<Map<String, Object>>) dataObj;
-        dataList = dataList.stream()
+        dataList = dataList.parallelStream()
                 .sorted((map1, map2) -> {
                     DateTime time1 = DateUtil.parse(String.valueOf(map1.get("stat_time")));
                     DateTime time2 = DateUtil.parse(String.valueOf(map2.get("stat_time")));

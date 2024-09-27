@@ -4,6 +4,7 @@ package com.mesalab.services.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -39,7 +40,6 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
-import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -226,8 +226,85 @@ public class JobExecuteService implements EnvironmentAware {
     @Async("lightWeightThreadPool")
     public void addDslExecutorLogQueryWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
         try {
+            long startJob = System.currentTimeMillis();
             markJobBegin(request.getId());
-            updateJobResultOnQueryCache(request.getId(), logQueryService.run(request), null);
+            DateTime intervalStart = request.getStart();
+            DateTime intervalEnd = request.getEnd();
+            String granularity = request.getGranularity();
+            int granularitySec = Period.parse(granularity).toStandardSeconds().getSeconds();
+            long intervalSec = (intervalEnd.getTime() - intervalStart.getTime()) / 1000;
+            boolean isValidTimeSlicing = intervalSec > jobCfg.getTimeSlicingInterval() && intervalSec > granularitySec;
+
+            if (jobCfg.isTimeSlicingEnabled() && isValidTimeSlicing) {
+                BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1"
+                        , SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + intervalEnd.getTime() / 1000 + ", '" + granularity + "')"
+                        , request.getDataSource())).build());
+                if (!baseResult.isSuccess()) {
+                    log.error("Job getting the end time's standard granularity error. message: {}", baseResult.getMessage());
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job getting the end time's standard granularity error. message: " + baseResult.getMessage()));
+                }
+                List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+                int endStandardGranularitySec = Integer.parseInt(String.valueOf(data.get(0).get("stat_time")));
+
+                DSLQueryRequestParam requestItem = BeanUtil.copyProperties(request, DSLQueryRequestParam.class);
+
+
+                List<Date> dateList = Lists.newArrayList();
+                if (DateUtil.compare(new Date(endStandardGranularitySec * 1000L), intervalEnd) < 0) {
+                    dateList.add(intervalEnd);
+                }
+                dateList.add(new Date(endStandardGranularitySec * 1000L));
+                dateList.addAll(DateUtils.getLeftDateRange(new Date(endStandardGranularitySec * 1000L), new Date(intervalStart.getTime()), granularity));
+                if (DateUtil.compare(dateList.get(dateList.size() - 1), intervalStart) < 0) {
+                    dateList.set(dateList.size() - 1, intervalStart);
+                }
+
+                int cursorUnixTimestamp = intervalEnd.getTime() / 1000 == endStandardGranularitySec
+                        ? endStandardGranularitySec
+                        : endStandardGranularitySec + granularitySec;
+
+                int stepSec = jobCfg.getTimeSlicingInterval() / granularitySec == 0 ? granularitySec : (jobCfg.getTimeSlicingInterval() / granularitySec) * granularitySec;
+                while (true) {
+                    if (jobCfg.getExecutionTimeout() < System.currentTimeMillis() - startJob) {
+                        log.error("execute job timeout: request-{}", request);
+                        markJobFailure(request.getId(), "Job execute timeout: jobID-" + request.getId());
+                        break;
+                    }
+                    if (isCancel(request.getId())) {
+                        markJobFailure(request.getId(), "Job interactive timeout: jobID-" + request.getId());
+                        break;
+                    }
+
+                    DateTime intervalStartItem = new DateTime((cursorUnixTimestamp - stepSec) * 1000L);
+                    DateTime intervalEndItem = new DateTime(cursorUnixTimestamp * 1000L);
+
+                    if (intervalEndItem.getTime() > intervalEnd.getTime()) {
+                        intervalEndItem = intervalEnd;
+                    }
+
+                    if (intervalStartItem.getTime() < intervalStart.getTime()) {
+                        intervalStartItem = intervalStart;
+                    }
+                    List<String> intervalTmp = Lists.newArrayList(DateUtil.format(intervalStartItem, DatePattern.NORM_DATETIME_PATTERN) + "/" + DateUtil.format(intervalEndItem, DatePattern.NORM_DATETIME_PATTERN));
+                    requestItem.setIntervals(intervalTmp);
+                    BaseResult sliceResult = logQueryService.run(requestItem);
+                    if (!sliceResult.isSuccess()) {
+                        log.error("execute job error: request-{}", request);
+                        markJobFailure(request.getId(), "Job execute error: " + sliceResult.getMessage());
+                        break;
+                    }
+                    DecimalFormat format = getDecimalFormat();
+                    double doneProgress = Double.parseDouble(format.format((intervalEnd.getTime() - intervalStartItem.getTime()) * 1.0 / (intervalEnd.getTime() - intervalStart.getTime())));
+                    appendAndUpdateLogQueryJobResultOnQueryCache(request.getId(), sliceResult, Math.min(doneProgress, 0.9999));
+                    if (intervalStartItem.getTime() <= intervalStart.getTime()) {
+                        break;
+                    }
+                    cursorUnixTimestamp -= stepSec;
+                }
+            } else {
+                updateJobResultOnQueryCache(request.getId(), logQueryService.run(request), null);
+            }
         } catch (RuntimeException e) {
             markJobFailure(request.getId(), e.getMessage());
         } finally {
@@ -428,6 +505,30 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
+    private static void appendAndUpdateLogQueryJobResultOnQueryCache(String id, BaseResult sliceResult, Double doneProgress) {
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            if (doneProgress != null) {
+                job.put(JobConfig.DONE_PROGRESS, doneProgress);
+                queryCache.getBaseResult().setJob(job);
+            }
+            Object dataCacheObj = queryCache.getBaseResult().getData();
+            if (dataCacheObj == null || ((List) dataCacheObj).isEmpty()) {
+                queryCache.getBaseResult().setData(sliceResult.getData());
+            } else {
+                List dataCacheList = (List) dataCacheObj;
+                List sliceDataList = (List) sliceResult.getData();
+                dataCacheList.addAll(sliceDataList);
+                queryCache.getBaseResult().setData(dataCacheList);
+            }
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
+    }
+
 
     @Deprecated
     private void executeLongTerm(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
@@ -504,7 +605,7 @@ public class JobExecuteService implements EnvironmentAware {
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         long statTime = Long.parseLong(data.get(0).get("stat_time").toString()) * 1000;
 
-        List<Date> dateList = Lists.newArrayList(new DateTime(statTime).plus(Period.parse(per)).toDate());
+        List<Date> dateList = Lists.newArrayList(new DateTime(statTime + Period.parse(per).toStandardDuration().getMillis()));
         dateList.add(new Date(statTime));
         dateList.addAll(DateUtils.getLeftDateRange(new Date(statTime), new Date(interval.getStart() * 1000), per));
         //分片粒度 Max(per, TimeSlicingInterval)
@@ -769,14 +870,14 @@ public class JobExecuteService implements EnvironmentAware {
     private boolean isCancel(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         if (queryCache == null) {
-            log.info("Can't find the cache, job id is: {}", id);
+            log.warn("Can't find the cache, job id is: {}", id);
             return true;
         }
         long currentTime = System.currentTimeMillis();
         if (currentTime - queryCache.getLatestQueryTimeMs() > jobCfg.getInteractiveTimeout()) {
             queryCache.getBaseResult().getJob().put(JobConfig.IS_CANCELED, true);
             HazelcastInstanceMapUtil.put(id, queryCache);
-            log.info("Interactive timeout, job id is: {}", id);
+            log.warn("Interactive timeout, job id is: {}", id);
             return true;
         }
         return false;
