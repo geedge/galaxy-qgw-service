@@ -34,6 +34,7 @@ import net.sf.jsqlparser.statement.select.*;
 import org.joda.time.DateTime;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -185,7 +186,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
                 targetResult = targetResult.subList(0, Integer.parseInt(selectStatement.getLimit()));
             }
         }
-        sortByTime(selectStatement, targetResult, timeGranLabel);
+        targetResult = sortByTime(selectStatement, targetResult, timeGranLabel);
         List<String> objects = Lists.newArrayList();
         objects.add(timeGranLabel);
         objects.addAll(groupLabels);
@@ -239,28 +240,39 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
         });
     }
 
-    private void sortByTime(SelectStatement sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
+    private List<Map<String, Object>> sortByTime(SelectStatement sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
         if (StringUtil.isEmpty(sqlQuerySource.getOrderByElements())) {
-            return;
+            return targetResult;
         }
-        orderBy:
         for (OrderByElement orderByElement : sqlQuerySource.getOrderByElements()) {
             String orderBy = String.valueOf(orderByElement.getExpression());
             if (orderBy.equals(timeGranLabel)) {
-                if (!orderByElement.isAsc()) {
-                    Collections.reverse(targetResult);
-                    break;
-                }
+                // 提取时间戳并存储在列表中
+                List<Map.Entry<Map<String, Object>, Long>> entriesWithTimestamps = targetResult.stream()
+                        .map(map -> new AbstractMap.SimpleEntry<>(map,
+                                DateUtil.parse(String.valueOf(map.get(timeGranLabel))).getTime()))
+                        .collect(Collectors.toList());
+
+                // 使用并行流进行排序
+                List<Map<String, Object>> sortedResult = entriesWithTimestamps.parallelStream()
+                        .sorted(orderByElement.isAsc()
+                                ? Map.Entry.comparingByValue() // 升序排序
+                                : Map.Entry.<Map<String, Object>, Long>comparingByValue().reversed()) // 降序排序
+                        .map(Map.Entry::getKey) // 提取原始 Map
+                        .collect(Collectors.toList());
+
+                return sortedResult;
             }
             for (String key : sqlQuerySource.getAliasFields().keySet()) {
                 if (sqlQuerySource.getAliasFields().get(key).equalsIgnoreCase(orderBy)) {
                     if (!orderByElement.isAsc()) {
                         Collections.reverse(targetResult);
-                        break orderBy;
+                        return targetResult;
                     }
                 }
             }
         }
+        return targetResult;
     }
 
     private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
