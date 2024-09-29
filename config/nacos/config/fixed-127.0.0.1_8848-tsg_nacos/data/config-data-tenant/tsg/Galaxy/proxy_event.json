@@ -1679,6 +1679,15 @@
       "type": "string"
     },
     {
+      "name": "mobile_identify",
+      "label": "Mobile Identify",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "server_ip",
       "label": "Server IP",
       "doc": {
