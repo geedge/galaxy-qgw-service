@@ -1,1 +1,10 @@
 Release 383 (TSG-24.10)
+* 扩展DSL接口，支持日志DSL查询功能(TSG-22484)
+* 支持构建多平台镜像(GAL-623)
+* 统一 Field Discovery DSL请求参数结构(TSG-21935)
+* 扩展Schema，SSL协议新增JA4相关字段(TSG-22684)
+* 扩展Schema，新增公共字段 xx_rule_uuid_list 及相关数据集修改(TSG-22688)
+* 扩展Schema，Dos Event 新增 rule_uuid(TSG-22689)
+* 扩展Schema，Metric Schema 字段xx_id 更新为xx_uuid，及相关数据集修改(TSG-22691)
+* 完善 TIME_FLOOR_WITH_FILL 补全函数对结果数据的排序
+* 扩展Schema，增加公共字段 mobile_identify(TSG-22715)
