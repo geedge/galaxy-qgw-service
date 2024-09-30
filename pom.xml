@@ -768,7 +768,7 @@
                     <dockerDirectory>docker</dockerDirectory>
                     <buildArgs>
                         <JDK_IMAGE>${docker.registry}:${docker.registry.port}/common/amazon-corretto:11.0.21.9.1-alpine3.18</JDK_IMAGE>
-                        <GOLANG_IMAGE>${docker.registry}:${docker.registry.port}/common/golang:1.15.6</GOLANG_IMAGE>
+                        <GO_IMAGE>${docker.registry}:${docker.registry.port}/common/golang:1.15.6</GO_IMAGE>
                         <JAR_FILE>${project.build.finalName}.xjar</JAR_FILE>
                     </buildArgs>
                     <imageTags>
