@@ -762,9 +762,13 @@
                     <images>
                         <image>
                             <name>
-                                ${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}:${v}
+                                ${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}
                             </name>
                             <build>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${v}</tag>
+                                </tags>
                                 <assembly>
                                     <name>/</name>
                                     <descriptor>${project.basedir}/docker/assembly.xml</descriptor>
@@ -783,6 +787,9 @@
                                     <platforms>
                                         <platform>linux/amd64,linux/arm64</platform>
                                     </platforms>
+                                    <attestations>
+                                        <provenance>false</provenance>
+                                    </attestations>
                                 </buildx>
                             </build>
                         </image>
