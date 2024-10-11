@@ -3,6 +3,7 @@ package com.mesalab;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.StringUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,8 +16,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {GalaxyQGWApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -24,6 +29,7 @@ import java.util.Objects;
 @ActiveProfiles("test")
 public class GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
+    private static final String TIMEZONE = "UTC";
 
     @LocalServerPort
     protected int testPort;
@@ -31,6 +37,15 @@ public class GalaxyQGWApplicationTests {
     static {
         System.setProperty("jasypt.encryptor.password", "galaxy");
         System.setProperty("JM.SNAPSHOT.PATH", "config");
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> inputArguments = runtimeMxBean.getInputArguments();
+        if (inputArguments.stream().noneMatch(o -> o.contains("user.timezone"))
+                && StringUtil.isEmpty(System.getenv().get("TZ"))) {
+            // java.util.Date
+            TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+            // joda.time.DateTime
+            System.setProperty("user.timezone", TIMEZONE);
+        }
     }
 
     @Before
