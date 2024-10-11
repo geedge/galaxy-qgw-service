@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
@@ -249,8 +250,19 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
             if (orderBy.equals(timeGranLabel)) {
                 // 提取时间戳并存储在列表中
                 List<Map.Entry<Map<String, Object>, Long>> entriesWithTimestamps = targetResult.stream()
-                        .map(map -> new AbstractMap.SimpleEntry<>(map,
-                                DateUtil.parse(String.valueOf(map.get(timeGranLabel))).getTime()))
+                        .map(map -> {
+                            String timeValue = String.valueOf(map.get(timeGranLabel));
+                            long timestamp;
+                            if (timeValue.length() == 10) {
+                                // 处理秒时间戳
+                                timestamp = Long.parseLong(timeValue) * 1000; // 转换为毫秒
+                            } else {
+                                // 处理毫秒时间戳
+                                timestamp = DateUtil.parse(timeValue).getTime();
+                            }
+
+                            return new AbstractMap.SimpleEntry<>(map, timestamp);
+                        })
                         .collect(Collectors.toList());
 
                 // 使用并行流进行排序
@@ -395,7 +407,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
                 } else if (right instanceof LongValue) {
                     value = right.toString();
                 } else {
-                    value = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(DBEngineType.DRUID.getValue().equals(dbType) ? "TIME_FORMAT(" + right.toString() + ", 'yyyy-MM-dd HH:mm:ss')" : right.toString(), dbType);
                 }
                 if (operator.contains("<")) {
                     bigValue(whereTimeRange, operator.contains("="), value);
@@ -409,7 +421,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
                 } else if (left instanceof LongValue) {
                     value = left.toString();
                 } else {
-                    value = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(DBEngineType.DRUID.getValue().equals(dbType) ? "TIME_FORMAT(" + left + ", 'yyyy-MM-dd HH:mm:ss')" : left.toString(), dbType);
                 }
                 if (operator.contains("<")) {
                     minValue(whereTimeRange, operator.contains("="), value);

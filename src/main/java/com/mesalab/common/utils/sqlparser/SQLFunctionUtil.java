@@ -439,7 +439,7 @@ public class SQLFunctionUtil {
             Object actualValue = data.get("actualValue");
             return actualValue.toString();
         } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
-            query = generateDateFunction("select TIME_FORMAT(" + query + ", 'yyyy-MM-dd HH:mm:ss') as actualValue", dbType);
+            query = generateDateFunction("select " + query + " as actualValue", dbType);
             Map<String, String> results = executeHttpPostOfDruid(query);
             List<Object> maps = (List<Object>) JSON.parseObject(results.get("result"), Object.class);
             Map<String, Object> data = (Map<String, Object>) maps.get(0);

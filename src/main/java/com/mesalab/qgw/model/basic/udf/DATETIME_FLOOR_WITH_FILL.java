@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
@@ -383,7 +384,7 @@ public class DATETIME_FLOOR_WITH_FILL implements UDF {
                 } else if (right instanceof LongValue) {
                     value = right.toString();
                 } else {
-                    value = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(DBEngineType.DRUID.getValue().equals(dbType) ? "TIME_FORMAT(" + right + ", 'yyyy-MM-dd HH:mm:ss')" : right.toString(), dbType);
                 }
                 if (operator.contains("<")) {
                     bigValue(whereTimeRange, operator.contains("="), value);
@@ -397,7 +398,7 @@ public class DATETIME_FLOOR_WITH_FILL implements UDF {
                 } else if (left instanceof LongValue) {
                     value = left.toString();
                 } else {
-                    value = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(DBEngineType.DRUID.getValue().equals(dbType) ? "TIME_FORMAT(" + left + ", 'yyyy-MM-dd HH:mm:ss')" : left.toString(), dbType);
                 }
                 if (operator.contains("<")) {
                     minValue(whereTimeRange, operator.contains("="), value);

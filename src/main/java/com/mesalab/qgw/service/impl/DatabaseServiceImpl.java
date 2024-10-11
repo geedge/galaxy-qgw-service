@@ -146,6 +146,20 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
+    public String getFieldLogicalType(String tableName, String fieldName) {
+        String defaultLogicalType = StringUtil.EMPTY;
+        Map<String, Object> schema = getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, false);
+        if (schema != null) {
+            List<String> read = JsonPath.read(schema, "$.fields[?(@.name == '" + fieldName + "')].type.logicalType");
+            if (read.isEmpty()) {
+                return defaultLogicalType;
+            }
+            return read.get(0);
+        }
+        return defaultLogicalType;
+    }
+
+    @Override
     public List<String> getIndexKey(String tableName) {
         Map schemaJsonMap = loadFields(tableName, false);
         if (StringUtil.isEmpty(schemaJsonMap) || StringUtil.isEmpty(schemaJsonMap.get("doc"))) {

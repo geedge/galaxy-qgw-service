@@ -13,46 +13,6 @@ import java.util.Map;
  * @Author wWei
  */
 public interface JobService {
-    /**
-     * Desc: 提交实时任务
-     *
-     * @param map
-     * @return {@link Object}
-     * @created by wWei
-     * @date 2021/11/24 5:15 下午
-     */
-    BaseResult commitAdHocQuery(HashMap<String, Object> map);
-
-    /**
-     * Desc: 获取FieldDiscovery结果
-     *
-     * @param jobId
-     * @return {@link Object}
-     * @created by wWei
-     * @date 2021/11/24 5:40 下午
-     */
-    BaseResult getResultFieldDiscovery(String jobId);
-
-    /**
-     * Desc: 获取Statistics结果
-     *
-     * @param jobId
-     * @return {@link Object}
-     * @created by wWei
-     * @date 2021/11/24 5:40 下午
-     */
-    BaseResult longTermResult(String jobId);
-
-
-    /**
-     * Desc: 提交离线任务
-     *
-     * @param reqBody
-     * @return {@link Object}
-     * @created by wWei
-     * @date 2022/3/22 2:57 下午
-     */
-    BaseResult commitSavedQuery(HashMap<String, Object> reqBody);
 
     /**
      * Desc: 获取离线任务状态

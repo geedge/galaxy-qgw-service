@@ -324,6 +324,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         } else if (JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(queryCache.getType())) {
             queryCache = rebuildTrafficSpectrumCIPConnectAppUsageQueryCache(queryCache);
+        } else if (JobConfig.SLICING_OPTIMIZATION.equals(queryCache.getType())) {
+            queryCache = rebuildSlicingQueryCache(queryCache);
         } else if (JobConfig.LOG_QUERY.equals(queryCache.getType())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The log-query DSL does not have a result API."));
@@ -521,6 +523,18 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             List<Map> dataList = (List<Map>) dataObj;
             Map internalExternalBipartiteGraph = trafficSpectrumDslService.getInternalExternalBipartiteGraph(dataList.get(0), engineConfigSource.getTrafficSpectrumClientIPAppResultNum());
             queryCache.getBaseResult().setData(Lists.newArrayList(internalExternalBipartiteGraph));
+            return queryCache;
+        }
+        return queryCache;
+    }
+
+    private QueryCache rebuildSlicingQueryCache(QueryCache queryCache) {
+        BaseResult<Object> baseResult = queryCache.getBaseResult();
+        Object dataObj = baseResult.getData();
+        if (StringUtil.isNotEmpty(baseResult.getData()) && StringUtil.isNotEmpty(queryCache.getJobContextParam())) {
+            List<Map> dataList = (List<Map>) dataObj;
+            int i = Integer.parseInt(queryCache.getJobContextParam().toString());
+            queryCache.getBaseResult().setData(dataList.size() <= i ? dataList : dataList.subList(0, i));
             return queryCache;
         }
         return queryCache;

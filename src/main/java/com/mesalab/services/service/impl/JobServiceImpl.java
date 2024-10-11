@@ -98,36 +98,6 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         }
     }
 
-
-    @Override
-    public BaseResult commitAdHocQuery(HashMap<String, Object> reqBody) {
-        validateAdHocQuery(reqBody);
-        String id = DigestUtil.md5Hex(String.valueOf(reqBody));
-        String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
-        if (isExist(id)) {
-            log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
-            return BaseResultGenerator.successCreate(buildJobResource(id));
-        }
-        log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
-        Map<String, Object> property = Maps.newLinkedHashMap();
-        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(queryType)) {
-            initFieldDiscoveryJob(id, reqBody, property);
-            //jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
-        } else if (JobConfig.STATISTICS.equals(queryType)) {
-            initStatisticsJob(id, reqBody, property);
-            jobExecuteService.addExecutorStatistics(id, reqBody, property);
-        }
-        return BaseResultGenerator.successCreate(buildJobResource(id));
-    }
-
-    private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
-        buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
-        if (!isValidProperty(property)) {
-            property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
-        }
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
-    }
-
     private boolean isValidProperty(Map<String, Object> property) {
         if (!property.containsKey(JobConfig.JOB_PROPERTY_K_OPTION)) {
             return false;
@@ -142,22 +112,6 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         }
         return true;
     }
-
-    @Override
-    public BaseResult commitSavedQuery(HashMap<String, Object> map) {
-        validateReport(map);
-        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL).toString(), false).replace("'", "\\'");
-        String id = getSameJob(sql);
-        if (StringUtil.isNotBlank(id)) {
-            return BaseResultGenerator.successCreate(buildJobResource(id));
-        }
-        map.put("UUID", System.currentTimeMillis());
-        id = DigestUtil.md5Hex(String.valueOf(map));
-        long currentTime = System.currentTimeMillis() / 1000;
-        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
-        return BaseResultGenerator.successCreate(buildJobResource(id));
-    }
-
     @Override
     public BaseResult getSavedQueryStatus(String jobId) {
         List<Record> query = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), jobId, 1));
@@ -265,16 +219,6 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
                 String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Get job status error: " + statusList));
     }
 
-    @Override
-    public BaseResult getResultFieldDiscovery(String id) {
-        return buildResultFieldDiscovery(id);
-    }
-
-    @Override
-    public BaseResult longTermResult(String id) {
-        return buildLongTermResult(id);
-    }
-
     private Map<String, Object> buildJobStatus(Map<String, Object> data) {
         Map<String, Object> job = Maps.newLinkedHashMap();
         job.put(JobConfig.JOB_ID, data.get("job_id"));
@@ -372,209 +316,6 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         return BaseResultGenerator.success(statistics, job, OutputMode.JSON.getValue(), null, resultList);
     }
 
-    private boolean isExist(String id) {
-        String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_DETAIL")), id);
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).build());
-        if (!baseResult.isSuccess()) {
-            log.error("Query job status error: {}", baseResult.getMessage());
-            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage());
-        }
-        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        Map<String, Object> map;
-        if (StringUtil.isEmpty(data) || StringUtil.isEmpty(map = data.get(0)) || StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED))) {
-            return false;
-        }
-        long lastQuery = StringUtil.isEmpty(map.get(JobConfig.LAST_QUERY_TIME)) ? 0 : Long.parseLong(map.get(JobConfig.LAST_QUERY_TIME).toString());
-        if (BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_FAILED)))
-                && (System.currentTimeMillis() - lastQuery) > jobCfg.getInteractiveTimeout()) {
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_DELETE")), id));
-            return false;
-        }
-        return !BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_CANCELED)));
-    }
-
-    private void initFieldDiscoveryJob(String id, HashMap<String, Object> body, Map<String, Object> property) {
-        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410);
-        List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
-        List<String> interim = Lists.newArrayList(fields);
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOption.REAL_TIME.getValue()).build());
-        if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    "Init job error: get field_discovery all column error: ".concat(baseResult.getMessage()));
-        }
-        List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
-        List<String> metaName = new ArrayList<>();
-        meta.forEach(m -> metaName.add(m.get("name").toString()));
-        interim.removeAll(metaName);
-        for (String field : interim) {
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410, field));
-        }
-        property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, String.join(",", fields));
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
-    }
-
-    private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {
-        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
-        property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.LONG_TERM_RESULT);
-        try {
-            PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
-            PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
-
-            if (StringUtil.isNotEmpty(plainSelect.getOffset())
-                    || (StringUtil.isNotEmpty(plainSelect.getLimit()) && StringUtil.isNotEmpty(plainSelect.getLimit().getOffset()))) {
-                return;
-            }
-            if (StringUtil.isEmpty(plainSelect.getOrderByElements()) || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())) {
-                return;
-            }
-            if (StringUtil.isEmpty(plainSelect.getGroupBy())
-                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())
-                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())
-                    || StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
-                return;
-            }
-
-            SubOption subOption = new SubOption();
-            Optional.ofNullable(plainSelect.getLimit()).ifPresent(x -> subOption.setLimit(Long.parseLong(String.valueOf(x.getRowCount()))));
-
-            Map<String, Object> aliasExpr = Maps.newHashMap();
-            for (SelectItem item : plainSelect.getSelectItems()) {
-                if (!(item instanceof SelectExpressionItem)) {
-                    return;
-                }
-                SelectExpressionItem selectExprItem = (SelectExpressionItem) item;
-                if (StringUtil.isEmpty(selectExprItem.getAlias())) {
-                    aliasExpr.put(String.valueOf(selectExprItem.getExpression()), selectExprItem.getExpression());
-                } else {
-                    aliasExpr.put(selectExprItem.getAlias().getName(), selectExprItem.getExpression());
-                }
-            }
-            for (Expression groupItem : plainSelect.getGroupBy().getGroupByExpressionList().getExpressions()) {
-                if (aliasExpr.keySet().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))
-                        && aliasExpr.values().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))) {
-                    return;
-                }
-            }
-            List<Expression> groupByItems = plainSelect.getGroupBy().getGroupByExpressionList().getExpressions();
-            for (String key : aliasExpr.keySet()) {
-                Object value = aliasExpr.get(key);
-                if (groupByItems.stream().anyMatch(groupItem -> (key.equals(groupItem.toString()) || (value.toString().equals(groupItem.toString()))))) {
-                    subOption.getDimension().add(key);
-                    continue;
-                }
-                if (value instanceof Function) {
-                    Function fun = ((Function) value);
-                    String name = fun.getName().toLowerCase();
-                    if (!SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
-                        return;
-                    }
-                    if (fun.isDistinct() || fun.isUnique()) {
-                        return;
-                    }
-                    subOption.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
-                }
-            }
-            for (OrderByElement orderByElement : plainSelect.getOrderByElements()) {
-                String sort = String.valueOf(orderByElement.getExpression());
-                boolean inSelectItem = aliasExpr.keySet().stream().anyMatch(key -> {
-                    if (sort.equals(key) || sort.equals(aliasExpr.get(key))) {
-                        subOption.getIsAsc().put(key, orderByElement.isAsc());
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-                if (!inSelectItem) {
-                    return;
-                }
-            }
-            property.put(JobConfig.JOB_PROPERTY_K_SUB_OPTION, subOption);
-
-            if (subOption.getIsAsc().keySet().size() != 1) {
-                return;
-            }
-            if (isTimechart(sql, aliasExpr, subOption)) {
-                property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_TIMECHART);
-                return;
-            }
-            // top、rare
-            for (Object key : aliasExpr.keySet()) {
-                Object value = aliasExpr.get(key);
-                if (value instanceof Function) {
-                    Function fun = (Function) value;
-                    if (!(SQLFunctionUtil.timeSlicingFunction.containsKey(fun.getName().toLowerCase()))) {
-                        return;
-                    }
-                    if (!(subOption.getIsAsc().containsKey(value) || subOption.getIsAsc().containsKey(key))) {
-                        return;
-                    }
-                } else {
-                    if (!(subOption.getDimension().contains(value) || subOption.getDimension().contains(key))) {
-                        return;
-                    }
-                }
-            }
-            if (subOption.getIsAsc().values().stream().findFirst().get()) {
-                property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_RARE);
-            } else {
-                property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_TOP);
-            }
-        } catch (JSQLParserException | RuntimeException e) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "long_term job init error: ".concat(e.getMessage())));
-        }
-    }
-
-    private boolean isTimechart(String sql, Map<String, Object> aliasExpr, SubOption subOption) {
-        boolean isTimechart = false;
-        for (Object key : aliasExpr.keySet()) {
-            Object expr = aliasExpr.get(key);
-            if ((expr instanceof Function) && (SQLFunctionUtil.timeSlicingFunction.containsKey(((Function) expr).getName().toLowerCase()))) {
-                continue;
-            }
-            if ((expr instanceof Function) && (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(((Function) expr).getName()))
-                    && (subOption.getDimension().size() == 1 && ((subOption.getDimension().contains(key)) || subOption.getDimension().contains(expr))
-                    && (subOption.getIsAsc().containsKey(key) || subOption.getIsAsc().containsKey(expr)))) {
-                List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(sql, SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
-                if (timeFloorWithFill.size() >= 2) {
-                    Matcher matcherPT = SQLFunctionUtil.periodOfPT.matcher(String.valueOf(timeFloorWithFill.get(1)));
-                    if (matcherPT.find()) {
-                        long num = Long.parseLong(matcherPT.group(1));
-                        String unit = matcherPT.group(2);
-                        if ((("S".equalsIgnoreCase(unit) || "M".equalsIgnoreCase(unit)) && (num % 60 == 0) || 60 % num == 0) || ("H".equalsIgnoreCase(unit) && (num % 24 == 0) || 24 % num == 0)) {
-                            isTimechart = true;
-                            continue;
-                        }
-                        return false;
-                    }
-                    return false;
-                }
-                return false;
-            }
-            return false;
-        }
-        if (isTimechart) {
-            return true;
-        }
-        return false;
-    }
-
-
-    private PlainSelect checkParam(String sql, net.sf.jsqlparser.statement.Statement statement) {
-        SelectBody selectBody;
-        if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "long_term job init error, not support, SQL is: " + sql));
-
-        }
-        PlainSelect plainSelect = (PlainSelect) selectBody;
-        PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
-        if (StringUtil.isEmpty(plainSelect.getGroupBy()) && StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "long_term job init error, not support non-aggregate SQL is: " + sql));
-        }
-        return plainSelect;
-    }
 
     private List<Map<String, Object>> validationData(String id) {
         BaseResult baseResult = sqlSyncQueryService.executeQuery(
@@ -597,59 +338,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id, now));
     }
 
-    private void validateAdHocQuery(HashMap<String, Object> body) {
-        Object type = body.get(JobConfig.KEY_QUERY_TYPE);
-        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(type)) {
-            //validCustomParamsOfFieldDiscovery(body);
-            //List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
-            //body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
-            syntaxValidationFieldDiscovery(body);
-        } else if (JobConfig.STATISTICS.equals(type)) {
-            syntaxValidationStatistics(body);
-        }
-    }
 
-
-    private void validateReport(HashMap<String, Object> map) {
-        SQLQueryContext queryProfile = SQLQueryContext.builder().originalSQL(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))
-                .option(QueryOption.SYNTAX_PARSE.getValue())
-                .build();
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
-        if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
-        }
-    }
-
-    private String getSameJob(String paramSQL) {
-        List<Record> jobs = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_SAME")), paramSQL));
-        if (jobs.isEmpty()) {
-            return StringUtil.EMPTY;
-        }
-        return jobs.get(0).get("id");
-    }
-
-    private void syntaxValidationFieldDiscovery(HashMap<String, Object> map) {
-        String syntaxValidation = env.getProperty("SYNTAX_VALIDATION");
-        List field = (List) map.get("custom.field_discovery.fields");
-        Object filter = map.get("custom.field_discovery.filter");
-        String validationSql = String.format(syntaxValidation, String.join(",", field), map.get("query.data_source"), StringUtil.isEmpty(filter) ? " 1 = 1" : filter);
-        SQLQueryContext queryProfile = SQLQueryContext.builder().originalSQL(validationSql).option(QueryOption.SYNTAX_VALIDATION.getValue()).build();
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
-        if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
-        }
-    }
-
-    private void syntaxValidationStatistics(HashMap<String, Object> body) {
-        String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL));
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).option(QueryOption.SYNTAX_VALIDATION.getValue()).build());
-        if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
-        }
-    }
 
     public static boolean executeUpdate(String sql) {
         Connection conn = null;
@@ -672,12 +361,6 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
             close(statement, conn);
         }
         return i == 1;
-    }
-
-    private Map<String, Object> buildJobResource(String id) {
-        Map<String, Object> result = Maps.newHashMap();
-        result.put(JobConfig.JOB_ID, id);
-        return result;
     }
 
     public static void execute(String sql) {

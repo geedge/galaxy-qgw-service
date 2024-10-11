@@ -38,6 +38,17 @@ public interface DatabaseService {
     String getPartitionKey(String tableName);
 
     /**
+     * Desc: Getting the logical type of table field
+     *
+     * @param tableName table name
+     * @param fieldName field name
+     * @return {@link String}
+     * @created by wWei
+     * @date 2024/10/10 17:27
+     */
+    String getFieldLogicalType(String tableName, String fieldName);
+
+    /**
      * 根据表名获取indexKey
      *
      * @param tableName

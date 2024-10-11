@@ -20,6 +20,7 @@ import java.util.Map;
 public class QueryCache implements Serializable {
     private String type;
     private Object requestParam;
+    private Object jobContextParam;
     private Long latestQueryTimeMs = System.currentTimeMillis();
     private BaseResult<Object> baseResult;
 

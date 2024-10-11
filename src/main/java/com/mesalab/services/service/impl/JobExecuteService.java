@@ -21,8 +21,10 @@ import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
+import com.mesalab.common.utils.sqlparser.AutoPeriodHelper;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.common.utils.sqlparser.TimeBasedShardingUtil;
 import com.mesalab.qgw.constant.DslIdentifierNameConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -54,6 +56,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static com.mesalab.services.service.impl.JobServiceImpl.execute;
@@ -98,7 +101,7 @@ public class JobExecuteService implements EnvironmentAware {
             markJobBegin(request.getId());
             JobInfo jobInfo = new JobInfo(request.getId());
             String partitionKey = databaseService.getPartitionKey(request.getDataSource());
-            Interval interval = getInterval("SELECT 1 FROM table WHERE " + request.getFilter(), partitionKey);
+            Interval interval = getBasePlainSQLInterval("SELECT 1 FROM table WHERE " + request.getFilter(), partitionKey, databaseService.getDBEngineByTableName(request.getDataSource()));
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
                 executeSlicingFieldDiscoveryJob(request.getId(), jobInfo, request, interval, partitionKey);
             } else {
@@ -130,50 +133,354 @@ public class JobExecuteService implements EnvironmentAware {
         return new AsyncResult<>(true);
     }
 
-    @Deprecated
-    @Async("lightWeightThreadPool")
-    public void addExecutorStatistics(String id, HashMap<String, Object> param, Map<String, Object> property) {
-        JobInfo jobInfo = new JobInfo(id);
-        try {
-            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString()));
-            if (jobCfg.isTimeSlicingEnabled()
-                    && interval.isValid()
-                    && StringUtil.isNotEmpty(property.get(JobConfig.JOB_PROPERTY_K_OPTION))) {
-                executeSlicingStatisticsJob(jobInfo, param, interval);
-            } else {
-                PlainSelect plainSelectOuter = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
-                Expression whereOuter = plainSelectOuter.getWhere();
-
-                PlainSelect plainSelectInner = SQLHelper.getSelectInner(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
-                Expression whereInner = plainSelectInner.getWhere();
-                FromItem fromItemInner = plainSelectInner.getFromItem();
-
-                executeLongTerm(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), fromItemInner.toString(), whereOuter == null ? " 1=1 " : whereOuter.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
-            }
-        } catch (Exception e) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
-            log.error(e, "execute job error: jobId-{}", id);
-        } finally {
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
-                    id, true, 1, System.currentTimeMillis() - jobInfo.getStartTime()));
-        }
-    }
-
     @Async("lightWeightThreadPool")
     public void addExecutorSql(SqlQueryRequestParam request) {
         try {
+            long startJob = System.currentTimeMillis();
             markJobBegin(request.getId());
-            BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
-                    .originalSQL(request.getStatement())
-                    .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
-                    .format(request.getOutputMode().getValue())
-                    .build());
-            updateJobResultOnQueryCache(request.getId(), baseResult, null);
-        } catch (RuntimeException e) {
+            String statement = request.getStatement();
+            if (jobCfg.isTimeSlicingEnabled() && TimeBasedShardingUtil.isSlicingBaseSupported(statement)) {
+                String table = SQLHelper.getTableName(statement).get(0);
+                String partitionKey = databaseService.getPartitionKey(table);
+                String dbEngine = databaseService.getDBEngineByTableName(table);
+                String fieldLogicalType = databaseService.getFieldLogicalType(table, partitionKey);
+                SQLIntentContext sqlIntentContext = null;
+                Interval interval = null;
+                try {
+                    statement = AutoPeriodHelper.buildSqlGranularity(CCJSqlParserUtil.parse(statement)).toString();
+                    sqlIntentContext = parseSQLIntentContext(statement);
+                    interval = getBasePlainSQLInterval(statement, partitionKey, dbEngine);
+                } catch (RuntimeException | JSQLParserException e) {
+                    log.error("Parsing SQL intent context error: {}", e.getMessage());
+                    BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                            .originalSQL(statement)
+                            .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
+                            .format(request.getOutputMode().getValue())
+                            .build());
+                    updateJobResultOnQueryCache(request.getId(), baseResult, null);
+                    return;
+                }
+
+                if (isValidSlicing(sqlIntentContext) && interval.isValid()) {
+                    try {
+                        HazelcastInstanceMapUtil.retrieveMap().lock(request.getId());
+                        QueryCache queryCache = HazelcastInstanceMapUtil.get(request.getId());
+                        queryCache.setType(JobConfig.SLICING_OPTIMIZATION);
+                        queryCache.setJobContextParam(sqlIntentContext.getLimit());
+                        HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                    } finally {
+                        HazelcastInstanceMapUtil.retrieveMap().unlock(request.getId());
+                    }
+
+                    List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(statement, SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
+                    String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
+                    int granularitySec = Period.parse(per).toStandardSeconds().getSeconds();
+                    String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", dbEngine);
+                    BaseResult baseResultCursor = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, table)).build());
+                    if (!baseResultCursor.isSuccess()) {
+                        log.error("Job getting the end time's standard granularity error. message: {}", baseResultCursor.getMessage());
+                        throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job getting the end time's standard granularity error. message: " + baseResultCursor.getMessage()));
+                    }
+
+                    List<Map<String, Object>> data = (List<Map<String, Object>>) baseResultCursor.getData();
+                    int endStandardGranularitySec = Integer.parseInt(data.get(0).get("stat_time").toString());
+
+                    int cursorUnixTimestamp = interval.getEnd() == endStandardGranularitySec
+                            ? endStandardGranularitySec
+                            : endStandardGranularitySec + granularitySec;
+
+                    int stepSec = jobCfg.getTimeSlicingInterval() / granularitySec == 0 ? granularitySec : (jobCfg.getTimeSlicingInterval() / granularitySec) * granularitySec;
+
+
+                    while (true) {
+                        if (jobCfg.getExecutionTimeout() < System.currentTimeMillis() - startJob) {
+                            log.error("Job execution timeout: request-{}", request);
+                            throw new RuntimeException("Job execution timeout");
+                        }
+                        if (isCancel(request.getId())) {
+                            log.error("Job interactive timeout: request-{}", request);
+                            throw new RuntimeException("Job interactive timeout");
+                        }
+
+                        DateTime intervalStartItem = new DateTime((cursorUnixTimestamp - stepSec) * 1000L);
+                        DateTime intervalEndItem = new DateTime(cursorUnixTimestamp * 1000L);
+
+                        if (intervalEndItem.getTime() / 1000 > interval.getEnd()) {
+                            intervalEndItem = new DateTime(interval.getEnd() * 1000L);
+                        }
+
+                        if (intervalStartItem.getTime() / 1000 < interval.getStart()) {
+                            intervalStartItem = new DateTime(interval.getStart() * 1000L);
+                        }
+
+                        PlainSelect plainSelect = getWhereOuter(statement);
+                        String newFilter = String.format(
+                                "timestamp".equals(fieldLogicalType) ? "( %s >= FROM_UNIXTIME(%s) AND %s < FROM_UNIXTIME(%s)) AND (%s)" : "( %s >= %s AND %s < %s) AND (%s)"
+                                , partitionKey, intervalStartItem.getTime() / 1000, partitionKey, intervalEndItem.getTime() / 1000
+                                , plainSelect.getWhere());
+                        plainSelect.setWhere(CCJSqlParserUtil.parseExpression(newFilter));
+
+                        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                                .originalSQL(plainSelect.toString())
+                                .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
+                                .format(request.getOutputMode().getValue())
+                                .build());
+                        if (!baseResult.isSuccess()) {
+                            log.error("Job getting the end time's standard granularity error. message: {}", baseResultCursor.getMessage());
+                            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "execute job error. message: " + baseResultCursor.getMessage()));
+                        }
+                        String option = String.valueOf(sqlIntentContext.getType());
+                        DecimalFormat format = getDecimalFormat();
+                        double doneProgress = Double.parseDouble(format.format((interval.getEnd() - intervalStartItem.getTime() / 1000) * 1.0 / (interval.getEnd() - interval.getStart())));
+                        if (JobConfig.JOB_PROPERTY_V_OPTION_TIMECHART.equals(option)) {
+                            Boolean isAsc = sqlIntentContext.getIsAsc().values().stream().findFirst().orElse(true);
+                            appendAndUpdateTimechartJobResultOnQueryCache(request.getId(), baseResult, Math.min(doneProgress, 0.9999), isAsc);
+                        } else if (JobConfig.JOB_PROPERTY_V_OPTION_TOP.equals(option)
+                                || JobConfig.JOB_PROPERTY_V_OPTION_RARE.equals(option)) {
+                            appendAndUpdateTopRareJobResultOnQueryCache(request.getId(), baseResult, Math.min(doneProgress, 0.9999), sqlIntentContext);
+                        }
+
+                        if (intervalStartItem.getTime() / 1000 <= interval.getStart()) {
+                            break;
+                        }
+                        cursorUnixTimestamp -= stepSec;
+
+                    }
+                } else {
+                    BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                            .originalSQL(statement)
+                            .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
+                            .format(request.getOutputMode().getValue())
+                            .build());
+                    updateJobResultOnQueryCache(request.getId(), baseResult, null);
+                }
+            } else {
+                BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                        .originalSQL(statement)
+                        .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
+                        .format(request.getOutputMode().getValue())
+                        .build());
+                updateJobResultOnQueryCache(request.getId(), baseResult, null);
+            }
+        } catch (RuntimeException | JSQLParserException e) {
             markJobFailure(request.getId(), e.getMessage());
+            log.error(e, "execute job error: jobId-{}", request.getId());
         } finally {
             markJobCompletion(request.getId());
         }
+    }
+
+    private static void appendAndUpdateTimechartJobResultOnQueryCache(String id, BaseResult sliceResult, Double doneProgress, boolean isAsc) {
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            if (doneProgress != null) {
+                job.put(JobConfig.DONE_PROGRESS, doneProgress);
+                queryCache.getBaseResult().setJob(job);
+            }
+            Object dataCacheObj = queryCache.getBaseResult().getData();
+            if (dataCacheObj == null || ((List) dataCacheObj).isEmpty()) {
+                queryCache.getBaseResult().setData(sliceResult.getData());
+            } else {
+                List dataCacheList = (List) dataCacheObj;
+                List sliceDataList = (List) sliceResult.getData();
+                if (isAsc) {
+                    sliceDataList.addAll(dataCacheList);
+                    queryCache.getBaseResult().setData(sliceDataList);
+                } else {
+                    dataCacheList.addAll(sliceDataList);
+                    queryCache.getBaseResult().setData(dataCacheList);
+                }
+            }
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
+    }
+
+    private void appendAndUpdateTopRareJobResultOnQueryCache(String id, BaseResult sliceResult, Double doneProgress, SQLIntentContext sqlIntentContext) {
+        try {
+            Map<String, Boolean> isAscMap = sqlIntentContext.getIsAsc();
+            Boolean isAsc = isAscMap.values().stream().findFirst().orElse(true);
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            if (doneProgress != null) {
+                job.put(JobConfig.DONE_PROGRESS, doneProgress);
+                queryCache.getBaseResult().setJob(job);
+            }
+            Object dataCacheObj = queryCache.getBaseResult().getData();
+            if (dataCacheObj == null || ((List) dataCacheObj).isEmpty()) {
+                queryCache.getBaseResult().setData(sliceResult.getData());
+            } else {
+                List dataCacheList = (List) dataCacheObj;
+                List sliceDataList = (List) sliceResult.getData();
+                List resultData = mergeData(dataCacheList, sliceDataList, sqlIntentContext.getDimension(), sqlIntentContext.getMetric());
+                String sortKey = sqlIntentContext.getMetric().keySet().stream().findFirst().get();
+                resultData = sortDataAndSetMaxSize(resultData, sortKey, isAsc);
+                queryCache.getBaseResult().setData(resultData);
+            }
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
+    }
+
+
+    private SQLIntentContext parseSQLIntentContext(String sql) {
+        SQLIntentContext sqlIntentContext = new SQLIntentContext();
+        try {
+            Select select = (Select) CCJSqlParserUtil.parse(sql);
+            PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+            Optional.ofNullable(plainSelect.getLimit()).ifPresent(x -> sqlIntentContext.setLimit(Long.parseLong(String.valueOf(x.getRowCount()))));
+            Map<String, Object> aliasExpr = Maps.newHashMap();
+            for (SelectItem item : plainSelect.getSelectItems()) {
+                if (!(item instanceof SelectExpressionItem)) {
+                    return sqlIntentContext;
+                }
+                SelectExpressionItem selectExprItem = (SelectExpressionItem) item;
+                if (StringUtil.isEmpty(selectExprItem.getAlias())) {
+                    aliasExpr.put(String.valueOf(selectExprItem.getExpression()), selectExprItem.getExpression());
+                } else {
+                    aliasExpr.put(selectExprItem.getAlias().getName(), selectExprItem.getExpression());
+                }
+            }
+            for (Expression groupItem : plainSelect.getGroupBy().getGroupByExpressionList().getExpressions()) {
+                if (aliasExpr.keySet().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))
+                        && aliasExpr.values().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))) {
+                    return sqlIntentContext;
+                }
+            }
+            List<Expression> groupByItems = plainSelect.getGroupBy().getGroupByExpressionList().getExpressions();
+            for (String key : aliasExpr.keySet()) {
+                Object value = aliasExpr.get(key);
+                if (groupByItems.stream().anyMatch(groupItem -> (key.equals(groupItem.toString()) || (value.toString().equals(groupItem.toString()))))) {
+                    sqlIntentContext.getDimension().add(key);
+                    continue;
+                }
+                if (value instanceof Function) {
+                    Function fun = ((Function) value);
+                    String name = fun.getName().toLowerCase();
+                    if (!SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
+                        return sqlIntentContext;
+                    }
+                    if (fun.isDistinct() || fun.isUnique()) {
+                        return sqlIntentContext;
+                    }
+                    sqlIntentContext.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
+                }
+            }
+            for (OrderByElement orderByElement : plainSelect.getOrderByElements()) {
+                String sort = String.valueOf(orderByElement.getExpression());
+                boolean inSelectItem = aliasExpr.keySet().stream().anyMatch(key -> {
+                    if (sort.equals(key) || sort.equals(aliasExpr.get(key))) {
+                        sqlIntentContext.getIsAsc().put(key, orderByElement.isAsc());
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+                if (!inSelectItem) {
+                    return sqlIntentContext;
+                }
+            }
+            if (sqlIntentContext.getIsAsc().keySet().size() != 1) {
+                return sqlIntentContext;
+            }
+            if (isTimechart(sql, aliasExpr, sqlIntentContext)) {
+                sqlIntentContext.setType(JobConfig.JOB_PROPERTY_V_OPTION_TIMECHART);
+                return sqlIntentContext;
+            }
+            // top、rare
+            for (Object key : aliasExpr.keySet()) {
+                Object value = aliasExpr.get(key);
+                if (value instanceof Function) {
+                    Function fun = (Function) value;
+                    if (!(SQLFunctionUtil.timeSlicingFunction.containsKey(fun.getName().toLowerCase()))) {
+                        return sqlIntentContext;
+                    }
+                    if (!(sqlIntentContext.getIsAsc().containsKey(value) || sqlIntentContext.getIsAsc().containsKey(key))) {
+                        return sqlIntentContext;
+                    }
+                } else {
+                    if (!(sqlIntentContext.getDimension().contains(value) || sqlIntentContext.getDimension().contains(key))) {
+                        return sqlIntentContext;
+                    }
+                }
+            }
+            if (sqlIntentContext.getIsAsc().values().stream().findFirst().orElse(true)) {
+                sqlIntentContext.setType(JobConfig.JOB_PROPERTY_V_OPTION_RARE);
+            } else {
+                sqlIntentContext.setType(JobConfig.JOB_PROPERTY_V_OPTION_TOP);
+            }
+            return sqlIntentContext;
+        } catch (JSQLParserException | RuntimeException e) {
+            log.error("parse SQL Intent error. message: {}", e.getMessage());
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "parse SQL Intent error. message: ".concat(e.getMessage())));
+        }
+    }
+
+    private boolean isValidSlicing(SQLIntentContext sqlIntentContext) {
+        if (sqlIntentContext == null || StrUtil.isBlank(sqlIntentContext.getType())) {
+            return false;
+        }
+        String type = sqlIntentContext.getType();
+        if (StrUtil.equalsIgnoreCase(type, JobConfig.JOB_PROPERTY_V_OPTION_TOP)
+                || StrUtil.equals(type, JobConfig.JOB_PROPERTY_V_OPTION_RARE)) {
+            if (sqlIntentContext.getDimension().isEmpty() || sqlIntentContext.getMetric().isEmpty()) {
+                return false;
+            }
+        } else if (StrUtil.equalsIgnoreCase(type, JobConfig.JOB_PROPERTY_V_OPTION_TIMECHART)) {
+            if (sqlIntentContext.getIsAsc().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isTimechart(String sql, Map<String, Object> aliasExpr, SQLIntentContext sqlIntentContext) {
+        boolean isTimechart = false;
+        for (Object key : aliasExpr.keySet()) {
+            Object expr = aliasExpr.get(key);
+            if ((expr instanceof Function) && (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(((Function) expr).getName()))
+                    && (sqlIntentContext.getDimension().size() == 1 && ((sqlIntentContext.getDimension().contains(key)) || sqlIntentContext.getDimension().contains(expr))
+                    && (sqlIntentContext.getIsAsc().containsKey(key) || sqlIntentContext.getIsAsc().containsKey(expr)))) {
+                List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(sql, SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
+                if (timeFloorWithFill.size() >= 2) {
+                    Matcher matcherPT = SQLFunctionUtil.periodOfPT.matcher(String.valueOf(timeFloorWithFill.get(1)));
+                    if (matcherPT.find()) {
+                        long num = Long.parseLong(matcherPT.group(1));
+                        String unit = matcherPT.group(2);
+                        if ((("S".equalsIgnoreCase(unit)
+                                || "M".equalsIgnoreCase(unit)) && (num % 60 == 0) || 60 % num == 0)
+                                || ("H".equalsIgnoreCase(unit) && (num % 24 == 0) || 24 % num == 0)) {
+                            isTimechart = true;
+                            continue;
+                        }
+                        return false;
+                    }
+                    return false;
+                }
+                return false;
+            }
+        }
+        if (isTimechart) {
+            return true;
+        }
+        return false;
+    }
+
+    @Data
+    class SQLIntentContext {
+        private String type;
+        private Map<String, String> metric = Maps.newHashMap();
+        private List<String> dimension = Lists.newArrayList();
+        private Map<String, Boolean> isAsc = Maps.newHashMap();
+        private Long limit;
     }
 
     @Async("lightWeightThreadPool")
@@ -249,17 +556,6 @@ public class JobExecuteService implements EnvironmentAware {
 
                 DSLQueryRequestParam requestItem = BeanUtil.copyProperties(request, DSLQueryRequestParam.class);
 
-
-                List<Date> dateList = Lists.newArrayList();
-                if (DateUtil.compare(new Date(endStandardGranularitySec * 1000L), intervalEnd) < 0) {
-                    dateList.add(intervalEnd);
-                }
-                dateList.add(new Date(endStandardGranularitySec * 1000L));
-                dateList.addAll(DateUtils.getLeftDateRange(new Date(endStandardGranularitySec * 1000L), new Date(intervalStart.getTime()), granularity));
-                if (DateUtil.compare(dateList.get(dateList.size() - 1), intervalStart) < 0) {
-                    dateList.set(dateList.size() - 1, intervalStart);
-                }
-
                 int cursorUnixTimestamp = intervalEnd.getTime() / 1000 == endStandardGranularitySec
                         ? endStandardGranularitySec
                         : endStandardGranularitySec + granularitySec;
@@ -320,17 +616,6 @@ public class JobExecuteService implements EnvironmentAware {
 
     public BaseResult addDslExecutorLogQueryWithoutCache(DSLQueryRequestParam request) {
         return logQueryService.run(request);
-    }
-
-
-    public BaseResult addDslExecutorTrafficSpectrumWithoutCache(DSLQueryRequestParam request) {
-        try {
-            CompletableFuture<BaseResult> future = CompletableFuture.supplyAsync(() -> trafficSpectrumDslService.run(request), lightWeightThreadPool);
-            return future.join();
-        } catch (CompletionException e) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
-        }
     }
 
     @Async("lightWeightThreadPool")
@@ -595,44 +880,6 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    @Deprecated
-    private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval) throws JSQLParserException {
-        String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
-        List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
-        String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
-        String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBEngineType.CLICKHOUSE.getValue());
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
-        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        long statTime = Long.parseLong(data.get(0).get("stat_time").toString()) * 1000;
-
-        List<Date> dateList = Lists.newArrayList(new DateTime(statTime + Period.parse(per).toStandardDuration().getMillis()));
-        dateList.add(new Date(statTime));
-        dateList.addAll(DateUtils.getLeftDateRange(new Date(statTime), new Date(interval.getStart() * 1000), per));
-        //分片粒度 Max(per, TimeSlicingInterval)
-        long perSeconds = (dateList.get(0).getTime() - dateList.get(1).getTime()) / 1000;
-        long step = jobCfg.getTimeSlicingInterval() / perSeconds == 0 ? 1 : jobCfg.getTimeSlicingInterval() / perSeconds;
-        int totalTimes = (int) Math.ceil((dateList.size() - 1) * 1.0 / step);
-        jobInfo.setTotalTimes(totalTimes);
-        while (true) {
-            if (jobInfo.isTimeout()) {
-                log.error("execute job timeout: job-{}", jobInfo);
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, jobInfo.getId(), true));
-                break;
-            }
-            int index = (int) (jobInfo.currentTimes * step);
-            long start = dateList.get(dateList.size() <= index ? dateList.size() - 1 : index).getTime() / 1000;
-            long end = dateList.get((int) (index - step)).getTime() / 1000;
-            PlainSelect plainSelect = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
-            String newFilter = String.format("(%s) AND ( %s >= %s AND %s < %s)",
-                    plainSelect.getWhere(),
-                    partitionKey, start, partitionKey, end);
-            executeLongTerm(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), plainSelect.getFromItem().toString(), newFilter, newFilter, true);
-            if (start <= interval.getStart()) {
-                break;
-            }
-            jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
-        }
-    }
 
     private void executeFieldDiscoveryJob(String id, JobInfo jobInfo, DSLQueryRequestParam request, String segmentFilter) throws ExecutionException, InterruptedException {
         if (isCancel(jobInfo.getId())) {
@@ -805,6 +1052,31 @@ public class JobExecuteService implements EnvironmentAware {
         return data.size() > engineConfigSource.getMaxCacheNum() ? data.subList(0, engineConfigSource.getMaxCacheNum()) : data;
     }
 
+    private List<Map<String, Object>> sortDataAndSetMaxSize(List<Map<String, Object>> data, String sortElement, boolean isAsc) {
+        data.sort((o1, o2) -> {
+            Object value1 = o1.get(sortElement);
+            Object value2 = o2.get(sortElement);
+
+            // 处理空值
+            if (value1 == null) return (value2 == null) ? 0 : 1;
+            if (value2 == null) return -1;
+
+            // 自动识别类型
+            if (value1 instanceof Number && value2 instanceof Number) {
+                return Double.compare(((Number) value1).doubleValue(), ((Number) value2).doubleValue());
+            } else {
+                return String.valueOf(value1).compareTo(String.valueOf(value2));
+            }
+        });
+
+        if (!isAsc) {
+            Collections.reverse(data);
+        }
+
+        int maxSize = engineConfigSource.getMaxCacheNum();
+        return data.size() > maxSize ? data.subList(0, maxSize) : data;
+    }
+
     private List<Map<String, Object>> mergeData(List<Map<String, Object>> data1, List<Map<String, Object>> date2, List<String> dimensions, Map<String, String> metrics) {
         Collection<Map<String, Object>> data = CollectionUtil.addAll(data1, date2);
         Map<String, Map<String, Object>> result = Maps.newHashMap();
@@ -960,14 +1232,14 @@ public class JobExecuteService implements EnvironmentAware {
         return false;
     }
 
-    private Interval getInterval(String sql, String partitionKey) throws JSQLParserException {
+    private Interval getBasePlainSQLInterval(String sql, String partitionKey, String dbEngine) throws JSQLParserException {
         Select parse = (Select) CCJSqlParserUtil.parse(sql);
         PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
         Expression where = plainSelect.getWhere();
         List<Expression> list = Lists.newArrayList();
         Interval interval = new Interval();
         if (!isOrExpression(where, list)) {
-            parseInterval(list, interval, partitionKey);
+            parseInterval(list, interval, partitionKey, dbEngine);
         }
         return interval;
     }
@@ -977,7 +1249,7 @@ public class JobExecuteService implements EnvironmentAware {
         return (PlainSelect) parse.getSelectBody();
     }
 
-    private Interval parseInterval(List<Expression> list, Interval interval, String partitionKey) {
+    private Interval parseInterval(List<Expression> list, Interval interval, String partitionKey, String dbEngine) {
         if (interval.isValid()) {
             return interval;
         }
@@ -989,13 +1261,13 @@ public class JobExecuteService implements EnvironmentAware {
                         if (comparison.getRightExpression() instanceof LongValue) {
                             interval.setStart(Long.parseLong(comparison.getRightExpression().toString()));
                         } else {
-                            interval.setStart(getCriticalValue(comparison.getRightExpression().toString()));
+                            interval.setStart(getCriticalValue(comparison.getRightExpression().toString(), dbEngine));
                         }
                     } else if (comparison.getStringExpression().matches("<=|<")) {
                         if (comparison.getRightExpression() instanceof LongValue) {
                             interval.setEnd(Long.parseLong(comparison.getRightExpression().toString()));
                         } else {
-                            interval.setEnd(getCriticalValue(comparison.getRightExpression().toString()));
+                            interval.setEnd(getCriticalValue(comparison.getRightExpression().toString(), dbEngine));
                         }
                     }
                 }
@@ -1004,13 +1276,13 @@ public class JobExecuteService implements EnvironmentAware {
                         if (comparison.getLeftExpression() instanceof LongValue) {
                             interval.setEnd(Long.parseLong(comparison.getLeftExpression().toString()));
                         } else {
-                            interval.setEnd(getCriticalValue(comparison.getLeftExpression().toString()));
+                            interval.setEnd(getCriticalValue(comparison.getLeftExpression().toString(), dbEngine));
                         }
                     } else if (comparison.getStringExpression().matches("<=|<")) {
                         if (comparison.getLeftExpression() instanceof LongValue) {
                             interval.setStart(Long.parseLong(comparison.getLeftExpression().toString()));
                         } else {
-                            interval.setStart(getCriticalValue(comparison.getLeftExpression().toString()));
+                            interval.setStart(getCriticalValue(comparison.getLeftExpression().toString(), dbEngine));
                         }
                     }
                 }
@@ -1018,15 +1290,15 @@ public class JobExecuteService implements EnvironmentAware {
                 Parenthesis parenthesis = (Parenthesis) expression;
                 List<Expression> expressionList = com.clearspring.analytics.util.Lists.newArrayList();
                 if (!isOrExpression(parenthesis.getExpression(), expressionList)) {
-                    parseInterval(expressionList, interval, partitionKey);
+                    parseInterval(expressionList, interval, partitionKey, dbEngine);
                 }
             }
         }
         return interval;
     }
 
-    private long getCriticalValue(String str) {
-        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBEngineType.CLICKHOUSE.getValue()));
+    private long getCriticalValue(String str, String dbEngine) {
+        return Long.parseLong(SQLFunctionUtil.getQueryValue("UNIX_TIMESTAMP(" + str + ")", dbEngine));
     }
 
     @Data

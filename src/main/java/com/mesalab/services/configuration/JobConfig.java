@@ -63,6 +63,7 @@ public class JobConfig {
     public static final String TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS = "traffic-spectrum-unique-client-and-server-ips";
     public static final String TRAFFIC_SPECTRUM_APP_DISTRIBUTION = "traffic-spectrum-app-distribution";
     public static final String TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE = "traffic-spectrum-client-ip-connect-application-usage";
+    public static final String SLICING_OPTIMIZATION = "slicing-optimization";
     public static final String TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND = "traffic-spectrum-network-throughput-trend";
     public static final String CUSTOMIZED_STATISTICS = "customized-statistics";
     public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
