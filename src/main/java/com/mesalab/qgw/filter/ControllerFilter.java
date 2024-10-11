@@ -10,7 +10,7 @@ import java.io.IOException;
 @Component
 @WebFilter(urlPatterns = "/*")
 public class ControllerFilter implements Filter {
-    private static final String NOT_FILTER_PATHS_KB = "/v1/knowledge_base";
+    private static final String NOT_FILTER_PATHS_KB = "/v1/knowledge-base";
     private static final String NOT_FILTER_PATHS_HOS = "/v1/hos";
 
     @Override

@@ -27,7 +27,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping(value = "/v1/knowledge_base")
+@RequestMapping(value = "/v1/knowledge-base")
 public class KBController {
     private static final Log log = LogFactory.get();
     @Autowired

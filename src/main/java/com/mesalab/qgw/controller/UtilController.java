@@ -22,13 +22,13 @@ public class UtilController {
     @Autowired
     private UtilService utilService;
 
-    @GetMapping(value = "/sql_parser", consumes = "application/x-www-form-urlencoded")
+    @GetMapping(value = "/sql-parser", consumes = "application/x-www-form-urlencoded")
     @AuditLog("UtilController.getSQLSyntaxTree")
     public BaseResult getSQLSyntaxTree(String sql){
         return utilService.getSQLSyntaxTree(sql);
     }
 
-    @PostMapping(value = "/password_generator", consumes = "application/json")
+    @PostMapping(value = "/password-generator", consumes = "application/json")
     @AuditLog("UtilController.getCiphertext")
     public BaseResult getCiphertext(@RequestBody EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);

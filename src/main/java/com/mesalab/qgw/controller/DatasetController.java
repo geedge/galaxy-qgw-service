@@ -48,13 +48,13 @@ public class DatasetController {
         return BaseResultGenerator.success(datasetService.getDatasets(Arrays.asList(StrUtil.split(datasetIds, ",")), category, backendEngine));
     }
 
-    @GetMapping(value = "/{identifier_name}/result_preview")
+    @GetMapping(value = "/{identifier_name}/result-preview")
     @AuditLog("DatasetController.getPreview")
     public BaseResult getPreview(@PathVariable("identifier_name") String identifierName) {
         return datasetService.getPreview(identifierName);
     }
 
-    @GetMapping(value = "/global_variable")
+    @GetMapping(value = "/global-variable")
     @AuditLog("DatasetController.getVariable")
     public BaseResult getVariable() {
         return BaseResultGenerator.success(datasetService.getVariable());

@@ -113,7 +113,7 @@ public class DatabaseController {
         return databaseService.cleanDataByType(type);
     }
 
-    @RequestMapping(value = "/storage/quota/daily_usage", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
+    @RequestMapping(value = "/storage/quota/daily-usage", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.dailyTrendOfStorage")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
         log.debug("get storage quota trend api, params is: {}", param);
