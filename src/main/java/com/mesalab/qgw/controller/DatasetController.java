@@ -21,7 +21,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/v1/dataset")
+@RequestMapping(value = "/v1/datasets")
 public class DatasetController {
 
     @Autowired
