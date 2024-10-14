@@ -120,15 +120,15 @@ public class DatasetServiceImp
         Map<String, Object> dataset = getDataset(datasetId);
         String template = buildExecDSL(getVariable(), String.valueOf(dataset.get(TEMPLATE)));
         String datasetType = String.valueOf(dataset.get(DATASET_TYPE));
-        if (datasetType.equalsIgnoreCase("sql")) {
+        if (DatasetType.SQL.getValue().equalsIgnoreCase(datasetType)) {
             SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(template, SqlQueryRequestParam.class);
             sqlQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
-            log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, "sql", sqlQueryRequest.getStatement());
+            log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, datasetType, sqlQueryRequest.getStatement());
             return queryJobService.createSQLAdHocQuery(sqlQueryRequest);
-        } else if (datasetType.equalsIgnoreCase("dsl")) {
+        } else if (DatasetType.DSL.getValue().equalsIgnoreCase(datasetType)) {
             DSLQueryRequestParam dslQueryRequest = JSON.parseObject(template, DSLQueryRequestParam.class);
             dslQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
-            log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
+            log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, datasetType, template);
             return queryJobService.createDSLAdHocQuery(dslQueryRequest);
         } else {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),

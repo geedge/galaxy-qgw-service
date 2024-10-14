@@ -8,6 +8,7 @@ import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Splitter;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.DatasetType;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonSchemaValidator;
@@ -22,13 +23,11 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.exception.CommonErrorCode;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import java.io.IOException;
-import java.util.Iterator;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -162,7 +161,7 @@ public class KnowledgeService {
 
     private void validateJson(String jsonString) {
         JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getInstance();
-        jsonSchemaValidator.addRule("dsl-validation.json", "dsl")
+        jsonSchemaValidator.addRule("dsl-validation.json", DatasetType.DSL.getValue())
                 .validateDSL(jsonString);
     }
 

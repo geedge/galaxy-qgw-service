@@ -4,6 +4,7 @@ package com.mesalab.qgw.service;
 import cn.hutool.core.io.resource.ClassPathResource;
 import cn.hutool.core.io.resource.Resource;
 import com.mesalab.GalaxyQGWApplicationTests;
+import com.mesalab.common.enums.DatasetType;
 import com.mesalab.common.utils.JsonSchemaValidator;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import org.apache.commons.io.IOUtils;
@@ -12,6 +13,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.test.context.TestPropertySource;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -60,7 +62,7 @@ public class JsonSchemaValidatorTest extends GalaxyQGWApplicationTests {
             Resource resource = new ClassPathResource("examples/validDSLRequestTest.json");
             String jsonStr = new String(IOUtils.toByteArray(resource.getStream()), StandardCharsets.UTF_8);
             boolean isValidSuccess = jsonSchemaValidator
-                    .addRule("dsl-validation.json", "dsl")
+                    .addRule("dsl-validation.json", DatasetType.DSL.getValue())
                     .validateDSL(jsonStr);
             Assert.assertTrue(isValidSuccess);
         } catch (QGWBusinessException | IOException e) {
@@ -76,7 +78,7 @@ public class JsonSchemaValidatorTest extends GalaxyQGWApplicationTests {
             Resource resource = new ClassPathResource("examples/invalidDSLRequestTest.json");
             String jsonStr = new String(IOUtils.toByteArray(resource.getStream()), StandardCharsets.UTF_8);
             jsonSchemaValidator
-                    .addRule("dsl-validation.json", "dsl")
+                    .addRule("dsl-validation.json", DatasetType.DSL.getValue())
                     .validateDSL(jsonStr);
         } catch (Exception e) {
             isValidError = false;

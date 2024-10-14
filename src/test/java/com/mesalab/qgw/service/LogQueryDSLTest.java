@@ -36,15 +36,14 @@ public class LogQueryDSLTest extends GalaxyQGWApplicationTests {
         BaseResult sqlAdHocQuery = queryJobService.createDSLAdHocQuery(dslQueryRequestParam);
         String jobId = String.valueOf(sqlAdHocQuery.getJob().get("job_id"));
         BaseResult adHocQueryStatusById = queryJobService.getAdHocQueryStatusById(jobId);
-        boolean isDone = Boolean.parseBoolean(String.valueOf(adHocQueryStatusById.getJob().get("is_done")));
-        while (!isDone) {
+        while (!Boolean.parseBoolean(String.valueOf(adHocQueryStatusById.getJob().get("is_done")))) {
             BaseResult adHocQueryTimelineById = queryJobService.getAdHocQueryTimelineById(jobId);
             BaseResult adHocQueryListById = queryJobService.getAdHocQueryListById(jobId, "*", 1, 1);
             BaseResult adHocQueryCountById = queryJobService.getAdHocQueryCountById(jobId);
 
-            Assert.assertTrue(adHocQueryTimelineById.getMessage(), adHocQueryCountById.getStatus() == 200);
-            Assert.assertTrue(adHocQueryListById.getMessage(), adHocQueryListById.getStatus() == 200);
-            Assert.assertTrue(adHocQueryCountById.getMessage(), adHocQueryCountById.getStatus() == 200);
+            Assert.assertEquals(adHocQueryTimelineById.getMessage(), 200, (int) adHocQueryTimelineById.getStatus());
+            Assert.assertEquals(adHocQueryListById.getMessage(), 200, (int) adHocQueryListById.getStatus());
+            Assert.assertEquals(adHocQueryCountById.getMessage(), 200, (int) adHocQueryCountById.getStatus());
             BaseResult adHocQueryStatusByIdTemp = queryJobService.getAdHocQueryStatusById(jobId);
             if (Boolean.parseBoolean(String.valueOf(adHocQueryStatusByIdTemp.getJob().get("is_done")))) {
                 break;
@@ -55,13 +54,13 @@ public class LogQueryDSLTest extends GalaxyQGWApplicationTests {
         BaseResult adHocQueryTimelineByIdEnd = queryJobService.getAdHocQueryTimelineById(jobId);
         BaseResult adHocQueryListByIdEnd = queryJobService.getAdHocQueryListById(jobId, "*", 1, 1);
         BaseResult adHocQueryCountByIdEnd = queryJobService.getAdHocQueryCountById(jobId);
-        Assert.assertTrue(adHocQueryTimelineByIdEnd.getMessage(), adHocQueryCountByIdEnd.getStatus() == 200);
-        Assert.assertTrue(adHocQueryListByIdEnd.getMessage(), adHocQueryListByIdEnd.getStatus() == 200);
-        Assert.assertTrue(adHocQueryCountByIdEnd.getMessage(), adHocQueryCountByIdEnd.getStatus() == 200);
+        Assert.assertEquals(adHocQueryTimelineByIdEnd.getMessage(), 200, (int) adHocQueryTimelineByIdEnd.getStatus());
+        Assert.assertEquals(adHocQueryListByIdEnd.getMessage(), 200, (int) adHocQueryListByIdEnd.getStatus());
+        Assert.assertEquals(adHocQueryCountByIdEnd.getMessage(), 200, (int) adHocQueryCountByIdEnd.getStatus());
         boolean isFailed = Boolean.parseBoolean(String.valueOf(adHocQueryStatusByIdEnd.getJob().get("is_failed")));
         boolean isCanceled = Boolean.parseBoolean(String.valueOf(adHocQueryStatusByIdEnd.getJob().get("is_canceled")));
-        Assert.assertTrue(String.valueOf(adHocQueryStatusByIdEnd.getJob().get("reason")), !isFailed);
-        Assert.assertTrue(String.valueOf(adHocQueryStatusByIdEnd.getJob().get("reason")), !isCanceled);
+        Assert.assertFalse(String.valueOf(adHocQueryStatusByIdEnd.getJob().get("reason")), isFailed);
+        Assert.assertFalse(String.valueOf(adHocQueryStatusByIdEnd.getJob().get("reason")), isCanceled);
 
     }
 

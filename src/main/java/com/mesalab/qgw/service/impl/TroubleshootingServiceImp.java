@@ -273,9 +273,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Map<String, String> map = Maps.newHashMap();
             map.put(IDENTIFIER_NAME, String.valueOf(record.getColumns().get(IDENTIFIER_NAME)));
             map.put(TEMPLATE, String.valueOf(datasetService.buildExecDSL(variables, String.valueOf(record.getColumns().get(TEMPLATE)))));
-            if (record.getColumns().get(DATASET_TYPE).equals("sql")) {
+            if (DatasetType.SQL.getValue().equals(record.getColumns().get(DATASET_TYPE))) {
                 sqlDatasetList.add(map);
-            } else if (record.getColumns().get(DATASET_TYPE).equals("dsl")) {
+            } else if (DatasetType.DSL.getValue().equals(record.getColumns().get(DATASET_TYPE))) {
                 dslDatasetList.add(map);
             }
         });
@@ -707,7 +707,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         for (Map map : list) {
             BaseResult queryResult;
             Stopwatch watch = Stopwatch.createStarted();
-            if (String.valueOf(map.get(TYPE)).equals("sql")) {
+            if (String.valueOf(map.get(TYPE)).equals(DatasetType.SQL.getValue())) {
                 SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), SqlQueryRequestParam.class);
                 sqlQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
                 queryResult = queryJobService.createSQLAdHocQuery(sqlQueryRequest);

@@ -39,8 +39,9 @@ public class QueryController {
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
     public BaseResult get(SQLQueryContext queryContext) {
-        if (queryContext.originalSQLIsNull())
-            return BaseResultGenerator.success4Message("ok");
+        if (queryContext.originalSQLIsNull()) {
+            return BaseResultGenerator.success4Message("Request successful; no SQL provided.");
+        }
         log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
         return sqlSyncQueryService.executeQuery(queryContext);
     }
@@ -49,11 +50,10 @@ public class QueryController {
     @AuditLog("QueryController.post")
     public BaseResult post(@RequestBody SQLQueryContext queryContext) {
         if (queryContext.originalSQLIsNull()) {
-            return BaseResultGenerator.success4Message("ok");
+            return BaseResultGenerator.success4Message("Request successful; no SQL provided.");
         }
         log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
         return sqlSyncQueryService.executeQuery(queryContext);
-
     }
 
     @PostMapping(value = "/v1/query/sql", consumes = "application/json", produces = "application/json")
@@ -61,10 +61,12 @@ public class QueryController {
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
         log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
-            if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecutionMode().equals(ExecutionMode.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
+            if (sqlQueryRequestParam.isDryRun()
+                    || !sqlQueryRequestParam.getExecutionMode().equals(ExecutionMode.NORMAL)
+                    || !sqlQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                         String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),
-                                "for the Saved Query Job, is_dry_run must be 0(default), execution_mode must be normal(default), and output_mode must be JSON(default)"));
+                                "For the saved query job, is_dry_run must be 0(default), execution_mode must be normal(default), and output_mode must be JSON(default)"));
             }
             return queryJobService.createSQLSavedQuery(sqlQueryRequestParam);
         } else {
@@ -80,9 +82,9 @@ public class QueryController {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
         } else {
-            if (!dslQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
+            if (!OutputMode.JSON.equals(dslQueryRequestParam.getOutputMode())) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Query not support output_mode must be JSON(default)"));
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Query not support, output_mode must be JSON(default)"));
             }
             return queryJobService.createDSLAdHocQuery(dslQueryRequestParam);
         }
@@ -109,7 +111,7 @@ public class QueryController {
 
         if (StringUtil.isNotEmpty(baseResult)
                 && StringUtil.isNotEmpty(baseResult.getJob())
-                && Boolean.valueOf(String.valueOf(baseResult.getJob().get(JobConfig.IS_DONE)))) {
+                && Boolean.parseBoolean(String.valueOf(baseResult.getJob().get(JobConfig.IS_DONE)))) {
             deferredResultHolder.handleDeferredData(deferredResult, baseResult);
         }
         return deferredResult;
@@ -202,7 +204,7 @@ public class QueryController {
             deferredResultHolder.handleDeferredData(deferredResult, BooleanUtil.toBoolean(String.valueOf(isSavedQuery)) ? queryJobService.getSavedQueryResult(ids) : queryJobService.getAdHocQueryResult(ids));
         });
 
-        if (jobsIsDoneOfResult(baseResult)) {
+        if (allJobsAreDoneOfResult(baseResult)) {
             deferredResultHolder.handleDeferredData(deferredResult, baseResult);
         }
         return deferredResult;
@@ -231,7 +233,7 @@ public class QueryController {
             deferredResultHolder.handleDeferredData(deferredResult, BooleanUtil.toBoolean(String.valueOf(isSavedQuery)) ? queryJobService.getSavedQueryStatus(ids) : queryJobService.getAdHocQueryStatus(ids));
         });
 
-        if (jobsIsDoneOfStatus(baseResult)) {
+        if (allJobsAreDoneOfStatus(baseResult)) {
             deferredResultHolder.handleDeferredData(deferredResult, baseResult);
         }
         return deferredResult;
@@ -248,7 +250,7 @@ public class QueryController {
                 String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The AdHoc Query Job does not yet support deletion."));
     }
 
-    private boolean jobsIsDoneOfResult(BaseResult baseResult) {
+    private boolean allJobsAreDoneOfResult(BaseResult baseResult) {
         if (StringUtil.isEmpty(baseResult)) {
             return false;
         }
@@ -265,7 +267,7 @@ public class QueryController {
         return true;
     }
 
-    private boolean jobsIsDoneOfStatus(BaseResult baseResult) {
+    private boolean allJobsAreDoneOfStatus(BaseResult baseResult) {
         if (StringUtil.isEmpty(baseResult)) {
             return false;
         }

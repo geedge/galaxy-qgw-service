@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.mesalab.common.enums.DatasetType;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -84,7 +84,7 @@ public class JsonSchemaValidator {
 
     public boolean validateDSL(String jsonStr) {
         for (ValidationRule rule : rules) {
-            if (rule.getType().equals("dsl")){
+            if (DatasetType.DSL.getValue().equals(rule.getType())){
                 try {
                     Resource resource = new ClassPathResource(rule.getJsonSchemaFileName());
                     String jsonSchemaStr = new String(IOUtils.toByteArray(resource.getStream()), StandardCharsets.UTF_8);

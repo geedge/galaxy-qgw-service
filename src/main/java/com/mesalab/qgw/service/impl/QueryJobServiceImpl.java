@@ -50,11 +50,10 @@ import java.util.stream.Collectors;
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
-    private Environment env;
+    private Environment environment;
     private SQLSyncQueryService sqlSyncQueryService;
     private JobService jobService;
     private JobExecuteService jobExecuteService;
-    private DatabaseService databaseService;
     private DSLService dslService;
     private TrafficSpectrumDslService trafficSpectrumDslService;
     private EngineConfigSource engineConfigSource;
@@ -63,211 +62,258 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
 
     @Override
-    public BaseResult createSQLSavedQuery(SqlQueryRequestParam request) {
-        initAndValidationID(request);
-        syntaxParseSql(request.getStatement());
-        String sql = JSONUtil.quote(request.getStatement(), false).replace("'", "\\'");
-        long currentTime = System.currentTimeMillis() / 1000;
-        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), request.getId(), sql, currentTime, currentTime));
-        log.info("Committed a SQL Saved Query Job, id is: {}", request.getId());
-        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+    public BaseResult createSQLSavedQuery(SqlQueryRequestParam sqlQueryRequestParam) {
+        initAndValidationID(sqlQueryRequestParam);
+        syntaxParseSql(sqlQueryRequestParam.getStatement());
+        String sql = JSONUtil.quote(sqlQueryRequestParam.getStatement(), false).replace("'", "\\'");
+        long unixTimestamp = System.currentTimeMillis() / 1000;
+        Db.update(String.format(Objects.requireNonNull(environment.getProperty("SAVED_QUERY_JOB_INIT")), sqlQueryRequestParam.getId(), sql, unixTimestamp, unixTimestamp));
+        log.info("Committed a SQL Saved Query Job, id is: {}", sqlQueryRequestParam.getId());
+        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(sqlQueryRequestParam.getId()));
     }
 
     @Override
     public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
         initAndValidationID(sqlQueryRequestParam);
-        String option = sqlQueryRequestParam.isDryRun()
-                ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
-        long start = System.currentTimeMillis();
         ExecutionMode execMode = sqlQueryRequestParam.getExecutionMode();
-        if (ExecutionMode.ONESHOT.equals(execMode)) {
-            return sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
-                    .originalSQL(sqlQueryRequestParam.getStatement())
-                    .option(option)
-                    .format(sqlQueryRequestParam.getOutputMode().getValue())
-                    .build());
-        } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            HazelcastInstanceMapUtil.put(sqlQueryRequestParam.getId(), new QueryCache(sqlQueryRequestParam.getId(), null));
-            jobExecuteService.addExecutorSql(sqlQueryRequestParam);
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(sqlQueryRequestParam.getId()));
-        } else if (ExecutionMode.BLOCKING.equals(execMode)) {
-            BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
-            QueryCache queryCache = buildQueryCacheOfDone(sqlQueryRequestParam.getId(), start, baseResult);
-            HazelcastInstanceMapUtil.put(sqlQueryRequestParam.getId(), queryCache);
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(sqlQueryRequestParam.getId()));
+        switch (execMode) {
+            case ONESHOT:
+                return executeSQLOneshotQuery(sqlQueryRequestParam);
+            case NORMAL:
+                return executeSQLNormalQuery(sqlQueryRequestParam);
+            case BLOCKING:
+                return executeSQLBlockingQuery(sqlQueryRequestParam);
+            default:
+                throw new QGWBusinessException(
+                        HttpStatusCodeEnum.BAD_REQUEST.getCode(),
+                        CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported")
+                );
         }
-        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
+    }
+
+    private BaseResult executeSQLOneshotQuery(SqlQueryRequestParam request) {
+        return sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                .originalSQL(request.getStatement())
+                .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
+                .format(request.getOutputMode().getValue())
+                .build());
+    }
+
+    private BaseResult executeSQLNormalQuery(SqlQueryRequestParam request) {
+        HazelcastInstanceMapUtil.put(request.getId(), new QueryCache(request.getId(), null));
+        jobExecuteService.addExecutorSql(request);
+        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+    }
+
+    private BaseResult executeSQLBlockingQuery(SqlQueryRequestParam request) {
+        long unixTimestampMillis = System.currentTimeMillis();
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                .originalSQL(request.getStatement())
+                .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
+                .format(request.getOutputMode().getValue())
+                .build());
+        QueryCache queryCache = buildQueryCacheOfDone(request.getId(), unixTimestampMillis, baseResult);
+        HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
     }
 
     @Override
     public BaseResult createDSLAdHocQuery(DSLQueryRequestParam request) {
         initAndValidationID(request);
         AutoPeriodHelper.buildDslGranularity(request);
-        long start = System.currentTimeMillis();
         ExecutionMode execMode = request.getExecutionMode();
-        if (ExecutionMode.ONESHOT.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
-                execAdnWaitFieldDiscoveryDoneDeprecatedV2410(request.getId(), request);
-                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
-                HazelcastInstanceMapUtil.remove(request.getId());
-                BaseResult<Object> baseResult = queryCache.getBaseResult();
-                Map<String, Object> job = baseResult.getJob();
-                if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
-                        && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
-                        && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
-                    return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
-                }
-                return BaseResultGenerator.error(baseResult.getMessage());
-            } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                execAdnWaitFieldDiscoveryDone(request.getId(), request);
-                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
-                HazelcastInstanceMapUtil.remove(request.getId());
-                BaseResult<Object> baseResult = queryCache.getBaseResult();
-                Map<String, Object> job = baseResult.getJob();
-                if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
-                        && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
-                        && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
-                    return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
-                }
-                return BaseResultGenerator.error(baseResult.getMessage());
-            } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
-                return jobExecuteService.addDslExecutorLogQueryWithoutCache(request);
-            } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                return jobExecuteService.addDslExecutorPacketCombineWithoutCache(request);
-            } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId(), request.getName());
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
-                try {
-                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
-                    BaseResult baseResult = getAdHocQueryResultById(request.getId());
-                    HazelcastInstanceMapUtil.remove(request.getId());
-                    if (await) {
-                        Map<String, Object> job = baseResult.getJob();
-                        if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
-                                && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
-                                && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
-                            return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
-                        }
-                    }
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
-
-                } catch (InterruptedException e) {
-                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
-                }
-            } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
-                return jobExecuteService.addDslExecutorCustomizedStatisticsWithoutCache(request);
-            } else {
-                DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
-                return dslService.execDsl(dslQueryContext, request.isDryRun());
-            }
-        } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            QueryCache queryCache = new QueryCache(request.getId(), request.getName());
-            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
-                validFieldDiscovery(request);
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addExecutorFieldDiscoveryDeprecatedV2410(request);
-            } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addExecutorFieldDiscovery(request);
-            } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addExecutorDslPacketCombineWithCache(request, null);
-            } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
-                queryCache.setType(request.getName());
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, null);
-            } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addDslExecutorCustomizedStatisticsWithCache(request, null);
-            } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
-                queryCache.setType(JobConfig.LOG_QUERY);
-                queryCache.setRequestParam(request);
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addDslExecutorLogQueryWithCache(request, null);
-            } else {
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                jobExecuteService.addExecutorDsl(request);
-            }
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-        } else if (ExecutionMode.BLOCKING.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
-                execAdnWaitFieldDiscoveryDoneDeprecatedV2410(request.getId(), request);
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-            } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                execAdnWaitFieldDiscoveryDone(request.getId(), request);
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-            } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId(), null);
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
-                try {
-                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
-                    if (await) {
-                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-                    }
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
-                } catch (InterruptedException e) {
-                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
-                }
-            } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId(), request.getName());
-                queryCache.setRequestParam(request);
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                jobExecuteService.addDslExecutorLogQueryWithCache(request, countDownLatch);
-                try {
-                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
-                    if (await) {
-                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-                    }
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
-                } catch (InterruptedException e) {
-                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
-                }
-            } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
-                    || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(request.getId(), request.getName());
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
-                try {
-                    boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
-                    if (await) {
-                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-                    }
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
-                } catch (InterruptedException e) {
-                    handleInterruptedExceptionAndThrowQGWBusinessException(e);
-                }
-            } else {
-                DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
-                BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());
-                QueryCache queryCache = buildQueryCacheOfDone(request.getId(), start, baseResult);
-                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
-            }
+        switch (execMode) {
+            case ONESHOT:
+                return executeDSLOneshotQuery(request);
+            case NORMAL:
+                return executeDSLNormalQuery(request);
+            case BLOCKING:
+                return executeDSLBlockingQuery(request);
+            default:
+                throw new QGWBusinessException(
+                        HttpStatusCodeEnum.BAD_REQUEST.getCode(),
+                        CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported")
+                );
         }
-        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
+    }
+
+    private BaseResult executeDSLOneshotQuery(DSLQueryRequestParam request) {
+        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
+            execAdnWaitFieldDiscoveryDoneDeprecatedV2410(request.getId(), request);
+            QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
+            HazelcastInstanceMapUtil.remove(request.getId());
+            BaseResult<Object> baseResult = queryCache.getBaseResult();
+            Map<String, Object> job = baseResult.getJob();
+            if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
+                    && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                    && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
+            }
+            return BaseResultGenerator.error(baseResult.getMessage());
+        } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            execAdnWaitFieldDiscoveryDone(request.getId(), request);
+            QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
+            HazelcastInstanceMapUtil.remove(request.getId());
+            BaseResult<Object> baseResult = queryCache.getBaseResult();
+            Map<String, Object> job = baseResult.getJob();
+            if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
+                    && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                    && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
+            }
+            return BaseResultGenerator.error(baseResult.getMessage());
+        } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
+            return jobExecuteService.addDslExecutorLogQueryWithoutCache(request);
+        } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
+            return jobExecuteService.addDslExecutorPacketCombineWithoutCache(request);
+        } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+            QueryCache queryCache = new QueryCache(request.getId(), request.getName());
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
+            try {
+                boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                BaseResult baseResult = getAdHocQueryResultById(request.getId());
+                HazelcastInstanceMapUtil.remove(request.getId());
+                if (await) {
+                    Map<String, Object> job = baseResult.getJob();
+                    if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
+                            && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                            && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                        return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
+                    }
+                }
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
+
+            } catch (InterruptedException e) {
+                handleInterruptedExceptionAndThrowQGWBusinessException(e);
+            }
+        } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
+            return jobExecuteService.addDslExecutorCustomizedStatisticsWithoutCache(request);
+        } else {
+            DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
+            return dslService.execDsl(dslQueryContext, request.isDryRun());
+        }
+        throw new QGWBusinessException(
+                HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "unknown error")
+        );
+    }
+
+    private BaseResult executeDSLNormalQuery(DSLQueryRequestParam request) {
+        QueryCache queryCache = new QueryCache(request.getId(), request.getName());
+        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
+            validFieldDiscovery(request);
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addExecutorFieldDiscoveryDeprecatedV2410(request);
+        } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addExecutorFieldDiscovery(request);
+        } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addExecutorDslPacketCombineWithCache(request, null);
+        } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+            queryCache.setType(request.getName());
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, null);
+        } else if (JobConfig.CUSTOMIZED_STATISTICS.equals(request.getName())) {
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addDslExecutorCustomizedStatisticsWithCache(request, null);
+        } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
+            queryCache.setType(JobConfig.LOG_QUERY);
+            queryCache.setRequestParam(request);
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addDslExecutorLogQueryWithCache(request, null);
+        } else {
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            jobExecuteService.addExecutorDsl(request);
+        }
+        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+    }
+
+    private BaseResult executeDSLBlockingQuery(DSLQueryRequestParam request) {
+        long unixTimestampMillis = System.currentTimeMillis();
+        if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(request.getName())) {
+            execAdnWaitFieldDiscoveryDoneDeprecatedV2410(request.getId(), request);
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+        } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            execAdnWaitFieldDiscoveryDone(request.getId(), request);
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+        } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
+            QueryCache queryCache = new QueryCache(request.getId(), null);
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
+            try {
+                boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                if (await) {
+                    return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+                }
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
+            } catch (InterruptedException e) {
+                handleInterruptedExceptionAndThrowQGWBusinessException(e);
+            }
+        } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
+            QueryCache queryCache = new QueryCache(request.getId(), request.getName());
+            queryCache.setRequestParam(request);
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            jobExecuteService.addDslExecutorLogQueryWithCache(request, countDownLatch);
+            try {
+                boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                if (await) {
+                    return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+                }
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
+            } catch (InterruptedException e) {
+                handleInterruptedExceptionAndThrowQGWBusinessException(e);
+            }
+        } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+            QueryCache queryCache = new QueryCache(request.getId(), request.getName());
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, countDownLatch);
+            try {
+                boolean await = countDownLatch.await(jobConfig.getExecutionTimeout(), TimeUnit.MILLISECONDS);
+                if (await) {
+                    return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+                }
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was timeout."));
+            } catch (InterruptedException e) {
+                handleInterruptedExceptionAndThrowQGWBusinessException(e);
+            }
+        } else {
+            DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
+            BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());
+            QueryCache queryCache = buildQueryCacheOfDone(request.getId(), unixTimestampMillis, baseResult);
+            HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
+        }
+
+        throw new QGWBusinessException(
+                HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "unknown error")
+        );
     }
 
     private void execAdnWaitFieldDiscoveryDoneDeprecatedV2410(String id, DSLQueryRequestParam request) {
@@ -569,7 +615,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public void setEnvironment(Environment environment) {
-        this.env = environment;
+        this.environment = environment;
     }
 
     @Autowired
@@ -605,11 +651,6 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Autowired
     public void setJobConfig(JobConfig jobConfig) {
         this.jobConfig = jobConfig;
-    }
-
-    @Autowired
-    public void setDatabaseService(DatabaseService databaseService) {
-        this.databaseService = databaseService;
     }
 
     @Autowired
