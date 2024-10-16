@@ -68,6 +68,7 @@
         "server_domain",
         "ip_protocol",
         "tunnel_id_list",
+        "tunnel_uuid_list",
         "http_url",
         "http_host",
         "http_request_line",
@@ -210,6 +211,7 @@
         "received_bytes",
         "tcp_rtt_ms",
         "tunnel_id_list",
+        "tunnel_uuid_list",
         "http_url",
         "http_host",
         "http_request_line",
@@ -2220,7 +2222,7 @@
     },
     {
       "name": "tunnel_id_list",
-      "label": "Tunnel ID List",
+      "label": "Tunnel ID List(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -2228,6 +2230,19 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "tunnel_uuid_list",
+      "label": "Tunnel UUID List",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
