@@ -28,8 +28,9 @@
     },
     "default_columns": [
       "log_id",
+      "rule_uuid",
       "attack_type",
-      "source_ip_list",
+      "source_ip",
       "destination_ip",
       "severity",
       "start_time",
@@ -144,7 +145,7 @@
     },
     {
       "name": "attack_type",
-      "label": "Attack Type",
+      "label": "Attack Type(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in,notEmpty,empty"
@@ -182,7 +183,7 @@
     },
     {
       "name": "severity",
-      "label": "Severity",
+      "label": "Severity(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in,notEmpty,empty"
@@ -216,7 +217,7 @@
     },
     {
       "name": "conditions",
-      "label": "Conditions",
+      "label": "Conditions(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -246,8 +247,24 @@
       "type": "string"
     },
     {
+      "name": "source_ip",
+      "label": "Source IP",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },{
+      "name": "source_country",
+      "label": "Source Country",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },{
       "name": "source_ip_list",
-      "label": "Source IP List",
+      "label": "Source IP List(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -256,7 +273,7 @@
     },
     {
       "name": "source_country_list",
-      "label": "Source Country List",
+      "label": "Source Country List(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -282,7 +299,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "double"
     },
     {
       "name": "packets",
@@ -303,7 +320,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "double"
     },
     {
       "name": "bytes",
@@ -324,7 +341,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "double"
     }
   ]
 }
