@@ -6,5 +6,10 @@ Release 383 (TSG-24.10)
 * 扩展Schema，新增公共字段 xx_rule_uuid_list 及相关数据集修改(TSG-22688)
 * 扩展Schema，Dos Event 新增 rule_uuid(TSG-22689)
 * 扩展Schema，Metric Schema 字段xx_id 更新为xx_uuid，及相关数据集修改(TSG-22691)
-* 完善 TIME_FLOOR_WITH_FILL 补全函数对结果数据的排序
 * 扩展Schema，增加公共字段 mobile_identify(TSG-22715)
+* 扩展Schema，Druid表增加insert_time字段(TSG-22758)
+* 扩展Schema，新增公共字段tunnel_uuid_list(TSG-22688)
+* 扩展Schema，代理策略子动作Insert修改为Inject(TSG-22760)
+* 优化引擎，支持基于时间范围的分片优化查询(GAL-638)
+* 规范URL API命名标准，单词分隔符使用hyphen，复数形式(TSG-22727)
+* 完善 TIME_FLOOR_WITH_FILL 补全函数对结果数据的排序
