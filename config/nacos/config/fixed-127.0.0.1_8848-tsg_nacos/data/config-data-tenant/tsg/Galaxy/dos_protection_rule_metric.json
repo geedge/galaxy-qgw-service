@@ -66,6 +66,14 @@
       }
     },
     {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
       "name": "data_center",
       "label": "Data Center",
       "type": "string",

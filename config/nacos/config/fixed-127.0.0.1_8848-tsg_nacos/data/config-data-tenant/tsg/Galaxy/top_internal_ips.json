@@ -33,7 +33,7 @@
       }
     },
     "measurements": {
-     "retentions": "1m:1800d",
+      "retentions": "1m:1800d",
       "ingestion_delay": 15,
       "aggregated_metric_unit": {
         "SUM": {
@@ -74,6 +74,14 @@
         "constraints": {
           "type": "timestamp"
         },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
         "visibility": "enabled"
       }
     },

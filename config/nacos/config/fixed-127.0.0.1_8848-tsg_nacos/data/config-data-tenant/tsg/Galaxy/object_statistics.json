@@ -89,6 +89,14 @@
       }
     },
     {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
       "name": "vsys_id",
       "label": "Vsys ID",
       "doc": {
