@@ -222,7 +222,7 @@
           },
           {
             "code": "insert",
-            "value": "Insert"
+            "value": "Insert(Deprecated)"
           },
           {
             "code": "edit_element",
@@ -231,6 +231,10 @@
           {
             "code": "run_script",
             "value": "Run Script"
+          },
+          {
+            "code": "inject",
+            "value": "Inject"
           }
         ],
         "visibility": "enabled"
