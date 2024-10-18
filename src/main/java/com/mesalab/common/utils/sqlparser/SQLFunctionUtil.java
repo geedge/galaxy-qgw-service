@@ -756,8 +756,8 @@ public class SQLFunctionUtil {
             if (expression instanceof CastExpression) {
                 CastExpression castExpression = (CastExpression) expression;
                 if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                    String dataType = castExpression.getType().getDataType();
-                    castExpression.getType().setDataType("Nullable(" + dataType + ")");
+                    String dataType = castExpression.getColDataType().getDataType();
+                    castExpression.getColDataType().setDataType("Nullable(" + dataType + ")");
                 }
                 replaceValue = String.valueOf(castExpression).replace("(", "#[").replace(")", "#]");
             }

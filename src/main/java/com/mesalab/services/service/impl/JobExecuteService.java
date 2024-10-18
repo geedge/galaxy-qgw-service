@@ -39,6 +39,8 @@ import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
 import org.joda.time.Period;
@@ -336,18 +338,18 @@ public class JobExecuteService implements EnvironmentAware {
             PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
             Optional.ofNullable(plainSelect.getLimit()).ifPresent(x -> sqlIntentContext.setLimit(Long.parseLong(String.valueOf(x.getRowCount()))));
             Map<String, Object> aliasExpr = Maps.newHashMap();
-            for (SelectItem item : plainSelect.getSelectItems()) {
-                if (!(item instanceof SelectExpressionItem)) {
+            for (SelectItem<?> item : plainSelect.getSelectItems()) {
+                if (!(item instanceof Expression)) {
                     return sqlIntentContext;
                 }
-                SelectExpressionItem selectExprItem = (SelectExpressionItem) item;
-                if (StringUtil.isEmpty(selectExprItem.getAlias())) {
-                    aliasExpr.put(String.valueOf(selectExprItem.getExpression()), selectExprItem.getExpression());
+                if (StringUtil.isEmpty(item.getAlias())) {
+                    aliasExpr.put(String.valueOf(item.getExpression()), item.getExpression());
                 } else {
-                    aliasExpr.put(selectExprItem.getAlias().getName(), selectExprItem.getExpression());
+                    aliasExpr.put(item.getAlias().getName(), item.getExpression());
                 }
             }
-            for (Expression groupItem : plainSelect.getGroupBy().getGroupByExpressionList().getExpressions()) {
+            ExpressionList<Expression> groupByExpressionList = plainSelect.getGroupBy().getGroupByExpressionList();
+            for (Expression groupItem : groupByExpressionList) {
                 if (aliasExpr.keySet().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))
                         && aliasExpr.values().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))) {
                     return sqlIntentContext;
@@ -1285,10 +1287,9 @@ public class JobExecuteService implements EnvironmentAware {
                         }
                     }
                 }
-            } else if (expression instanceof Parenthesis) {
-                Parenthesis parenthesis = (Parenthesis) expression;
-                List<Expression> expressionList = com.clearspring.analytics.util.Lists.newArrayList();
-                if (!isOrExpression(parenthesis.getExpression(), expressionList)) {
+            } else if (expression instanceof ParenthesedExpressionList) {
+                List<Expression> expressionList = Lists.newArrayList();
+                if (!isOrExpression(((ParenthesedExpressionList<?>) expression).get(0), expressionList)) {
                     parseInterval(expressionList, interval, partitionKey, dbEngine);
                 }
             }

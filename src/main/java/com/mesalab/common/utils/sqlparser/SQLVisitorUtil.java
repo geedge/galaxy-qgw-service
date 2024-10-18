@@ -30,19 +30,20 @@ public class SQLVisitorUtil {
     public static SelectVisitor getVisitorOfEscapeMetadataWithDoubleQuote() {
         ExpressionDeParser expressionDeParser = new ExpressionDeParser() {
             @Override
-            public void visit(Column column) {
+            public StringBuilder visit(Column column, Object context) {
                 Table table = column.getTable();
                 if (!StrUtil.isBlankIfStr(table)) {
                     table.setName(addDoubleQuote(table.getName()));
                 }
                 String columnName = column.getColumnName();
                 column.setColumnName(addDoubleQuote(columnName));
+                return null;
             }
         };
 
         return new SelectDeParser(expressionDeParser, new StringBuilder()) {
             @Override
-            public void visit(Table table) {
+            public StringBuilder visit(Table table, Object context) {
                 String name = table.getName();
                 if (!StrUtil.isBlankIfStr(name)) {
                     table.setName(addDoubleQuote(name));
@@ -52,23 +53,7 @@ public class SQLVisitorUtil {
                 if (!StrUtil.isBlankIfStr(alias)) {
                     alias.setName(addDoubleQuote(alias.getName()));
                 }
-            }
-
-            @Override
-            public void visit(AllTableColumns allTableColumns) {
-                Table table = allTableColumns.getTable();
-                if (!StrUtil.isBlankIfStr(table)) {
-                    table.setName(addDoubleQuote(table.getName()));
-                }
-            }
-
-            @Override
-            public void visit(SelectExpressionItem selectExpressionItem) {
-                selectExpressionItem.getExpression().accept(expressionDeParser);
-                Alias alias = selectExpressionItem.getAlias();
-                if (!StrUtil.isBlankIfStr(alias) && !StrUtil.isBlank(alias.getName())) {
-                    alias.setName(addDoubleQuote(alias.getName()));
-                }
+                return null;
             }
         };
     }
@@ -84,8 +69,9 @@ public class SQLVisitorUtil {
     public static ExpressionVisitor getVisitorOfRenameColumn(String newColumnName) {
         return new ExpressionVisitorAdapter() {
             @Override
-            public void visit(Column column) {
+            public Object visit(Column column, Object context) {
                 column.setColumnName(newColumnName);
+                return null;
             }
         };
     }

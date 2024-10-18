@@ -402,7 +402,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 RewriteTable deParser = new RewriteTable(expressionDeParser, buffer);
                 expressionDeParser.setSelectVisitor(deParser);
                 expressionDeParser.setBuffer(buffer);
-                select.getSelectBody().accept(deParser);
+                if (select instanceof PlainSelect) {
+                    select.getPlainSelect().accept(deParser, null);
+                } else if (select instanceof SetOperationList) {
+                    select.getSetOperationList().accept(deParser, null);
+                }
                 sql = buffer.toString();
             } catch (JSQLParserException | RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e);

@@ -7,8 +7,9 @@ import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.RowConstructor;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
@@ -52,11 +53,11 @@ public class SelectItemHelper {
     public static Map<String, AliasObject> getSelectItem(String sql) throws JSQLParserException {
         Select select = (Select) CCJSqlParserUtil.parse(sql);
         SelectAdapter selectAdapter = new SelectAdapter();
-        select.getSelectBody().accept(selectAdapter);
+        select.accept(selectAdapter, null);
         return selectAdapter.getAliasObjects();
     }
 
-    private static class SelectAdapter extends SelectVisitorAdapter {
+    private static class SelectAdapter extends SelectVisitorAdapter<Object> {
 
         private final Map<String, AliasObject> aliasObjects = Maps.newHashMap();
 
@@ -66,33 +67,35 @@ public class SelectItemHelper {
 
         @SneakyThrows
         @Override
-        public void visit(PlainSelect plainSelect) {
-            List<SelectItem> selectItems = plainSelect.getSelectItems();
+        public Object visit(PlainSelect plainSelect, Object context) {
+            List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
             if (selectItems == null) {
-                return;
+                return null;
             }
             for (int i = 0; i < selectItems.size(); i++) {
-                SelectItem selectItem = selectItems.get(i);
+                SelectItem<?> selectItem = selectItems.get(i);
                 SelectItemAdapter selectItemAdapter = new SelectItemAdapter();
-                selectItem.accept(selectItemAdapter);
+                selectItem.accept(selectItemAdapter, null);
                 AliasObject aliasExpr = selectItemAdapter.getAliasExpr();
                 if (aliasExpr != null) {
                     aliasExpr.setIndex(i);
                     this.aliasObjects.put(aliasExpr.getName(), aliasExpr);
                 }
             }
+            return null;
         }
 
         @Override
-        public void visit(SetOperationList setOpList) {
-            SelectBody selectBody = setOpList.getSelects().get(0);
-            if (selectBody instanceof PlainSelect) {
-                selectBody.accept(this);
+        public Object visit(SetOperationList setOpList, Object context) {
+            Select select = setOpList.getSelects().get(0);
+            if (select instanceof PlainSelect) {
+                select.accept(this, null);
             }
+            return null;
         }
     }
 
-    private static class SelectItemAdapter extends SelectItemVisitorAdapter {
+    private static class SelectItemAdapter extends SelectItemVisitorAdapter<Object> {
 
         private AliasObject aliasExpr = new AliasObject();
 
@@ -101,7 +104,7 @@ public class SelectItemHelper {
         }
 
         @Override
-        public void visit(SelectExpressionItem selectExpressionItem) {
+        public Object visit(SelectItem selectExpressionItem, Object context) {
             Expression expression = selectExpressionItem.getExpression();
             String name = selectExpressionItem.getAlias() != null ? selectExpressionItem.getAlias().getName() : selectExpressionItem.toString();
             name = SQLHelper.removeQuotesAndBackticks(name);
@@ -111,14 +114,14 @@ public class SelectItemHelper {
                 aliasColumn.setName(name);
                 aliasColumn.setFieldName(column.getColumnName());
                 this.aliasExpr = aliasColumn;
-                return;
+                return null;
             } else if (expression instanceof Function) {
                 Function function = (Function) expression;
                 String functionName = function.getName().toUpperCase();
                 if (SQLFunctionUtil.GROUP_UNIQ_ARRAY.equalsIgnoreCase(functionName)
                         && function.getParameters() != null
-                        && function.getParameters().getExpressions() != null) {
-                    List<Expression> paramExpressions = function.getParameters().getExpressions();
+                        && !function.getParameters().isEmpty()) {
+                    ExpressionList<?> paramExpressions = function.getParameters();
                     Expression expr1 = paramExpressions.get(0);
                     if (expr1 instanceof Column) {
                         Column column = (Column) expr1;
@@ -127,36 +130,37 @@ public class SelectItemHelper {
                         aliasColumn.setFieldName(column.getColumnName());
                         aliasColumn.setArray(true);
                         this.aliasExpr = aliasColumn;
-                        return;
-                    } else if ((expr1 instanceof Parenthesis) && ((Parenthesis) expr1).getExpression() instanceof Column) {
-                        Column column = (Column) ((Parenthesis) expr1).getExpression();
+                        return null;
+                    } else if ((expr1 instanceof ParenthesedExpressionList) && ((ParenthesedExpressionList) expr1).get(0) instanceof Column) {
+                        Column column = (Column) ((ParenthesedExpressionList) expr1).get(0);
                         AliasColumn aliasColumn = new AliasColumn();
                         aliasColumn.setName(name);
                         aliasColumn.setFieldName(column.getColumnName());
                         aliasColumn.setArray(true);
                         this.aliasExpr = aliasColumn;
-                        return;
-                    } else if (expr1 instanceof RowConstructor
+                        return null;
+                    }/* else if (expr1 instanceof RowConstructor
                             && ((RowConstructor) expr1).getExprList() != null
                             && ((RowConstructor) expr1).getExprList().getExpressions().get(0) instanceof Column) {
                         AliasColumn aliasColumn = new AliasColumn();
                         aliasColumn.setName(name);
                         aliasColumn.setArray(true);
                         this.aliasExpr = aliasColumn;
-                        return;
-                    }
+                        return null;
+                    }*/
                 }
                 if (FUNCTION_DATE_TYPE_MAPPING.containsKey(functionName)) {
                     AliasFunExpr aliasFunExpr = new AliasFunExpr();
                     aliasFunExpr.setName(name);
                     aliasFunExpr.setDateType(FUNCTION_DATE_TYPE_MAPPING.get(functionName));
                     this.aliasExpr = aliasFunExpr;
-                    return;
+                    return null;
                 }
                 AliasObject aliasObject = new AliasObject();
                 aliasObject.setName(name);
                 this.aliasExpr = aliasObject;
             }
+            return null;
         }
     }
 

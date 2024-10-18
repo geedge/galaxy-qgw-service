@@ -13,6 +13,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.ExplainStatement;
@@ -180,9 +181,8 @@ public class SQLHelper {
             Statement statement = CCJSqlParserUtil.parse(sql);
             if (statement instanceof Select) {
                 Select select = (Select) statement;
-                SelectBody selectBody = select.getSelectBody();
-                if (selectBody instanceof PlainSelect) {
-                    PlainSelect plainSelect = (PlainSelect) selectBody;
+                if (select instanceof PlainSelect) {
+                    PlainSelect plainSelect = select.getPlainSelect();
                     Limit limit = plainSelect.getLimit();
                     if (limit != null) {
                         Expression rowCount = limit.getRowCount();
@@ -215,14 +215,13 @@ public class SQLHelper {
             Select selectStatement = null;
             if (statement instanceof Select) {
                 selectStatement = (Select) statement;
-                SelectBody selectBody = selectStatement.getSelectBody();
-                if (selectBody instanceof PlainSelect) {
-                    PlainSelect plainSelect = (PlainSelect) selectBody;
-                    List<SelectItem> selectItems = plainSelect.getSelectItems();
+                if (selectStatement instanceof PlainSelect) {
+                    PlainSelect plainSelect = selectStatement.getPlainSelect();
+                    List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
                     for (SelectItem selectItem : selectItems) {
-                        if ((selectItem instanceof SelectExpressionItem) && (((SelectExpressionItem) selectItem).getExpression()) instanceof Function) {
-                            Expression expression = ((SelectExpressionItem) selectItem).getExpression();
-                            List<Expression> expressions = getExpressions(functionName, expression);
+                        if (selectItem.getExpression() instanceof Function) {
+                            Expression expression = selectItem.getExpression();
+                            ExpressionList expressions = getExpressions(functionName, expression);
                             if (!expressions.isEmpty()) {
                                 return expressions;
                             }
@@ -244,16 +243,16 @@ public class SQLHelper {
         return Lists.newArrayList();
     }
 
-    private static List<Expression> getExpressions(String functionName, Expression expression) {
+    private static ExpressionList<?> getExpressions(String functionName, Expression expression) {
         if (expression instanceof Function) {
             Function function = (Function) expression;
             if (((Function) expression).getName().equalsIgnoreCase(functionName)) {
-                return function.getParameters().getExpressions();
+                return function.getParameters();
             } else {
                 if (StringUtil.isNotEmpty(function.getParameters())) {
-                    List<Expression> expressions = function.getParameters().getExpressions();
+                    ExpressionList<?> expressions = function.getParameters();
                     for (Expression expression1 : expressions) {
-                        List<Expression> expressions1 = getExpressions(functionName, expression1);
+                        ExpressionList expressions1 = getExpressions(functionName, expression1);
                         if (!expressions1.isEmpty()) {
                             return expressions1;
                         }
@@ -261,7 +260,7 @@ public class SQLHelper {
                 }
             }
         }
-        return Lists.newArrayList();
+        return new ExpressionList<>();
     }
 
     /**
@@ -296,7 +295,7 @@ public class SQLHelper {
         if (fromItem instanceof Table) {
             return plainSelect;
         }
-        SubSelect subSelect = (SubSelect) fromItem;
-        return (PlainSelect) subSelect.getSelectBody();
+        ParenthesedSelect subSelect = (ParenthesedSelect) fromItem;
+        return subSelect.getPlainSelect();
     }
 }

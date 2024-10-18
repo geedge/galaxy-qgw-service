@@ -12,12 +12,15 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.constant.DslIdentifierNameConst;
 import com.mesalab.qgw.model.basic.DSLQueryRequestParam;
 import com.mesalab.qgw.service.DatabaseService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.Statement;
@@ -64,13 +67,12 @@ public class AutoPeriodHelper {
     }
 
     public static Statement buildSqlGranularity(Statement statement) {
-        DateTime now = new DateTime();
         if (statement instanceof ExplainStatement) {
             ExplainStatement explainStatement = (ExplainStatement) statement;
-            buildSelectStatement(now, explainStatement.getStatement());
+            buildSelectStatement(explainStatement.getStatement());
             return explainStatement;
         } else if (statement instanceof Select) {
-            buildSelectStatement(now, (Select) statement);
+            buildSelectStatement((Select) statement);
             return statement;
         }
         return statement;
@@ -99,13 +101,15 @@ public class AutoPeriodHelper {
         }
     }
 
-    private static void buildSelectStatement(DateTime now, Select select) {
+    private static void buildSelectStatement(Select select) {
+
         Map<String, String> retentionMap = Maps.newHashMap();
         List<String> tableList = SQLHelper.getTableName(select);
         for (String table : tableList) {
             buildRetentionMap(retentionMap, table);
         }
-        select.getSelectBody().accept(new SelectAdapter(now, retentionMap));
+        Context context = new Context(System.currentTimeMillis(), retentionMap);
+        select.accept(new SelectAdapter<>(), context);
     }
 
     private static void buildRetentionMap(Map<String, String> retentionMap, String table) {
@@ -119,7 +123,7 @@ public class AutoPeriodHelper {
                 retentionMap.put(table, String.valueOf(retentions));
             }
         } else {
-
+            retentionMap.put(table, getDefaultRetention());
         }
     }
 
@@ -128,8 +132,8 @@ public class AutoPeriodHelper {
             Expression expression = CCJSqlParserUtil.parseExpression(granularity);
             if (expression instanceof Function) {
                 Function fun = (Function) expression;
-                Expression expression1 = fun.getParameters().getExpressions().get(0);
-                Expression expression2 = fun.getParameters().getExpressions().get(1);
+                Expression expression1 = fun.getParameters().get(0);
+                Expression expression2 = fun.getParameters().get(1);
                 DateTime start = DateUtil.parse(((StringValue) expression1).getValue());
                 DateTime end = DateUtil.parse(((StringValue) expression2).getValue());
                 return getGranularityPeriod(new DateTime(), start, end, retentionMap, isChartGranularity);
@@ -266,205 +270,188 @@ public class AutoPeriodHelper {
         return P1D;
     }
 
-    private static class SelectAdapter extends SelectVisitorAdapter {
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
+    private static class SelectAdapter<T> extends SelectVisitorAdapter<T> {
 
-        public SelectAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
-        }
 
         @Override
-        public void visit(PlainSelect plainSelect) {
-            List<SelectItem> selectItems = plainSelect.getSelectItems();
+        public <S> T visit(PlainSelect plainSelect, S context) {
+            List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
             if (selectItems != null) {
-                for (SelectItem selectItem : selectItems) {
-                    SelectItemAdapter selectItemAdapter = new SelectItemAdapter(now, retentionMap);
-                    selectItem.accept(selectItemAdapter);
+                for (SelectItem<?> selectItem : selectItems) {
+                    selectItem.accept(new SelectItemAdapter<>(), context);
                 }
             }
-
             FromItem fromItem = plainSelect.getFromItem();
             if (fromItem != null) {
-                fromItem.accept(new FromItemAdapter(now, retentionMap));
+                fromItem.accept(new FromItemAdapter<>(), context);
             }
 
             Expression where = plainSelect.getWhere();
             if (where != null) {
-                where.accept(new ExpressionAdapter(now, retentionMap));
+                ExpressionAdapter<T> expressionAdapter = new ExpressionAdapter<>();
+                expressionAdapter.setSelectVisitor(this);
+                where.accept(expressionAdapter, context);
             }
 
             GroupByElement groupBy = plainSelect.getGroupBy();
-            if (groupBy != null && groupBy.getGroupByExpressionList() != null && !groupBy.getGroupByExpressionList().getExpressions().isEmpty()) {
-                groupBy.accept(new GroupByAdapter(now, retentionMap));
+            if (groupBy != null && groupBy.getGroupByExpressionList() != null && !groupBy.getGroupByExpressionList().isEmpty()) {
+                groupBy.accept(new GroupByAdapter<>(), context);
             }
 
             Expression having = plainSelect.getHaving();
             if (having != null) {
-                having.accept(new ExpressionAdapter(now, retentionMap));
+                having.accept(new ExpressionAdapter<>(), context);
             }
 
             List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
             if (orderByElements != null) {
                 for (OrderByElement orderByElement : orderByElements) {
-                    orderByElement.accept(new OrderByAdapter(now, retentionMap));
+                    orderByElement.accept(new OrderByAdapter<>(), context);
                 }
             }
+            return null;
         }
 
         @Override
-        public void visit(SetOperationList setOpList) {
-            for (SelectBody select : setOpList.getSelects()) {
+        public <S> T visit(SetOperationList setOpList, S context) {
+            for (Select select : setOpList.getSelects()) {
                 if (select instanceof PlainSelect) {
-                    select.accept(this);
+                    select.accept(this, context);
                 }
             }
+            return null;
         }
     }
 
-    private static class SelectItemAdapter extends SelectItemVisitorAdapter {
+    private static class SelectItemAdapter<T> extends SelectItemVisitorAdapter<T> {
 
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
-
-        public SelectItemAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
-        }
 
         @Override
-        public void visit(SelectExpressionItem selectExpressionItem) {
-            Expression expression = selectExpressionItem.getExpression();
-            FunctionAdapter functionAdapter = new FunctionAdapter(now, retentionMap);
-            expression.accept(functionAdapter);
+        public <S> T visit(SelectItem<? extends Expression> selectItem, S context) {
+            Expression expression = selectItem.getExpression();
+            expression.accept(new FunctionAdapter<>(), context);
+            return null;
         }
 
     }
 
-    private static class FromItemAdapter extends FromItemVisitorAdapter {
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
-
-        public FromItemAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
-        }
+    private static class FromItemAdapter<T> extends FromItemVisitorAdapter<T> {
 
         @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter(now, retentionMap));
+        public <S> T visit(ParenthesedSelect parenthesedSelect, S context) {
+            Select select = parenthesedSelect.getSelect();
+            if (select instanceof PlainSelect) {
+                select.getPlainSelect().accept(new SelectAdapter<>(), context);
+            } else if (select instanceof SetOperationList) {
+                select.getSetOperationList().accept(new SelectAdapter<>(), context);
+            }
+            return null;
         }
     }
 
-    private static class ExpressionAdapter extends ExpressionVisitorAdapter {
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
+    private static class ExpressionAdapter<T> extends ExpressionVisitorAdapter<T> {
 
-        public ExpressionAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
+        @Override
+        public <S> T visit(ParenthesedSelect parenthesedSelect, S context) {
+            Select select = parenthesedSelect.getSelect();
+            if (select instanceof PlainSelect) {
+                select.getPlainSelect().accept(new SelectAdapter<>(), context);
+            } else if (select instanceof SetOperationList) {
+                select.getSetOperationList().accept(new SelectAdapter<>(), context);
+            }
+            return null;
         }
 
         @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter(now, retentionMap));
-        }
-
-        @Override
-        public void visit(Function function) {
-            FunctionAdapter functionAdapter = new FunctionAdapter(now, retentionMap);
-            function.accept(functionAdapter);
+        public <S> T visit(Function function, S context) {
+            function.accept(new FunctionAdapter<>(), context);
+            return null;
         }
     }
 
-    private static class GroupByAdapter implements GroupByVisitor {
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
-
-        public GroupByAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
-        }
+    private static class GroupByAdapter<T> implements GroupByVisitor<T> {
 
         @Override
-        public void visit(GroupByElement groupByElement) {
+        public <S> T visit(GroupByElement groupByElement, S context) {
             if (groupByElement.getGroupByExpressionList() == null
-                    || groupByElement.getGroupByExpressionList().getExpressions() == null) {
-                return;
+                    || groupByElement.getGroupByExpressionList().isEmpty()) {
+                return null;
             }
-            for (Expression expression : groupByElement.getGroupByExpressionList().getExpressions()) {
-                FunctionAdapter functionAdapter = new FunctionAdapter(now, retentionMap);
-                expression.accept(functionAdapter);
+            for (Object obj : groupByElement.getGroupByExpressionList()) {
+                if (obj instanceof Expression) {
+                    Expression expression = (Expression) obj;
+                    expression.accept(new FunctionAdapter<>(), context);
+                }
+
             }
+            return null;
         }
     }
 
-    private static class OrderByAdapter implements OrderByVisitor {
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
-
-        public OrderByAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
-        }
+    private static class OrderByAdapter<T> implements OrderByVisitor<T> {
 
         @Override
-        public void visit(OrderByElement orderBy) {
+        public <S> T visit(OrderByElement orderBy, S context) {
             if (orderBy.getExpression() == null) {
-                return;
+                return null;
             }
-            FunctionAdapter functionAdapter = new FunctionAdapter(now, retentionMap);
-            orderBy.getExpression().accept(functionAdapter);
-
+            orderBy.getExpression().accept(new FunctionAdapter<>(), context);
+            return null;
         }
     }
 
-    private static class FunctionAdapter extends ExpressionVisitorAdapter {
-
-        private final DateTime now;
-        private final Map<String, String> retentionMap;
-
-        public FunctionAdapter(DateTime now, Map<String, String> retentionMap) {
-            this.now = now;
-            this.retentionMap = retentionMap;
-        }
+    private static class FunctionAdapter<T> extends ExpressionVisitorAdapter<T> {
 
         @Override
-        public void visit(Function function) {
+        public <S> T visit(Function function, S context) {
             if (isTimeFloorWithFill(function)) {
-                buildNewFunction(function);
+                if (context instanceof Context) {
+                    buildNewFunction(function, (Context) context);
+                }
             } else if (isDatetimeFloorWithFill(function)) {
-                buildNewFunction(function);
+                if (context instanceof Context) {
+                    buildNewFunction(function, (Context) context);
+                }
             } else if (isRate(function)) {
-                buildNewFunction(function);
+                if (context instanceof Context) {
+                    buildNewFunction(function, (Context) context);
+                }
             } else if (isBitRate(function)) {
-                buildNewFunction(function);
+                if (context instanceof Context) {
+                    buildNewFunction(function, (Context) context);
+                }
             } else {
                 Optional.ofNullable(function.getParameters()).ifPresent(o -> {
-                    for (Expression expression : o.getExpressions()) {
-                        expression.accept(this);
-                    }
+                    o.accept(this, context);
                 });
             }
+            return null;
         }
 
-        private void buildNewFunction(Function function) {
-            Expression period = function.getParameters().getExpressions().get(1);
+        private void buildNewFunction(Function function, Context context) {
+            Expression period = function.getParameters().get(1);
             if (isChartGranularity(period)) {
                 Function periodFunction = (Function) period;
-                DateTime startTime = DateUtil.parse(((StringValue) periodFunction.getParameters().getExpressions().get(0)).getValue());
-                DateTime endTime = DateUtil.parse(((StringValue) periodFunction.getParameters().getExpressions().get(1)).getValue());
+                DateTime startTime = DateUtil.parse(((StringValue) periodFunction.getParameters().get(0)).getValue());
+                DateTime endTime = DateUtil.parse(((StringValue) periodFunction.getParameters().get(1)).getValue());
+                long timeSnapshotMills = context.getTimeSnapshotMills();
+                DateTime now = new DateTime(timeSnapshotMills);
+                Map<String, String> retentionMap = context.getRetentions();
                 String chartGranularityPeriod = getGranularityPeriod(now, startTime, endTime, retentionMap, true);
-                function.getParameters().getExpressions().set(1, new StringValue("'" + chartGranularityPeriod + "'"));
+                ExpressionList<Expression> parametersList = (ExpressionList<Expression>) function.getParameters();
+                parametersList.set(1, new StringValue("'" + chartGranularityPeriod + "'"));
+                function.setParameters(parametersList);
             } else if (isSampleGranularity(period)) {
                 Function periodFunction = (Function) period;
-                DateTime startTime = DateUtil.parse(((StringValue) periodFunction.getParameters().getExpressions().get(0)).getValue());
-                DateTime endTime = DateUtil.parse(((StringValue) periodFunction.getParameters().getExpressions().get(1)).getValue());
+                DateTime startTime = DateUtil.parse(((StringValue) periodFunction.getParameters().get(0)).getValue());
+                DateTime endTime = DateUtil.parse(((StringValue) periodFunction.getParameters().get(1)).getValue());
+                long timeSnapshotMills = context.getTimeSnapshotMills();
+                DateTime now = new DateTime(timeSnapshotMills);
+                Map<String, String> retentionMap = context.getRetentions();
                 String chartGranularityPeriod = getGranularityPeriod(now, startTime, endTime, retentionMap, false);
-                function.getParameters().getExpressions().set(1, new StringValue("'" + chartGranularityPeriod + "'"));
+                ExpressionList<Expression> parametersList = (ExpressionList<Expression>) function.getParameters();
+                parametersList.set(1, new StringValue("'" + chartGranularityPeriod + "'"));
+                function.setParameters(parametersList);
             }
         }
 
@@ -476,7 +463,7 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return CHART_GRANULARITY.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() == 2;
+                && function.getParameters().size() == 2;
     }
 
     private static boolean isSampleGranularity(Expression expression) {
@@ -485,7 +472,7 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return SAMPLE_GRANULARITY.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() == 2;
+                && function.getParameters().size() == 2;
     }
 
     private static boolean isTimeFloorWithFill(Expression expression) {
@@ -494,7 +481,7 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return TIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() >= 2;
+                && function.getParameters().size() >= 2;
     }
 
     private static boolean isDatetimeFloorWithFill(Expression expression) {
@@ -503,7 +490,7 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return DATETIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() >= 2;
+                && function.getParameters().size() >= 2;
     }
 
     private static boolean isRate(Expression expression) {
@@ -512,7 +499,7 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return RATE.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() >= 2;
+                && function.getParameters().size() >= 2;
     }
 
     private static boolean isBitRate(Expression expression) {
@@ -521,12 +508,15 @@ public class AutoPeriodHelper {
         }
         Function function = (Function) expression;
         return BITRATE.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() >= 2;
+                && function.getParameters().size() >= 2;
 
     }
 
     @Getter
     private enum StorageSchemaRetentionUnitEnum {
+        /**
+         * Desc: storage unit display period unit
+         */
         SECOND("s", "PT%sS"),
         MINUTE("m", "PT%sM"),
         HOUR("h", "PT%sH"),
@@ -538,6 +528,13 @@ public class AutoPeriodHelper {
             this.storageUnit = storageUnit;
             this.periodFormat = periodFormat;
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class Context {
+        private long timeSnapshotMills;
+        private Map<String, String> retentions;
     }
 
 }

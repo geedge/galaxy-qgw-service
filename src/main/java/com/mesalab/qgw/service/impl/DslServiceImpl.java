@@ -34,10 +34,7 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -330,7 +327,7 @@ public class DslServiceImpl implements DSLService {
         } catch (JSQLParserException e) {
             throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
         }
-        expression.accept(expressionVisitorAdapter);
+        expression.accept(expressionVisitorAdapter, null);
         Iterator<Range> iterator = ranges.iterator();
         while (iterator.hasNext()) {
             Range next = iterator.next();
@@ -375,9 +372,9 @@ public class DslServiceImpl implements DSLService {
     }
 
     private static ExpressionVisitorAdapter getExpressionVisitorAdapter(List<Match> matches, List<Range> ranges) {
-        ExpressionVisitorAdapter expressionVisitorAdapter = new ExpressionVisitorAdapter() {
+        return new ExpressionVisitorAdapter<Object>() {
             @Override
-            public void visit(LikeExpression expr) {
+            public Object visit(LikeExpression expr, Object context) {
                 String left = String.valueOf(expr.getLeftExpression());
                 String right = ((StringValue) expr.getRightExpression()).getValue();
                 String type = "";
@@ -408,10 +405,11 @@ public class DslServiceImpl implements DSLService {
                     match.setFieldValues(Lists.newArrayList(right));
                     matches.add(match);
                 }
+                return null;
             }
 
             @Override
-            public void visit(EqualsTo expr) {
+            public Object visit(EqualsTo expr, Object context) {
                 String left = String.valueOf(expr.getLeftExpression());
                 Object right;
                 if (expr.getRightExpression() instanceof LongValue) {
@@ -432,16 +430,18 @@ public class DslServiceImpl implements DSLService {
                     range.setFieldValues(Lists.newArrayList(right));
                     ranges.add(range);
                 }
+                return null;
             }
 
             @Override
-            public void visit(InExpression expr) {
-                ItemsList rightItemsList = expr.getRightItemsList();
-                if (rightItemsList instanceof ExpressionList && ((ExpressionList) rightItemsList).getExpressions().get(0) instanceof LongValue) {
+            public Object visit(InExpression expr, Object context) {
+                Expression rightExpression = expr.getRightExpression();
+                if (rightExpression instanceof ExpressionList && ((ExpressionList<?>) rightExpression).get(0) instanceof LongValue) {
                     intParseIn(expr);
                 } else {
                     strParseIn(expr);
                 }
+                return null;
             }
 
             private void intParseIn(InExpression expr) {
@@ -449,21 +449,17 @@ public class DslServiceImpl implements DSLService {
                 if (ranges.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(RangeTypeEnum.EQ.getType()))) {
                     for (Range range : ranges) {
                         if (range.getFieldKey().equals(left) && range.getType().equals(RangeTypeEnum.EQ.getType())) {
-                            ItemsList rightItemsList = expr.getRightItemsList();
-                            rightItemsList.accept(new ItemsListVisitorAdapter() {
-                                @Override
-                                public void visit(ExpressionList expressionList) {
-                                    for (Expression expression : expressionList.getExpressions()) {
-                                        if (expression instanceof StringValue) {
-                                            range.getFieldValues().add(((StringValue) expression).getValue());
-                                        } else if (expression instanceof LongValue) {
-                                            range.getFieldValues().add(((LongValue) expression).getValue());
-                                        }
-
+                            Expression rightExpression = expr.getRightExpression();
+                            if (rightExpression instanceof ExpressionList) {
+                                List<Expression> expressions = (ExpressionList) rightExpression;
+                                for (Expression expression : expressions) {
+                                    if (expression instanceof StringValue) {
+                                        range.getFieldValues().add(((StringValue) expression).getValue());
+                                    } else if (expression instanceof LongValue) {
+                                        range.getFieldValues().add(((LongValue) expression).getValue());
                                     }
                                 }
-
-                            });
+                            }
                         }
                     }
                 } else {
@@ -471,20 +467,17 @@ public class DslServiceImpl implements DSLService {
                     range.setFieldKey(left);
                     range.setFieldValues(Lists.newArrayList());
                     range.setType(RangeTypeEnum.EQ.getType());
-                    ItemsList rightItemsList = expr.getRightItemsList();
-                    rightItemsList.accept(new ItemsListVisitorAdapter() {
-                        @Override
-                        public void visit(ExpressionList expressionList) {
-                            for (Expression expression : expressionList.getExpressions()) {
-                                if (expression instanceof StringValue) {
-                                    range.getFieldValues().add(((StringValue) expression).getValue());
-                                } else if (expression instanceof LongValue) {
-                                    range.getFieldValues().add(((LongValue) expression).getValue());
-                                }
-
+                    Expression rightExpression = expr.getRightExpression();
+                    if (rightExpression instanceof ExpressionList) {
+                        List<Expression> expressions = (ExpressionList) rightExpression;
+                        for (Expression expression : expressions) {
+                            if (expression instanceof StringValue) {
+                                range.getFieldValues().add(((StringValue) expression).getValue());
+                            } else if (expression instanceof LongValue) {
+                                range.getFieldValues().add(((LongValue) expression).getValue());
                             }
                         }
-                    });
+                    }
                     ranges.add(range);
                 }
             }
@@ -494,21 +487,16 @@ public class DslServiceImpl implements DSLService {
                 if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(MatchEnum.EXACTLY.getType()))) {
                     for (Match match : matches) {
                         if (match.getFieldKey().equals(left) && match.getType().equals(MatchEnum.EXACTLY.getType())) {
-                            ItemsList rightItemsList = expr.getRightItemsList();
-                            rightItemsList.accept(new ItemsListVisitorAdapter() {
-                                @Override
-                                public void visit(ExpressionList expressionList) {
-                                    for (Expression expression : expressionList.getExpressions()) {
-                                        if (expression instanceof StringValue) {
-                                            match.getFieldValues().add(((StringValue) expression).getValue());
-                                        } else if (expression instanceof LongValue) {
-                                            match.getFieldValues().add(((LongValue) expression).getValue());
-                                        }
-
+                            if (expr.getRightExpression() instanceof ExpressionList) {
+                                List<Expression> expressionsList = (ExpressionList) expr.getRightExpression();
+                                for (Expression expression : expressionsList) {
+                                    if (expression instanceof StringValue) {
+                                        match.getFieldValues().add(((StringValue) expression).getValue());
+                                    } else if (expression instanceof LongValue) {
+                                        match.getFieldValues().add(((LongValue) expression).getValue());
                                     }
                                 }
-
-                            });
+                            }
                         }
                     }
                 } else {
@@ -516,26 +504,24 @@ public class DslServiceImpl implements DSLService {
                     match.setFieldKey(left);
                     match.setFieldValues(Lists.newArrayList());
                     match.setType(MatchEnum.EXACTLY.getType());
-                    ItemsList rightItemsList = expr.getRightItemsList();
-                    rightItemsList.accept(new ItemsListVisitorAdapter() {
-                        @Override
-                        public void visit(ExpressionList expressionList) {
-                            for (Expression expression : expressionList.getExpressions()) {
-                                if (expression instanceof StringValue) {
-                                    match.getFieldValues().add(((StringValue) expression).getValue());
-                                } else if (expression instanceof LongValue) {
-                                    match.getFieldValues().add(((LongValue) expression).getValue());
-                                }
-
+                    Expression rightExpression = expr.getRightExpression();
+                    if (rightExpression instanceof ExpressionList) {
+                        List<Expression> expressionsList = (ExpressionList) rightExpression;
+                        for (Expression expression : expressionsList) {
+                            if (expression instanceof StringValue) {
+                                match.getFieldValues().add(((StringValue) expression).getValue());
+                            } else if (expression instanceof LongValue) {
+                                match.getFieldValues().add(((LongValue) expression).getValue());
                             }
+
                         }
-                    });
+                    }
                     matches.add(match);
                 }
             }
 
             @Override
-            public void visit(GreaterThan expr) {
+            public Object visit(GreaterThan expr, Object context) {
                 String left = String.valueOf(expr.getLeftExpression());
                 Object right;
                 if (expr.getRightExpression() instanceof LongValue) {
@@ -556,10 +542,11 @@ public class DslServiceImpl implements DSLService {
                     range.setFieldValues(Lists.newArrayList(right));
                     ranges.add(range);
                 }
+                return null;
             }
 
             @Override
-            public void visit(GreaterThanEquals expr) {
+            public Object visit(GreaterThanEquals expr, Object context) {
                 String left = String.valueOf(expr.getLeftExpression());
                 Object right;
                 if (expr.getRightExpression() instanceof LongValue) {
@@ -580,9 +567,9 @@ public class DslServiceImpl implements DSLService {
                     range.setFieldValues(Lists.newArrayList(right));
                     ranges.add(range);
                 }
+                return null;
             }
         };
-        return expressionVisitorAdapter;
     }
 
     private SQLQueryContext queryBuild(String sql, boolean isDryRun) {
@@ -706,37 +693,6 @@ public class DslServiceImpl implements DSLService {
         });
 
         return protocols;
-    }
-
-    private String inToLike(String filter) throws JSQLParserException {
-        List<String> params = Lists.newArrayList();
-        List<String> oldExpression = Lists.newArrayList();
-        ExpressionVisitorAdapter expressionVisitorAdapter = new ExpressionVisitorAdapter() {
-            @Override
-            public void visit(InExpression inExpression) {
-                if (inExpression.getLeftExpression() != null && "subscriber_id".equals(inExpression.getLeftExpression().toString())) {
-                    oldExpression.add(inExpression.toString());
-                    ItemsList rightItemsList = inExpression.getRightItemsList();
-                    if (rightItemsList instanceof ExpressionList) {
-                        ExpressionList items = (ExpressionList) rightItemsList;
-                        List<Expression> expressions = items.getExpressions();
-                        for (Expression expression : expressions) {
-                            if (expression instanceof StringValue) {
-                                params.add(DigestUtil.md5Hex(((StringValue) expression).getValue()).concat("|%"));
-                            }
-
-                        }
-                    }
-                }
-            }
-        };
-        Expression expression = CCJSqlParserUtil.parseExpression(filter, false);
-        String strExpr = expression.toString();
-        expression.accept(expressionVisitorAdapter);
-        if (params.size() > 0 && oldExpression.size() == 1) {
-            return strExpr.replace(oldExpression.get(0), "( ROWKEY LIKE '" + StrUtil.join("' OR ROWKEY LIKE '", params) + "')");
-        }
-        return filter;
     }
 
     private LiveChartProtocol convertStringToObject(String protocolString) {

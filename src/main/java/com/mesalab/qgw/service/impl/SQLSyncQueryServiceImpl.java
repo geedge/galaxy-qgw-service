@@ -30,13 +30,13 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.DescribeStatement;
 import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
-import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.hbase.thirdparty.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -246,8 +246,8 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
         if (StringUtil.isNotEmpty(parentSelectStatement)) {
             federationSelectStatement = new SelectStatement();
-            String tableName = StringUtil.isEmpty(Objects.requireNonNull(parentSelectStatement, "parentSelectStatement is null").getSubSelect().getAlias()) ? parentSelectStatement.getTableNames().get(0) : parentSelectStatement.getSubSelect().getAlias().getName();
-            String replace = originalSelectStatement.getSqlBody().replace(parentSelectStatement.getSubSelect().toString(), tableName);
+            String tableName = StringUtil.isEmpty(Objects.requireNonNull(parentSelectStatement, "parentSelectStatement is null").getParenthesedSelect().getAlias()) ? parentSelectStatement.getTableNames().get(0) : parentSelectStatement.getParenthesedSelect().getAlias().getName();
+            String replace = originalSelectStatement.getSqlBody().replace(parentSelectStatement.getParenthesedSelect().toString(), tableName);
             federationSelectStatement.setSqlBody(replace);
             federationSelectStatement.getTableNames().add(0, tableName);
             federationSelectStatement.setLimit(originalSelectStatement.getLimit());
@@ -262,7 +262,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     }
 
     private boolean isEmptySubSelect(SelectStatement selectStatement) {
-        return selectStatement == null || StringUtil.isEmpty(selectStatement.getSubSelect());
+        return selectStatement == null || StringUtil.isEmpty(selectStatement.getParenthesedSelect());
     }
 
 
@@ -294,11 +294,9 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 sqlQuerySource.getTableNames().add(o);
             });
             sqlQuerySource.setPartitionKey(databaseService.getPartitionKey(sqlQuerySource.getTableNames().get(0)));
-            SelectBody body = selectStatement.getSelectBody();
-            if (body instanceof PlainSelect) { //单条查询
 
-                PlainSelect select = (PlainSelect) body;
-
+            if (selectStatement instanceof PlainSelect) { //单条查询
+                PlainSelect select = selectStatement.getPlainSelect();
                 FromItem fromItem = select.getFromItem();
                 sqlQuerySource.setFromItem(fromItem);
                 sqlQuerySource.setJoins(select.getJoins());
@@ -307,41 +305,35 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 if (where != null) {
                     sqlQuerySource.setWhereExpression(where);
                 }
-
-                List<SelectItem> selectItemsList = select.getSelectItems();
+                List<SelectItem<?>> selectItemsList = select.getSelectItems();
                 sqlQuerySource.setSelectItems(selectItemsList);
 
-                for (SelectItem item : selectItemsList) {
-                    if (item instanceof SelectExpressionItem) {
-                        SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
-                        if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
-                            String aliasName = expressionItem.getAlias().getName();
-                            aliasName = SQLHelper.removeQuotesAndBackticks(aliasName);
-                            sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
-                        } else {
-                            sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
-                        }
-                        addUDFSet(sqlQuerySource.getUdfSet(), expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
-
+                for (SelectItem<?> item : selectItemsList) {
+                    Expression expr = item.getExpression();
+                    if (StringUtil.isNotEmpty(item.getAlias())) {
+                        String aliasName = item.getAlias().getName();
+                        aliasName = SQLHelper.removeQuotesAndBackticks(aliasName);
+                        sqlQuerySource.getAliasFields().put(aliasName, expr.toString());
+                    } else {
+                        sqlQuerySource.getAliasFields().put(expr.toString(), expr.toString());
                     }
+                    addUDFSet(sqlQuerySource.getUdfSet(), expr);//伪代码：后期需要在SQLQuerySource where对象中提取
                 }
-
                 GroupByElement groupBy;
                 if (StringUtil.isNotEmpty(groupBy = select.getGroupBy())) {
                     sqlQuerySource.setGroupByElement(groupBy);
                     if (isDrilldown(select, sqlQuerySource.getAliasFields())) {
-                        addRollUpToUDF(sqlQuerySource.getUdfSet(), (Function) groupBy.getGroupByExpressionList().getExpressions().get(0));
+                        addRollUpToUDF(sqlQuerySource.getUdfSet(), (Function) groupBy.getGroupByExpressionList().get(0));
                         sqlQuerySource.getUdfSet().removeIf(udf -> udf instanceof TIME_FLOOR_WITH_FILL);
                         sqlQuerySource.getUdfSet().removeIf(udf -> udf instanceof DATETIME_FLOOR_WITH_FILL);
                     }
                 }
                 sqlQuerySource.setOrderByElements(select.getOrderByElements());
-                FromItem subItem = select.getFromItem();
 
-                if (subItem instanceof SubSelect) {
-                    SubSelect subSelect = (SubSelect) subItem;
-                    sqlQuerySource.setSubSelect(subSelect);
-                    sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
+                if (fromItem instanceof ParenthesedSelect) {
+                    ParenthesedSelect parenthesedSelect = (ParenthesedSelect) fromItem;
+                    sqlQuerySource.setParenthesedSelect(parenthesedSelect);
+                    sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(parenthesedSelect.getSelect())));
                 }
                 Limit limit = select.getLimit();
                 if (limit != null) {
@@ -354,9 +346,9 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 }
 
 
-            } else if (body instanceof SetOperationList) { // 连接查询
-                SetOperationList setOperationList = (SetOperationList) body;
-                List<SelectBody> selects = setOperationList.getSelects();
+            } else if (selectStatement instanceof SetOperationList) { // 连接查询
+                SetOperationList setOperationList = selectStatement.getSetOperationList();
+                List<Select> selects = setOperationList.getSelects();
                 //暂时只解析第一个结构，不接受不相同的where
                 if (StringUtil.isNotEmpty(selects)) {
                     SelectStatement parseSql = parserSQLByAst(selects.get(0).toString());
@@ -423,8 +415,8 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 return false;
             }
         }
-        List<Expression> expressions = groupByFunction.getParameters().getExpressions();
-        for (Expression expression : expressions) {
+        ExpressionList<?> parameters = groupByFunction.getParameters();
+        for (Expression expression : parameters) {
             String rollupArg = SQLHelper.removeQuotesAndBackticks(expression.toString());
             if (!aliasFields.containsKey(rollupArg) && !aliasFields.containsValue(rollupArg)) {
                 return false;
@@ -434,7 +426,9 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     }
 
     private static void addRollUpToUDF(Set<UDF> udfSet, Function fun) {
-        List<Expression> expressions = fun.getParameters().getExpressions();
+        ExpressionList<?> parameters = fun.getParameters();
+        List<Expression> expressions = Lists.newArrayList();
+        expressions.addAll(parameters);
         UDFElements udfElements = new UDFElements(fun.getName(), expressions);
         ROLLUP rollup = new ROLLUP(udfElements);
         udfSet.add(rollup);
@@ -454,7 +448,10 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         if (expr instanceof Function) {
             Function fun = (Function) expr;
             if (SQLFunctionUtil.federationUDFFunctions.containsKey(fun.getName().toUpperCase())) {
-                List<Expression> expressions = fun.getParameters().getExpressions();
+                ExpressionList<?> parameters = fun.getParameters();
+                List<Expression> expressions = Lists.newArrayList();
+                expressions.addAll(parameters);
+
                 UDF udf = getUDF(fun, expressions);
                 udfSet.add(udf);
             }

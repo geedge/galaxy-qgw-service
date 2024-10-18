@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- *
  * @Classname OuterSelectItemVisitor
  * @Date
  * @Author
@@ -25,7 +24,7 @@ public class TopOuterSelectItemVisitor implements SelectItemVisitor {
     public void rewrite(PlainSelect outerSelect, PlainSelect innerSelect) throws JSQLParserException {
         Select parse = (Select) CCJSqlParserUtil.parse("SELECT " + outerSelect.getSelectItems().stream().map(Object::toString)
                 .collect(Collectors.joining(", ")) + " FROM ( " + innerSelect + ") ");
-        PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
+        PlainSelect plainSelect = parse.getPlainSelect();
         outerSelect.setFromItem(plainSelect.getFromItem());
         outerSelect.setWhere(null);
         outerSelect.setGroupByElement(innerSelect.getGroupBy());
@@ -34,41 +33,31 @@ public class TopOuterSelectItemVisitor implements SelectItemVisitor {
 
         Map<String, String> exprAlias = Maps.newHashMap();
         for (SelectItem selectItem : innerSelect.getSelectItems()) {
-            SelectExpressionItem item = (SelectExpressionItem) selectItem;
-            Expression expression = item.getExpression();
-            String alias = item.getAlias().getName();
+            Expression expression = selectItem.getExpression();
+            String alias = selectItem.getAlias().getName();
             exprAlias.put(expression.toString(), alias);
         }
         List<OrderByElement> orderByElements = innerSelect.getOrderByElements();
         for (OrderByElement orderByElement : orderByElements) {
             String orderByStr = orderByElement.getExpression().toString();
             if (exprAlias.containsKey(orderByStr)) {
-                orderByElement.getExpression().accept(SQLVisitorUtil.getVisitorOfRenameColumn(exprAlias.get(orderByStr)));
+                orderByElement.getExpression().accept(SQLVisitorUtil.getVisitorOfRenameColumn(exprAlias.get(orderByStr)), null);
             }
         }
         outerSelect.setOrderByElements(innerSelect.getOrderByElements());
-        List<SelectItem> selectItems = outerSelect.getSelectItems();
-        for (SelectItem selectItem : selectItems) {
-            SelectExpressionItem selectExpressionItem = (SelectExpressionItem) selectItem;
-            selectExpressionItem.accept(this);
+        List<SelectItem<?>> selectItems = outerSelect.getSelectItems();
+        for (SelectItem<?> selectItem : selectItems) {
+            selectItem.accept(this, null);
         }
     }
 
     @Override
-    public void visit(AllColumns allColumns) {
-    }
-
-    @Override
-    public void visit(AllTableColumns allTableColumns) {
-    }
-
-    @Override
-    public void visit(SelectExpressionItem selectExpressionItem) {
-        if (StrUtil.isBlankIfStr(selectExpressionItem.getAlias())) {
-            return;
+    public Object visit(SelectItem selectItem, Object context) {
+        if (StrUtil.isBlankIfStr(selectItem.getAlias())) {
+            return null;
         }
-        String name = selectExpressionItem.getAlias().getName();
-        Expression expression = selectExpressionItem.getExpression();
+        String name = selectItem.getAlias().getName();
+        Expression expression = selectItem.getExpression();
         if (!StrUtil.isBlankIfStr(name)) {
             if (expression instanceof Column) {
                 Column column = (Column) expression;
@@ -85,5 +74,6 @@ public class TopOuterSelectItemVisitor implements SelectItemVisitor {
                 function.setParameters(expressionList);
             }
         }
+        return null;
     }
 }

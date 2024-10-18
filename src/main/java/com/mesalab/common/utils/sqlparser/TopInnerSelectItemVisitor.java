@@ -2,13 +2,11 @@ package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Maps;
-import lombok.SneakyThrows;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
-import net.sf.jsqlparser.statement.values.ValuesStatement;
 import org.apache.commons.compress.utils.Lists;
 
 import java.util.List;
@@ -16,7 +14,6 @@ import java.util.Map;
 
 
 /**
- *
  * @Classname InnerSelectItemVisitor
  * @Date 2021/7/20 3:39 下午
  * @Author wWei
@@ -35,35 +32,36 @@ public class TopInnerSelectItemVisitor implements OrderByVisitor, GroupByVisitor
 
     public void rewrite(PlainSelect plainSelect) {
 
-        for (SelectItem selectItem : plainSelect.getSelectItems()) {
-            selectItem.accept(this);
+        for (SelectItem<?> selectItem : plainSelect.getSelectItems()) {
+            selectItem.accept(this, null);
         }
         if (!StrUtil.isBlankIfStr(plainSelect.getGroupBy())) {
-            plainSelect.getGroupBy().accept(this);
+            plainSelect.getGroupBy().accept(this, null);
         }
         if (!StrUtil.isBlankIfStr(plainSelect.getOrderByElements())) {
             for (OrderByElement orderByElement : plainSelect.getOrderByElements()) {
-                orderByElement.accept(this);
+                orderByElement.accept(this, null);
             }
         }
-        plainSelect.accept(this);
+        plainSelect.accept(this, null);
     }
 
     @Override
-    public void visit(GroupByElement groupByElement) {
-        List<Expression> groupByExpressions = groupByElement.getGroupByExpressions();
+    public Object visit(GroupByElement groupByElement, Object context) {
+        ExpressionList<Expression> groupByExpressions = groupByElement.getGroupByExpressionList();
         for (int i = 0; i < groupByExpressions.size(); i++) {
             Expression expression = groupByExpressions.get(i);
             if (exprAlias.containsKey(expression.toString())) {
                 Column column = new Column(exprAlias.get(expression.toString()));
-                groupByElement.getGroupByExpressions().set(i, column);
+                groupByElement.getGroupByExpressionList().set(i, column);
             }
         }
         groupByList.addAll(groupByExpressions);
+        return null;
     }
 
     @Override
-    public void visit(OrderByElement orderByElement) {
+    public Object visit(OrderByElement orderByElement, Object context) {
         Expression expression = orderByElement.getExpression();
         String alias = exprAlias.get(expression.toString());
         if (exprAlias.containsKey(expression.toString())) {
@@ -73,11 +71,17 @@ public class TopInnerSelectItemVisitor implements OrderByVisitor, GroupByVisitor
         } else {
             OrderByList.add(expression);
         }
+        return null;
     }
 
     @Override
-    public void visit(PlainSelect plainSelect) {
-        List<SelectItem> selectItems = plainSelect.getSelectItems();
+    public Object visit(ParenthesedSelect parenthesedSelect, Object context) {
+        return null;
+    }
+
+    @Override
+    public Object visit(PlainSelect plainSelect, Object context) {
+        List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
         List<Expression> list = Lists.newArrayList();
         list.addAll(OrderByList);
         list.addAll(groupByList);
@@ -86,42 +90,46 @@ public class TopInnerSelectItemVisitor implements OrderByVisitor, GroupByVisitor
                     || exprAlias.containsValue(expression.toString())) {
                 continue;
             }
-            SelectExpressionItem selectItem = new SelectExpressionItem();
+            SelectItem<Expression> selectItem = new SelectItem<>();
             selectItem.setExpression(expression);
             selectItem.setAlias(new Alias(expression.toString()
                     .substring(0, expression.toString().indexOf("(")) + (int) (Math.random() * 100), true));
             selectItems.add(selectItem);
             exprAlias.put(selectItem.getExpression().toString(), selectItem.getAlias().getName());
         }
+        return null;
     }
 
     @Override
-    public void visit(SetOperationList setOperationList) {
-
+    public Object visit(TableStatement tableStatement, Object context) {
+        return null;
     }
 
     @Override
-    public void visit(WithItem withItem) {
-
+    public Object visit(LateralSubSelect lateralSubSelect, Object context) {
+        return null;
     }
 
     @Override
-    public void visit(ValuesStatement valuesStatement) {
-
+    public Object visit(Values values, Object context) {
+        return null;
     }
 
     @Override
-    public void visit(AllColumns allColumns) {
-    }
-
-    @Override
-    public void visit(AllTableColumns allTableColumns) {
-    }
-
-    @Override
-    public void visit(SelectExpressionItem selectExpressionItem) {
-        if (!StrUtil.isBlankIfStr(selectExpressionItem.getAlias())) {
-            exprAlias.put(selectExpressionItem.getExpression().toString(), selectExpressionItem.getAlias().getName());
+    public Object visit(SelectItem selectItem, Object context) {
+        if (!StrUtil.isBlankIfStr(selectItem.getAlias())) {
+            exprAlias.put(selectItem.getExpression().toString(), selectItem.getAlias().getName());
         }
+        return null;
+    }
+
+    @Override
+    public Object visit(SetOperationList setOpList, Object context) {
+        return null;
+    }
+
+    @Override
+    public Object visit(WithItem withItem, Object context) {
+        return null;
     }
 }

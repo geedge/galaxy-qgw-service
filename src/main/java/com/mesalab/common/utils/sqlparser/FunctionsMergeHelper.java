@@ -1,5 +1,6 @@
 package com.mesalab.common.utils.sqlparser;
 
+import com.google.common.collect.Maps;
 import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -42,15 +43,15 @@ public class FunctionsMergeHelper {
      * 1. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *])) ==>
      * 1.1 Select Item: TIME_FORMAT(TIME_FLOOR(column, *), 'yyyy-MM-dd HH:mm:ss')
      * 1.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
-     *
+     * <p>
      * 2. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(column, *[, *])) ==>
      * 2.1 Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *), 'yyyy-MM-dd HH:mm:ss')
      * 2.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)]
-     *
+     * <p>
      * 3. TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *]) ==>
      * 3.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
      * 3.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
-     *
+     * <p>
      * 4. TIME_FLOOR_WITH_FILL(column, *[, *]) ==>
      * 4.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
      * 4.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
@@ -62,22 +63,22 @@ public class FunctionsMergeHelper {
      */
     public static String build(String sql) throws JSQLParserException {
         Select select = (Select) CCJSqlParserUtil.parse(sql);
-        select.getSelectBody().accept(new SelectAdapter());
+        select.accept(new SelectAdapter<>(), null);
         return select.toString();
     }
 
-    private static class SelectAdapter extends SelectVisitorAdapter {
+    private static class SelectAdapter<T> extends SelectVisitorAdapter<T> {
 
         @SneakyThrows
         @Override
-        public void visit(PlainSelect plainSelect) {
+        public <S> T visit(PlainSelect plainSelect, S context) {
 
-            Map<String, String> aliasExpr = new HashMap<>();
-            List<SelectItem> selectItems = plainSelect.getSelectItems();
+            Map<String, String> aliasExpr = Maps.newHashMap();
+            List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
             if (selectItems != null) {
-                for (SelectItem selectItem : selectItems) {
+                for (SelectItem<?> selectItem : selectItems) {
                     SelectItemAdapter selectItemAdapter = new SelectItemAdapter();
-                    selectItem.accept(selectItemAdapter);
+                    selectItem.accept(selectItemAdapter, null);
                     Map<String, String> itemAliasExpr = selectItemAdapter.getAliasExpr();
                     if (!itemAliasExpr.isEmpty()) {
                         aliasExpr.putAll(itemAliasExpr);
@@ -86,8 +87,8 @@ public class FunctionsMergeHelper {
             }
 
             GroupByElement groupBy = plainSelect.getGroupBy();
-            if (groupBy != null && groupBy.getGroupByExpressionList() != null && !groupBy.getGroupByExpressionList().getExpressions().isEmpty()) {
-                groupBy.accept(new GroupByAdapter());
+            if (groupBy != null && groupBy.getGroupByExpressionList() != null && !groupBy.getGroupByExpressionList().isEmpty()) {
+                groupBy.accept(new GroupByAdapter(), null);
             }
             List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
             if (orderByElements != null) {
@@ -96,31 +97,34 @@ public class FunctionsMergeHelper {
                         Expression expression = CCJSqlParserUtil.parseExpression(aliasExpr.get(orderByElement.getExpression().toString()));
                         orderByElement.setExpression(expression);
                     }
-                    orderByElement.accept(new OrderByAdapter());
+                    orderByElement.accept(new OrderByAdapter(), null);
                 }
             }
 
             FromItem fromItem = plainSelect.getFromItem();
             if (fromItem != null) {
-                fromItem.accept(new FromItemAdapter());
+                fromItem.accept(new FromItemAdapter(), null);
             }
+
+            return null;
 
         }
 
         @Override
-        public void visit(SetOperationList setOpList) {
-            for (SelectBody select : setOpList.getSelects()) {
+        public <S> T visit(SetOperationList setOpList, S context) {
+            for (Select select : setOpList.getSelects()) {
                 if (select instanceof PlainSelect) {
-                    select.accept(this);
+                    select.accept(this, null);
                 }
             }
+            return null;
         }
     }
 
     private static Function createFunction(String funName, List<Expression> params) {
         Function function = new Function();
         function.setName(funName);
-        function.setParameters(new ExpressionList(params));
+        function.setParameters(new ExpressionList<>(params));
         return function;
     }
 
@@ -130,7 +134,7 @@ public class FunctionsMergeHelper {
         }
         Function function = (Function) expression;
         return function.getName().equalsIgnoreCase(UNIX_TIMESTAMP)
-                && function.getParameters().getExpressions().size() == 1;
+                && function.getParameters().size() == 1;
     }
 
     private static boolean isTimeFloorWithFillFunction(Expression expression) {
@@ -139,8 +143,8 @@ public class FunctionsMergeHelper {
         }
         Function function = (Function) expression;
         return TIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() >= 2
-                && function.getParameters().getExpressions().size() <= 3;
+                && function.getParameters().size() >= 2
+                && function.getParameters().size() <= 3;
     }
 
     private static boolean isDateTimeFloorWithFillFunction(Expression expression) {
@@ -149,8 +153,8 @@ public class FunctionsMergeHelper {
         }
         Function function = (Function) expression;
         return DATETIME_FLOOR_WITH_FILL.equalsIgnoreCase(function.getName())
-                && function.getParameters().getExpressions().size() >= 2
-                && function.getParameters().getExpressions().size() <= 3;
+                && function.getParameters().size() >= 2
+                && function.getParameters().size() <= 3;
     }
 
     private static boolean isFromUnixtimeFunction(Expression expression) {
@@ -159,11 +163,11 @@ public class FunctionsMergeHelper {
         }
         Function function = (Function) expression;
         return function.getName().equalsIgnoreCase(FROM_UNIXTIME)
-                && function.getParameters().getExpressions().size() == 1;
+                && function.getParameters().size() == 1;
     }
 
 
-    private static class SelectItemAdapter extends SelectItemVisitorAdapter {
+    private static class SelectItemAdapter extends SelectItemVisitorAdapter<Object> {
 
         private Map<String, String> aliasExpr = new HashMap<>();
 
@@ -172,32 +176,32 @@ public class FunctionsMergeHelper {
         }
 
         @Override
-        public void visit(SelectExpressionItem selectExpressionItem) {
-            Expression expression = selectExpressionItem.getExpression();
+        public Object visit(SelectItem selectItem, Object context) {
+            Expression expression = selectItem.getExpression();
             if (!(expression instanceof Function)) {
-                return;
+                return null;
             }
             Function mainFunction = (Function) expression;
             if (isFromUnixtimeFunction(mainFunction)) {
-                Expression fromUnixtimeArg0 = mainFunction.getParameters().getExpressions().get(0);
+                Expression fromUnixtimeArg0 = mainFunction.getParameters().get(0);
                 if (isTimeFloorWithFillFunction(fromUnixtimeArg0)) {
                     Function timeFloorWithFillFun = (Function) fromUnixtimeArg0;
-                    Expression timeFloorWithFillFunArg0 = timeFloorWithFillFun.getParameters().getExpressions().get(0);
-                    Expression timeFloorWithFillFunArg1 = timeFloorWithFillFun.getParameters().getExpressions().get(1);
-                    if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().getExpressions().get(0) instanceof Column) {
-                        if (selectExpressionItem.getAlias() != null) {
-                            aliasExpr.put(selectExpressionItem.getAlias().getName(), mainFunction.toString());
+                    Expression timeFloorWithFillFunArg0 = timeFloorWithFillFun.getParameters().get(0);
+                    Expression timeFloorWithFillFunArg1 = timeFloorWithFillFun.getParameters().get(1);
+                    if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().get(0) instanceof Column) {
+                        if (selectItem.getAlias() != null) {
+                            aliasExpr.put(selectItem.getAlias().getName(), mainFunction.toString());
                         }
 
                         Function unixTimestampFun = (Function) timeFloorWithFillFunArg0;
-                        List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
+                        List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().get(0), timeFloorWithFillFunArg1));
                         Function timeFloor = createFunction(TIME_FLOOR, timeFloorArgs);
                         mainFunction.setName(TIME_FORMAT);
                         List<Expression> timeFormatArgs = new ArrayList<>(Arrays.asList(timeFloor, new StringValue(DATE_TIME_FORMAT_PATTERN)));
-                        mainFunction.setParameters(new ExpressionList(timeFormatArgs));
+                        mainFunction.setParameters(new ExpressionList<>(timeFormatArgs));
                     } else if (timeFloorWithFillFunArg0 instanceof Column) {
-                        if (selectExpressionItem.getAlias() != null) {
-                            aliasExpr.put(selectExpressionItem.getAlias().getName(), mainFunction.toString());
+                        if (selectItem.getAlias() != null) {
+                            aliasExpr.put(selectItem.getAlias().getName(), mainFunction.toString());
                         }
                         Multiplication multiplication = new Multiplication();
                         multiplication.setLeftExpression(timeFloorWithFillFunArg0);
@@ -211,20 +215,20 @@ public class FunctionsMergeHelper {
 
                         mainFunction.setName(TIME_FORMAT);
                         List<Expression> timeFormatArgs = new ArrayList<>(Arrays.asList(timeFloorFun, new StringValue(DATE_TIME_FORMAT_PATTERN)));
-                        mainFunction.setParameters(new ExpressionList(timeFormatArgs));
+                        mainFunction.setParameters(new ExpressionList<>(timeFormatArgs));
                     }
                 }
             } else if (isTimeFloorWithFillFunction(mainFunction)) {
-                Expression timeFloorWithFillFunArg0 = mainFunction.getParameters().getExpressions().get(0);
-                Expression timeFloorWithFillFunArg1 = mainFunction.getParameters().getExpressions().get(1);
-                if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().getExpressions().get(0) instanceof Column) {
+                Expression timeFloorWithFillFunArg0 = mainFunction.getParameters().get(0);
+                Expression timeFloorWithFillFunArg1 = mainFunction.getParameters().get(1);
+                if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().get(0) instanceof Column) {
 
-                    if (selectExpressionItem.getAlias() != null) {
-                        aliasExpr.put(selectExpressionItem.getAlias().getName(), mainFunction.toString());
+                    if (selectItem.getAlias() != null) {
+                        aliasExpr.put(selectItem.getAlias().getName(), mainFunction.toString());
                     }
                     Function unixTimestampFun = (Function) timeFloorWithFillFunArg0;
 
-                    List<Expression> expressions = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
+                    List<Expression> expressions = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().get(0), timeFloorWithFillFunArg1));
                     Function timeFloor = createFunction(TIME_FLOOR, expressions);
 
                     List<Expression> timestampToMillsArgs = new ArrayList<>(Collections.singletonList(timeFloor));
@@ -233,11 +237,10 @@ public class FunctionsMergeHelper {
                     Division division = new Division();
                     division.setLeftExpression(timestampToMillis);
                     division.setRightExpression(new LongValue(1000));
-
-                    selectExpressionItem.setExpression(division);
+                    selectItem.setExpression(division);
                 } else if (timeFloorWithFillFunArg0 instanceof Column) {
-                    if (selectExpressionItem.getAlias() != null) {
-                        aliasExpr.put(selectExpressionItem.getAlias().getName(), mainFunction.toString());
+                    if (selectItem.getAlias() != null) {
+                        aliasExpr.put(selectItem.getAlias().getName(), mainFunction.toString());
                     }
 
                     Multiplication multiplication = new Multiplication();
@@ -257,46 +260,53 @@ public class FunctionsMergeHelper {
                     division.setLeftExpression(timestampToMills);
                     division.setRightExpression(new LongValue(1000));
 
-                    selectExpressionItem.setExpression(division);
+                    selectItem.setExpression(division);
                 }
             } else if (isDateTimeFloorWithFillFunction(mainFunction)) {
                 // TODO DATETIME_FLOOR_WITH_FILL function merge
             }
+
+            return null;
         }
 
     }
 
-    private static class FromItemAdapter extends FromItemVisitorAdapter {
+    private static class FromItemAdapter extends FromItemVisitorAdapter<Object> {
         @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter());
-        }
-    }
-
-    private static class GroupByAdapter implements GroupByVisitor {
-        @Override
-        public void visit(GroupByElement groupByElement) {
-            if (groupByElement.getGroupByExpressionList() == null
-                    || groupByElement.getGroupByExpressionList().getExpressions() == null) {
-                return;
+        public Object visit(ParenthesedSelect parenthesedSelect, Object context) {
+            Select select = parenthesedSelect.getSelect();
+            if (select instanceof PlainSelect) {
+                select.getPlainSelect().accept(new SelectAdapter<>(), null);
+            } else if (select instanceof SetOperationList) {
+                select.getSetOperationList().accept(new SelectAdapter<>(), null);
             }
-            for (Expression expression : groupByElement.getGroupByExpressionList().getExpressions()) {
+            return null;
+        }
+    }
+
+    private static class GroupByAdapter implements GroupByVisitor<Object> {
+        @Override
+        public Object visit(GroupByElement groupBy, Object context) {
+            if (groupBy.getGroupByExpressionList() == null) {
+                return null;
+            }
+
+            for (Object expression : groupBy.getGroupByExpressionList()) {
                 if (!(expression instanceof Function)) {
                     continue;
                 }
                 Function mainFunction = (Function) expression;
-                if (isFromUnixtimeFunction(expression)) {
-                    Expression fromUnixtimeArg0 = mainFunction.getParameters().getExpressions().get(0);
+                if (isFromUnixtimeFunction(mainFunction)) {
+                    Expression fromUnixtimeArg0 = mainFunction.getParameters().get(0);
                     if (isTimeFloorWithFillFunction(fromUnixtimeArg0)) {
                         Function timeFloorWithFillFun = (Function) fromUnixtimeArg0;
-                        Expression timeFloorWithFillFunArg0 = timeFloorWithFillFun.getParameters().getExpressions().get(0);
-                        Expression timeFloorWithFillFunArg1 = timeFloorWithFillFun.getParameters().getExpressions().get(1);
-                        if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().getExpressions().get(0) instanceof Column) {
+                        Expression timeFloorWithFillFunArg0 = timeFloorWithFillFun.getParameters().get(0);
+                        Expression timeFloorWithFillFunArg1 = timeFloorWithFillFun.getParameters().get(1);
+                        if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().get(0) instanceof Column) {
                             Function unixTimestampFun = (Function) timeFloorWithFillFunArg0;
                             mainFunction.setName(TIME_FLOOR);
-                            List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
-                            mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                            List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().get(0), timeFloorWithFillFunArg1));
+                            mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                         } else if (timeFloorWithFillFunArg0 instanceof Column) {
                             Multiplication multiplication = new Multiplication();
                             multiplication.setLeftExpression(timeFloorWithFillFunArg0);
@@ -307,17 +317,17 @@ public class FunctionsMergeHelper {
 
                             mainFunction.setName(TIME_FLOOR);
                             ArrayList<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(millsToTimestamp, timeFloorWithFillFunArg1));
-                            mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                            mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                         }
                     }
                 } else if (isTimeFloorWithFillFunction(mainFunction)) {
-                    Expression timeFloorWithFillFunArg0 = mainFunction.getParameters().getExpressions().get(0);
-                    Expression timeFloorWithFillFunArg1 = mainFunction.getParameters().getExpressions().get(1);
-                    if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().getExpressions().get(0) instanceof Column) {
+                    Expression timeFloorWithFillFunArg0 = mainFunction.getParameters().get(0);
+                    Expression timeFloorWithFillFunArg1 = mainFunction.getParameters().get(1);
+                    if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().get(0) instanceof Column) {
                         Function unixTimestampFun = (Function) timeFloorWithFillFunArg0;
                         mainFunction.setName(TIME_FLOOR);
-                        List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
-                        mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                        List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().get(0), timeFloorWithFillFunArg1));
+                        mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                     } else if (timeFloorWithFillFunArg0 instanceof Column) {
                         Multiplication multiplication = new Multiplication();
                         multiplication.setLeftExpression(timeFloorWithFillFunArg0);
@@ -328,34 +338,35 @@ public class FunctionsMergeHelper {
 
                         mainFunction.setName(TIME_FLOOR);
                         List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(millsToTimestamp, timeFloorWithFillFunArg1));
-                        mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                        mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                     }
                 }
             }
+            return null;
         }
     }
 
-    private static class OrderByAdapter implements OrderByVisitor {
+    private static class OrderByAdapter implements OrderByVisitor<Object> {
         @Override
-        public void visit(OrderByElement orderBy) {
+        public Object visit(OrderByElement orderBy, Object context) {
             if (orderBy.getExpression() == null) {
-                return;
+                return null;
             }
             if (!(orderBy.getExpression() instanceof Function)) {
-                return;
+                return null;
             }
             Function mainFunction = (Function) orderBy.getExpression();
             if (isFromUnixtimeFunction(mainFunction)) {
-                Expression fromUnixtimeArg0 = mainFunction.getParameters().getExpressions().get(0);
+                Expression fromUnixtimeArg0 = mainFunction.getParameters().get(0);
                 if (isTimeFloorWithFillFunction(fromUnixtimeArg0)) {
                     Function timeFloorWithFillFun = (Function) fromUnixtimeArg0;
-                    Expression timeFloorWithFillFunArg0 = timeFloorWithFillFun.getParameters().getExpressions().get(0);
-                    Expression timeFloorWithFillFunArg1 = timeFloorWithFillFun.getParameters().getExpressions().get(1);
-                    if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().getExpressions().get(0) instanceof Column) {
+                    Expression timeFloorWithFillFunArg0 = timeFloorWithFillFun.getParameters().get(0);
+                    Expression timeFloorWithFillFunArg1 = timeFloorWithFillFun.getParameters().get(1);
+                    if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().get(0) instanceof Column) {
                         Function unixTimestampFun = (Function) timeFloorWithFillFunArg0;
                         mainFunction.setName(TIME_FLOOR);
-                        List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
-                        mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                        List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().get(0), timeFloorWithFillFunArg1));
+                        mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                     } else if (timeFloorWithFillFunArg0 instanceof Column) {
                         Multiplication multiplication = new Multiplication();
                         multiplication.setLeftExpression(timeFloorWithFillFunArg0);
@@ -366,17 +377,17 @@ public class FunctionsMergeHelper {
 
                         mainFunction.setName(TIME_FLOOR);
                         ArrayList<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(millsToTimestamp, timeFloorWithFillFunArg1));
-                        mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                        mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                     }
                 }
             } else if (isTimeFloorWithFillFunction(mainFunction)) {
-                Expression timeFloorWithFillFunArg0 = mainFunction.getParameters().getExpressions().get(0);
-                Expression timeFloorWithFillFunArg1 = mainFunction.getParameters().getExpressions().get(1);
-                if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().getExpressions().get(0) instanceof Column) {
+                Expression timeFloorWithFillFunArg0 = mainFunction.getParameters().get(0);
+                Expression timeFloorWithFillFunArg1 = mainFunction.getParameters().get(1);
+                if (isUnixTimestampFunction(timeFloorWithFillFunArg0) && ((Function) timeFloorWithFillFunArg0).getParameters().get(0) instanceof Column) {
                     Function unixTimestampFun = (Function) timeFloorWithFillFunArg0;
                     mainFunction.setName(TIME_FLOOR);
-                    List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
-                    mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                    List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().get(0), timeFloorWithFillFunArg1));
+                    mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                 } else if (timeFloorWithFillFunArg0 instanceof Column) {
                     Multiplication multiplication = new Multiplication();
                     multiplication.setLeftExpression(timeFloorWithFillFunArg0);
@@ -387,9 +398,10 @@ public class FunctionsMergeHelper {
 
                     mainFunction.setName(TIME_FLOOR);
                     List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(millsToTimestamp, timeFloorWithFillFunArg1));
-                    mainFunction.setParameters(new ExpressionList(timeFloorArgs));
+                    mainFunction.setParameters(new ExpressionList<>(timeFloorArgs));
                 }
             }
+            return null;
         }
     }
 }

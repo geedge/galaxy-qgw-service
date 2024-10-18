@@ -26,7 +26,9 @@ import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SetOperationList;
 
 
 import java.sql.*;
@@ -97,7 +99,11 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.HBASE.getValue());
         try {
             Select select = (Select) CCJSqlParserUtil.parse(sql);
-            select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
+            if (select instanceof PlainSelect) {
+                select.getPlainSelect().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote(), null);
+            } else if (select instanceof SetOperationList) {
+                select.getSetOperationList().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote(), null);
+            }
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);

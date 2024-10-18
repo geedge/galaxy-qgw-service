@@ -24,7 +24,7 @@ public class RewriteTable extends SelectDeParser {
     }
 
     @Override
-    public void visit(Table table) {
+    public StringBuilder visit(Table table, Object context) {
         if (StringUtil.isBlank(table.getSchemaName())) {
             table.setSchemaName(databaseService.getDBNameByTableName(table.getName()));
         }
@@ -36,11 +36,12 @@ public class RewriteTable extends SelectDeParser {
         buffer.append(table.getFullyQualifiedName());
         Pivot pivot = table.getPivot();
         if (pivot != null) {
-            pivot.accept(this);
+            pivot.accept(this, null);
         }
         Alias alias = table.getAlias();
         if (alias != null) {
             buffer.append(alias);
         }
+        return null;
     }
 }

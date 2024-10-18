@@ -29,7 +29,7 @@ public class SelectStatement {
     private String partitionKey;
     private List<Join> joins;
     private FromItem fromItem;
-    private List<SelectItem> selectItems;
+    private List<SelectItem<?>> selectItems;
     private Map<String, String> aliasFields = Maps.newHashMap();
     private Expression whereExpression;
     private GroupByElement groupByElement;
@@ -38,7 +38,7 @@ public class SelectStatement {
     private String limit;
     private boolean isEnableLimit;
 
-    private SubSelect subSelect;
+    private ParenthesedSelect parenthesedSelect;
     private List<SelectStatement> subSqlQuerySources = Lists.newArrayList();
     private Set<UDF> udfSet = Sets.newHashSet();
 
@@ -58,14 +58,14 @@ public class SelectStatement {
         if (groupByElement == null) {
             return Maps.newHashMap();
         }
-        ExpressionList groupByExpressionList = groupByElement.getGroupByExpressionList();
+        ExpressionList<Expression> groupByExpressionList = groupByElement.getGroupByExpressionList();
 
         groupBy:
-        for (Expression expression : groupByExpressionList.getExpressions()) {
+        for (Expression expression : groupByExpressionList) {
             String groupBy = expression.toString();
             groupBy = SQLHelper.removeQuotesAndBackticks(groupBy);
             if (expression instanceof Function && SQLFunctionUtil.ROLLUP.equalsIgnoreCase(((Function) expression).getName())) {
-                List<Expression> funParamList = ((Function) expression).getParameters().getExpressions();
+                ExpressionList<?> funParamList = ((Function) expression).getParameters();
                 paramGroupBy:
                 for (Expression param : funParamList) {
                     String paramGroupBy = param.toString();

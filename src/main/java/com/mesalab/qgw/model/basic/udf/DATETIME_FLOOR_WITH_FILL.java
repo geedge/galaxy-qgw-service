@@ -332,7 +332,7 @@ public class DATETIME_FLOOR_WITH_FILL implements UDF {
         boolean isOriginalDataSource = false;
         while (!isOriginalDataSource) {
             FillParam currentParam = new FillParam();
-            if (currentSource.getSubSelect() == null) {
+            if (currentSource.getParenthesedSelect() == null) {
                 isOriginalDataSource = true;
                 currentParam.setPartitionKey(currentSource.getPartitionKey());
             }

@@ -6,10 +6,8 @@ import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.service.SQLSyncQueryService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.sf.jsqlparser.JSQLParserException;
@@ -19,7 +17,7 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import net.sf.jsqlparser.expression.operators.relational.ItemsList;
+import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -46,7 +44,7 @@ public class SQLSyntaxParserUtil {
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax_parse: sql-" + sql + ", error: ", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return resultList;
     }
@@ -55,11 +53,12 @@ public class SQLSyntaxParserUtil {
         Statement parse = null;
         parse = CCJSqlParserUtil.parse(sql);
         SQLStructure sqlStructure = new SQLStructure();
-        if (!(parse instanceof Select)) return;
+        if (!(parse instanceof Select)) {
+            return;
+        }
         Select select = (Select) parse;
-        SelectBody selectBody = select.getSelectBody();
-        if (selectBody instanceof PlainSelect) {
-            PlainSelect plainSelect = (PlainSelect) selectBody;
+        if (select instanceof PlainSelect) {
+            PlainSelect plainSelect = (PlainSelect) select;
             sqlStructure.setSelect(getSelectItems(plainSelect.getSelectItems()));
             sqlStructure.setFrom(getFromItems(plainSelect.getFromItem()));
             sqlStructure.setWhere(getWhereItems(plainSelect.getWhere()));
@@ -68,12 +67,14 @@ public class SQLSyntaxParserUtil {
             sqlStructure.setOrderBy(getOrderBy(plainSelect.getOrderByElements()));
             sqlStructure.setLimit(getLimit(plainSelect.getLimit(), plainSelect.getOffset()));
             result.add(sqlStructure);
-        } else if (selectBody instanceof SetOperationList) {
-            SetOperationList setOperationList = (SetOperationList) selectBody;
-            List<SelectBody> selects = setOperationList.getSelects();
+        } else if (select instanceof SetOperationList) {
+            SetOperationList setOperationList = select.getSetOperationList();
+            List<Select> selects = setOperationList.getSelects();
             for (int i = 0; i < selects.size(); i++) {
                 parseSQL(selects.get(i).toString(), result);
-                if (i + 1 >= selects.size()) return;
+                if (i + 1 >= selects.size()) {
+                    return;
+                }
                 Map<String, Object> conMap = Maps.newHashMap();
                 conMap.put(CONNECTOR, setOperationList.getOperations().get(i).toString());
                 result.add(conMap);
@@ -145,8 +146,8 @@ public class SQLSyntaxParserUtil {
             Table table = (Table) fromItem;
             itemMap.put(NODE, TABLE);
             itemMap.put(VALUE_L, table.toString());
-        } else if (fromItem instanceof SubSelect) {
-            SubSelect subSelect = (SubSelect) fromItem;
+        } else if (fromItem instanceof ParenthesedSelect) {
+            ParenthesedSelect subSelect = (ParenthesedSelect) fromItem;
             itemMap.put(NODE, SUB_SELECT);
             itemMap.put(VALUE_L, subSelect.toString());
         } else {
@@ -156,30 +157,29 @@ public class SQLSyntaxParserUtil {
         return resultList;
     }
 
-    private static List<Map<String, Object>> getSelectItems(List<SelectItem> selectItemList) {
+    private static List<Map<String, Object>> getSelectItems(List<SelectItem<?>> selectItemList) {
 
         List<Map<String, Object>> resultItems = Lists.newArrayList();
         for (SelectItem item : selectItemList) {
             Map<String, Object> itemMap = Maps.newHashMap();
             Map<String, Object> exp = Maps.newHashMap();
-            if (item instanceof AllTableColumns) {
-                AllTableColumns allTableColumns = (AllTableColumns) item;
+            Expression itemExpr = item.getExpression();
+            if (itemExpr instanceof AllTableColumns) {
+                AllTableColumns allTableColumns = (AllTableColumns) itemExpr;
                 itemMap.put(ITEM, allTableColumns.toString());
                 exp.put(NODE, COLUMN);
                 exp.put(NAME, allTableColumns.toString());
                 itemMap.put(EXPRESSION, exp);
-            } else if (item instanceof AllColumns) {
-                AllColumns allColumns = (AllColumns) item;
+            } else if (itemExpr instanceof AllColumns) {
+                AllColumns allColumns = (AllColumns) itemExpr;
                 itemMap.put(ITEM, allColumns.toString());
                 exp.put(NODE, COLUMN);
                 exp.put(NAME, allColumns.toString());
                 itemMap.put(EXPRESSION, exp);
-            } else if (item instanceof SelectExpressionItem) {
-                SelectExpressionItem selectExpressionItem = (SelectExpressionItem) item;
-                Expression expression = selectExpressionItem.getExpression();
+            } else if (itemExpr instanceof SelectItem) {
                 itemMap.put(ITEM, item.toString());
-                itemMap.put(EXPRESSION, getExpression(expression));
-                Optional<Alias> alias = Optional.ofNullable(selectExpressionItem.getAlias());
+                itemMap.put(EXPRESSION, getExpression(itemExpr));
+                Optional<Alias> alias = Optional.ofNullable(item.getAlias());
                 alias.ifPresent(o -> {
                     exp.put(NAME, o.getName());
                     exp.put(USEAS, o.isUseAs());
@@ -212,7 +212,7 @@ public class SQLSyntaxParserUtil {
             resultMap.put(NODE, FUNCTION);
             resultMap.put(NAME, function.getName());
             Optional.ofNullable(function.getParameters()).ifPresent(o -> {
-                Map<String, Object> parameters = getParameters(function.getParameters().getExpressions());
+                Map<String, Object> parameters = getParameters(function.getParameters());
                 resultMap.put(PARAMETERS, parameters);
             });
         } else if (expression instanceof AndExpression) {
@@ -240,16 +240,12 @@ public class SQLSyntaxParserUtil {
             resultMap.put(LEFT_EXPRESSION, getExpression(leftExpression));
             resultMap.put(RIGHT_EXPRESSION, getExpression(rightExpression));
             resultMap.put("operator", stringExpression);
-        } else if (expression instanceof Parenthesis) {
-            Parenthesis parenthesis = (Parenthesis) expression;
-            return getExpression(parenthesis.getExpression());
+        } else if (expression instanceof ParenthesedExpressionList) {
+            return getExpression(expression);
         } else if (expression instanceof InExpression) {
             InExpression inExpression = (InExpression) expression;
             resultMap.put(NODE, IN_EXPRESSION);
             resultMap.put(LEFT_EXPRESSION, getExpression(inExpression.getLeftExpression()));
-            if (StringUtil.isNotEmpty(inExpression.getRightItemsList())) {
-                resultMap.put(RIGHT_EXPRESSION, getItemsList(inExpression.getRightItemsList()));
-            }
             if (StringUtil.isNotEmpty(inExpression.getRightExpression())) {
                 resultMap.put(RIGHT_EXPRESSION, getExpression(inExpression.getRightExpression()));
             }
@@ -261,23 +257,7 @@ public class SQLSyntaxParserUtil {
         return resultMap;
     }
 
-    private static Map getItemsList(ItemsList itemsList) {
-        Map<String, Object> map = Maps.newHashMap();
-        if (itemsList instanceof SubSelect) {
-            map.put(NODE, SUB_SELECT);
-            map.put(VALUE_L, itemsList.toString());
-        } else if (itemsList instanceof ExpressionList) {
-            ExpressionList expressionList = (ExpressionList) itemsList;
-            List<Expression> expressions = expressionList.getExpressions();
-            Map<String, Object> parameters = getParameters(expressions);
-            map.put(PARAMETERS, parameters);
-        } else {
-            throw new RuntimeException("Parse ItemsList Error, Not Support This.");
-        }
-        return map;
-    }
-
-    private static Map<String, Object> getParameters(List<Expression> parameters) {
+    private static Map<String, Object> getParameters(ExpressionList<?> parameters) {
         List<Map<String, Object>> list = Lists.newArrayList();
         for (Expression parameter : parameters) {
             list.add(getExpression(parameter));

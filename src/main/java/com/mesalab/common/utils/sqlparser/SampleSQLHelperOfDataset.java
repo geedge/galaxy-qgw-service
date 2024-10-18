@@ -56,60 +56,66 @@ public class SampleSQLHelperOfDataset {
      */
     public String build() throws JSQLParserException {
         Select select = (Select) CCJSqlParserUtil.parse(originalSQL);
-        select.getSelectBody().accept(new SelectAdapter());
+        select.getSelectBody().accept(new SelectAdapter(), null);
         return select.toString();
     }
 
-    private class FromItemAdapter extends FromItemVisitorAdapter {
+    private class FromItemAdapter extends FromItemVisitorAdapter<Object> {
 
         @Override
-        public void visit(Table table) {
+        public Object visit(Table table, Object context) {
             if (StrUtil.isEmptyIfStr(templateSQL)) {
-                return;
+                return null;
             }
             if (table.getAlias() == null) {
                 table.setAlias(new Alias(table.getName(), true));
             }
             table.setName(StrUtil.format("(" + templateSQL + ")", table.getFullyQualifiedName()));
             table.setSchemaName(null);
+            return null;
         }
 
-        @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter());
-        }
-    }
-
-    private class ExpressionAdapter extends ExpressionVisitorAdapter {
 
         @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter());
+        public Object visit(ParenthesedSelect parenthesedSelect, Object context) {
+            Select select = parenthesedSelect.getSelect();
+            select.accept(new SelectAdapter(), null);
+            return null;
         }
     }
 
-    private class SelectItemAdapter extends SelectItemVisitorAdapter {
+    private class ExpressionAdapter extends ExpressionVisitorAdapter<Object> {
+
         @Override
-        public void visit(SelectExpressionItem item) {
-            item.getExpression().accept(new ExpressionAdapter());
+        public Object visit(ParenthesedSelect parenthesedSelect, Object context) {
+            Select select = parenthesedSelect.getSelect();
+            select.accept(new SelectAdapter(), null);
+            return null;
         }
     }
 
-    private class SelectAdapter extends SelectVisitorAdapter {
+    private class SelectItemAdapter extends SelectItemVisitorAdapter<Object> {
         @Override
-        public void visit(PlainSelect plainSelect) {
-            List<SelectItem> selectItems = plainSelect.getSelectItems();
+        public Object visit(SelectItem selectItem, Object context) {
+            Expression expression = selectItem.getExpression();
+            expression.accept(new ExpressionAdapter(), null);
+            return null;
+        }
+    }
+
+    private class SelectAdapter extends SelectVisitorAdapter<Object> {
+        @Override
+        public Object visit(PlainSelect plainSelect, Object context) {
+            List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
             if (selectItems != null) {
-                for (SelectItem selectItem : selectItems) {
-                    selectItem.accept(new SelectItemAdapter());
+                for (SelectItem<?> selectItem : selectItems) {
+                    selectItem.accept(new SelectItemAdapter(), null);
                 }
             }
 
             FromItem fromItem = plainSelect.getFromItem();
             if (fromItem != null) {
-                fromItem.accept(new FromItemAdapter());
+                fromItem.accept(new FromItemAdapter(), null);
             }
 
             Expression where = plainSelect.getWhere();
@@ -119,7 +125,7 @@ public class SampleSQLHelperOfDataset {
                     plainSelect.setWhere(orExpression);
                 }
 
-                where.accept(new ExpressionAdapter());
+                where.accept(new ExpressionAdapter(), null);
             }
 
             Expression having = plainSelect.getHaving();
@@ -128,17 +134,19 @@ public class SampleSQLHelperOfDataset {
                     OrExpression orExpression = buildOrExpression(having);
                     plainSelect.setHaving(orExpression);
                 }
-                having.accept(new ExpressionAdapter());
+                having.accept(new ExpressionAdapter(), null);
             }
+            return null;
         }
 
         @Override
-        public void visit(SetOperationList setOpList) {
-            for (SelectBody select : setOpList.getSelects()) {
+        public Object visit(SetOperationList setOpList, Object context) {
+            for (Select select : setOpList.getSelects()) {
                 if (select instanceof PlainSelect) {
-                    select.accept(this);
+                    select.accept(this, null);
                 }
             }
+            return null;
         }
 
         private OrExpression buildOrExpression(Expression where) {

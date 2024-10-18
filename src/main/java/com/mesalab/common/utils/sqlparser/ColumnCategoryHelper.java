@@ -57,7 +57,7 @@ public class ColumnCategoryHelper {
                     String selectItemExpr = aliasFields.get(field) == null ? SQLFunctionUtil.generateDateFunction(field, dbEngine) : aliasFields.get(field);
                     String dimensionExpr = groupDimension.get(dimensionKey) == null ? SQLFunctionUtil.generateDateFunction(dimensionKey, dbEngine) : groupDimension.get(dimensionKey);
                     if (dimensionExpr != null && selectItemExpr != null) {
-                        ExpressionColumnCollectAdapter selectItemAdapter = new ExpressionColumnCollectAdapter();
+                        ExpressionColumnCollectAdapter<Object> selectItemAdapter = new ExpressionColumnCollectAdapter<>();
                         Expression expr1 = CCJSqlParserUtil.parseExpression(selectItemExpr);
                         if (SQLFunctionUtil.pAggregateFunStandard.matcher(expr1.toString()).find()) {
                             map.put(META_CATEGORY, META_CATEGORY_METRIC);
@@ -71,12 +71,12 @@ public class ColumnCategoryHelper {
                             map.put(META_CATEGORY, META_CATEGORY_METRIC);
                             continue meta;
                         }
-                        expr1.accept(selectItemAdapter);
+                        expr1.accept(selectItemAdapter, null);
                         Set<String> selectItemColumn = selectItemAdapter.getColumns();
 
-                        ExpressionColumnCollectAdapter dimensionAdapter = new ExpressionColumnCollectAdapter();
+                        ExpressionColumnCollectAdapter<Object> dimensionAdapter = new ExpressionColumnCollectAdapter<>();
                         Expression expr2 = CCJSqlParserUtil.parseExpression(dimensionExpr);
-                        expr2.accept(dimensionAdapter);
+                        expr2.accept(dimensionAdapter, null);
                         Set<String> dimensionColumn = dimensionAdapter.getColumns();
 
                         boolean hasDuplicates = selectItemColumn.stream().anyMatch(dimensionColumn::contains);

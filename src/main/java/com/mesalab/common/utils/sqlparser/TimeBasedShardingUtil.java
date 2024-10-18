@@ -4,11 +4,11 @@ import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
-import net.sf.jsqlparser.statement.values.ValuesStatement;
 
 import java.util.List;
 
@@ -43,7 +43,11 @@ public class TimeBasedShardingUtil {
         }
         Select select = (Select) parse;
         SelectAdapter selectAdapter = new SelectAdapter();
-        select.getSelectBody().accept(selectAdapter);
+        if (select instanceof PlainSelect) {
+            select.getPlainSelect().accept(selectAdapter, null);
+        } else if (select instanceof SetOperationList) {
+            select.getSetOperationList().accept(selectAdapter, null);
+        }
         if (!selectAdapter.isBasic) {
             return false;
         }
@@ -58,22 +62,19 @@ public class TimeBasedShardingUtil {
     }
 
 
-    private static class SelectAdapter extends SelectVisitorAdapter {
+    private static class SelectAdapter extends SelectVisitorAdapter<Object> {
         private boolean isBasic = true;
 
         @SneakyThrows
         @Override
-        public void visit(PlainSelect plainSelect) {
-            List<SelectItem> selectItems = plainSelect.getSelectItems();
+        public Object visit(PlainSelect plainSelect, Object context) {
+            List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
             if (selectItems != null) {
-                for (SelectItem selectItem : selectItems) {
-                    if (selectItem instanceof SelectExpressionItem) {
-                        SelectExpressionItem selectExpressionItem = (SelectExpressionItem) selectItem;
-                        Expression expression = selectExpressionItem.getExpression();
-                        if (expression instanceof SubSelect) {
-                            isBasic = false;
-                            return;
-                        }
+                for (SelectItem<?> selectItem : selectItems) {
+                    Expression expression = selectItem.getExpression();
+                    if (expression instanceof ParenthesedSelect) {
+                        isBasic = false;
+                        return null;
                     }
                 }
             }
@@ -81,37 +82,37 @@ public class TimeBasedShardingUtil {
             FromItem fromItem = plainSelect.getFromItem();
             if (!(fromItem instanceof Table)) {
                 isBasic = false;
-                return;
+                return null;
             }
             List<Join> joins = plainSelect.getJoins();
             if (joins != null && !joins.isEmpty()) {
                 isBasic = false;
-                return;
+                return null;
             }
 
             if (plainSelect.getWhere() != null) {
                 Expression where = plainSelect.getWhere();
                 ExpressionAdapter expressionAdapter = new ExpressionAdapter();
-                where.accept(expressionAdapter);
+                where.accept(expressionAdapter, null);
                 if (!expressionAdapter.isBasic) {
                     isBasic = false;
-                    return;
+                    return null;
                 }
             }
 
             GroupByElement groupBy = plainSelect.getGroupBy();
             if (groupBy == null) {
                 isBasic = false;
-                return;
+                return null;
             }
 
-
-            for (Expression expression : groupBy.getGroupByExpressionList().getExpressions()) {
+            ExpressionList<Expression> groupByExpressionList = groupBy.getGroupByExpressionList();
+            for (Expression expression : groupByExpressionList) {
                 ExpressionAdapter expressionAdapter = new ExpressionAdapter();
-                expression.accept(expressionAdapter);
+                expression.accept(expressionAdapter, null);
                 if (!expressionAdapter.isBasic) {
                     isBasic = false;
-                    return;
+                    return null;
                 }
             }
 
@@ -120,55 +121,56 @@ public class TimeBasedShardingUtil {
             for (OrderByElement orderByElement : orderByElements) {
                 Expression expression = orderByElement.getExpression();
                 ExpressionAdapter expressionAdapter = new ExpressionAdapter();
-                expression.accept(expressionAdapter);
+                expression.accept(expressionAdapter, null);
                 if (!expressionAdapter.isBasic) {
                     isBasic = false;
-                    return;
+                    return null;
                 }
             }
 
             if (plainSelect.getHaving() != null) {
                 Expression having = plainSelect.getHaving();
                 ExpressionAdapter expressionAdapter = new ExpressionAdapter();
-                having.accept(expressionAdapter);
+                having.accept(expressionAdapter, null);
                 if (!expressionAdapter.isBasic) {
                     isBasic = false;
-                    return;
+                    return null;
                 }
             }
-            if(plainSelect.getLimit() != null && plainSelect.getLimit().getOffset() != null){
+            if (plainSelect.getLimit() != null && plainSelect.getLimit().getOffset() != null) {
                 isBasic = false;
-                return;
+                return null;
 
             }
+            return null;
         }
 
         @Override
-        public void visit(SetOperationList setOpList) {
+        public Object visit(SetOperationList setOpList, Object context) {
             isBasic = false;
-            return;
+            return null;
         }
 
         @Override
-        public void visit(WithItem withItem) {
+        public Object visit(WithItem withItem, Object context) {
             isBasic = false;
-            return;
+            return null;
         }
 
         @Override
-        public void visit(ValuesStatement aThis) {
+        public Object visit(Values aThis, Object context) {
             isBasic = false;
-            return;
+            return null;
         }
     }
 
-    private static class ExpressionAdapter extends ExpressionVisitorAdapter {
+    private static class ExpressionAdapter extends ExpressionVisitorAdapter<Object> {
         private boolean isBasic = true;
 
         @Override
-        public void visit(SubSelect subSelect) {
+        public Object visit(Select select, Object context) {
             isBasic = false;
-            return;
+            return null;
         }
 
     }

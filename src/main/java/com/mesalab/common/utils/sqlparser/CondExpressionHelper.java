@@ -33,16 +33,16 @@ public class CondExpressionHelper {
      */
     public static List<String> getDistinctFields(String condExpr) throws JSQLParserException {
         Expression expr = CCJSqlParserUtil.parseCondExpression(condExpr, false);
-        ExprFieldParser parser = new ExprFieldParser();
-        expr.accept(parser);
+        ExprFieldParser<Object> parser = new ExprFieldParser<>();
+        expr.accept(parser, null);
         return parser.getList().stream().distinct().collect(Collectors.toList());
     }
 
     /**
      * Desc: rewrite conditional expression, replace alias with exact value
      *
-     * @param condExpr conditional expression after where
-     * @param aliasFields      key-alias, value-ExactValue
+     * @param condExpr    conditional expression after where
+     * @param aliasFields key-alias, value-ExactValue
      * @return {@link Expression}
      * @created by wWei
      * @date 2023/3/2 09:52
@@ -50,17 +50,17 @@ public class CondExpressionHelper {
     public static Expression rewireCondExprBaseOnCK(String condExpr, Map<String, String> aliasFields, boolean updateTable, String table) throws JSQLParserException {
         Expression expr = CCJSqlParserUtil.parseCondExpression(condExpr, false);
         ExprActualFieldParser exprParseAlias = new ExprActualFieldParser(aliasFields, updateTable, table);
-        expr.accept(exprParseAlias);
+        expr.accept(exprParseAlias, null);
         return expr;
     }
 
     public static List<String> getDistinctFieldsOfOrderBy(OrderByElement orderByElement) throws JSQLParserException {
         OrderByFieldParser orderBy = new OrderByFieldParser();
-        orderByElement.accept(orderBy);
+        orderByElement.accept(orderBy, null);
         return orderBy.getList();
     }
 
-    private static class ExprFieldParser extends ExpressionVisitorAdapter {
+    private static class ExprFieldParser<T> extends ExpressionVisitorAdapter<T> {
         private final List<String> list = Lists.newArrayList();
 
         public List<String> getList() {
@@ -68,12 +68,13 @@ public class CondExpressionHelper {
         }
 
         @Override
-        public void visit(Column column) {
+        public <S> T visit(Column column, S context) {
             list.add(SQLHelper.removeQuotesAndBackticks(column.getColumnName()));
+            return null;
         }
     }
 
-    private static class ExprActualFieldParser extends ExpressionVisitorAdapter {
+    private static class ExprActualFieldParser<T> extends ExpressionVisitorAdapter<T> {
         private final Map<String, String> map;
         private final Boolean updateTable;
         private final String tableName;
@@ -85,21 +86,22 @@ public class CondExpressionHelper {
         }
 
         @Override
-        public void visit(Column column) {
+        public <S> T visit(Column column, S context) {
             if (column.getTable() != null) {
                 if (updateTable) {
                     column.getTable().setName(tableName);
                 }
-                return;
+                return null;
             }
             String columnName = SQLHelper.removeQuotesAndBackticks(column.getColumnName());
             if (map.containsKey(columnName)) {
                 column.setColumnName(String.valueOf(map.get(columnName)));
             }
+            return null;
         }
     }
 
-    private static class OrderByFieldParser extends OrderByVisitorAdapter {
+    private static class OrderByFieldParser<T> extends OrderByVisitorAdapter<T> {
         private final List<String> list = Lists.newArrayList();
 
         public List<String> getList() {
@@ -108,8 +110,9 @@ public class CondExpressionHelper {
 
         @SneakyThrows
         @Override
-        public void visit(OrderByElement orderBy) {
+        public <S> T visit(OrderByElement orderBy, S context) {
             list.addAll(getDistinctFields(String.valueOf(orderBy.getExpression())));
+            return null;
         }
     }
 

@@ -6,9 +6,9 @@ import com.mesalab.qgw.model.basic.SelectStatement;
 import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.basic.udf.DATETIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.basic.udf.UDF;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.statement.select.OrderByElement;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
 import java.util.List;
@@ -43,18 +43,16 @@ public class QueryTypeHelper {
             return ExampleDataHelper.QUERY_TYPE_GROUP_BY;
         }
 
-        List<SelectItem> selectItems = dbSelectStatement.getSelectItems();
+        List<SelectItem<?>> selectItems = dbSelectStatement.getSelectItems();
         if (selectItems != null && !selectItems.isEmpty()) {
-            for (SelectItem selectItem : selectItems) {
-                if (selectItem instanceof SelectExpressionItem) {
-                    SelectExpressionItem selectExpressionItem = ((SelectExpressionItem) selectItem);
-                    if (selectExpressionItem.getExpression() instanceof Function) {
-                        Function function = (Function) selectExpressionItem.getExpression();
-                        if (SQLFunctionUtil.pAggregateFunStandard.matcher(function.toString()).find()
-                                || ClickHouseDialect.pAggregateFunSpecificOfCK.matcher(function.toString()).find()
-                                || DruidDialect.pAggregateFunSpecificOfDruid.matcher(function.toString()).find()) {
-                            return ExampleDataHelper.QUERY_TYPE_AGG_STATISTICS;
-                        }
+            for (SelectItem<?> selectItem : selectItems) {
+                Expression expression = selectItem.getExpression();
+                if (expression instanceof Function) {
+                    Function function = (Function) expression;
+                    if (SQLFunctionUtil.pAggregateFunStandard.matcher(function.toString()).find()
+                            || ClickHouseDialect.pAggregateFunSpecificOfCK.matcher(function.toString()).find()
+                            || DruidDialect.pAggregateFunSpecificOfDruid.matcher(function.toString()).find()) {
+                        return ExampleDataHelper.QUERY_TYPE_AGG_STATISTICS;
                     }
                 }
             }

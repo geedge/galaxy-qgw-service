@@ -5,10 +5,10 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
@@ -57,50 +57,54 @@ public class SampleSQLHelper {
      */
     public String build() throws JSQLParserException {
         Select select = (Select) CCJSqlParserUtil.parse(originalSQL);
-        select.getSelectBody().accept(new SelectAdapter());
+        select.accept(new SelectAdapter(), null);
         return select.toString();
     }
 
-    private class FromItemAdapter extends FromItemVisitorAdapter {
+    private class FromItemAdapter extends FromItemVisitorAdapter<Object> {
 
         @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter());
+        public Object visit(ParenthesedSelect parenthesedSelect, Object context) {
+            Select select = parenthesedSelect.getSelect();
+            select.accept(new SelectAdapter(), null);
+            return null;
         }
     }
 
-    private class ExpressionAdapter extends ExpressionVisitorAdapter {
+    private class ExpressionAdapter extends ExpressionVisitorAdapter<Object> {
 
         @Override
-        public void visit(SubSelect subSelect) {
-            SelectBody selectBody = subSelect.getSelectBody();
-            selectBody.accept(new SelectAdapter());
+        public Object visit(ParenthesedSelect parenthesedSelect, Object context) {
+            Select select = parenthesedSelect.getSelect();
+            select.accept(new SelectAdapter(), null);
+            return null;
         }
     }
 
-    private class SelectItemAdapter extends SelectItemVisitorAdapter {
+    private class SelectItemAdapter extends SelectItemVisitorAdapter<Object> {
         @Override
-        public void visit(SelectExpressionItem item) {
-            item.getExpression().accept(new ExpressionAdapter());
+        public Object visit(SelectItem selectItem, Object context) {
+            Expression expression = selectItem.getExpression();
+            expression.accept(new ExpressionAdapter(), null);
+            return null;
         }
     }
 
 
-    private class SelectAdapter extends SelectVisitorAdapter {
+    private class SelectAdapter extends SelectVisitorAdapter<Object> {
         @SneakyThrows
         @Override
-        public void visit(PlainSelect plainSelect) {
-            List<SelectItem> selectItems = plainSelect.getSelectItems();
+        public Object visit(PlainSelect plainSelect, Object context) {
+            List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
             if (selectItems != null) {
-                for (SelectItem selectItem : selectItems) {
-                    selectItem.accept(new SelectItemAdapter());
+                for (SelectItem<?> selectItem : selectItems) {
+                    selectItem.accept(new SelectItemAdapter(), null);
                 }
             }
 
             FromItem fromItem = plainSelect.getFromItem();
             if (fromItem != null) {
-                fromItem.accept(new FromItemAdapter());
+                fromItem.accept(new FromItemAdapter(), null);
             }
 
             if ((fromItem instanceof Table) && filterExpr != null) {
@@ -113,10 +117,12 @@ public class SampleSQLHelper {
                         where = plainSelect.getWhere();
                     }
                     AndExpression andExpression = new AndExpression();
-                    Parenthesis parenthesisLeft = new Parenthesis();
-                    parenthesisLeft.setExpression(where instanceof Parenthesis ? ((Parenthesis) where).getExpression() : where);
-                    Parenthesis parenthesisRight = new Parenthesis();
-                    parenthesisRight.setExpression(expression);
+
+                    ParenthesedExpressionList<Expression> parenthesisLeft = new ParenthesedExpressionList<>();
+                    parenthesisLeft.add(where);
+                    ParenthesedExpressionList<Expression> parenthesisRight = new ParenthesedExpressionList<>();
+                    parenthesisRight.add(expression);
+
                     andExpression.setLeftExpression(parenthesisLeft);
                     andExpression.setRightExpression(parenthesisRight);
                     plainSelect.setWhere(andExpression);
@@ -131,7 +137,7 @@ public class SampleSQLHelper {
                     OrExpression orExpression = buildOrExpression(having);
                     plainSelect.setHaving(orExpression);
                 }
-                having.accept(new ExpressionAdapter());
+                having.accept(new ExpressionAdapter(), null);
             }
 
             Limit limit = plainSelect.getLimit();
@@ -140,15 +146,17 @@ public class SampleSQLHelper {
                 limitObj.setRowCount(new LongValue(maxSize));
                 plainSelect.setLimit(limitObj);
             }
+            return null;
         }
 
         @Override
-        public void visit(SetOperationList setOpList) {
-            for (SelectBody select : setOpList.getSelects()) {
+        public Object visit(SetOperationList setOpList, Object context) {
+            for (Select select : setOpList.getSelects()) {
                 if (select instanceof PlainSelect) {
-                    select.accept(this);
+                    select.accept(this, null);
                 }
             }
+            return null;
         }
 
         private OrExpression buildOrExpression(Expression where) {
