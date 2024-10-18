@@ -47,8 +47,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private static final Pattern pNullable = Pattern.compile("^Nullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pDateTime = Pattern.compile("\\b(DateTime|DateTime64|Date)\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pIn = Pattern.compile("(?<!\\bnot)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pNotIn = Pattern.compile("\\bnot\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pIn = Pattern.compile("(?<!\\bnot|global)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pNotIn = Pattern.compile("(?<!\\bnot|global)\\s+not\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
