@@ -12,4 +12,5 @@ Release 383 (TSG-24.10)
 * 扩展Schema，代理策略子动作Insert修改为Inject(TSG-22760)
 * 优化引擎，支持基于时间范围的分片优化查询(GAL-638)
 * 规范URL API命名标准，单词分隔符使用hyphen，复数形式(TSG-22727)
+* 适配DoS Threat Map 业务相关Datasets及Schema(TSG-22745)
 * 完善 TIME_FLOOR_WITH_FILL 补全函数对结果数据的排序
