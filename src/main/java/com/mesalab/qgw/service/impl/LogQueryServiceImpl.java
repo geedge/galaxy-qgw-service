@@ -47,7 +47,6 @@ public class LogQueryServiceImpl implements LogQueryService {
         TIMELINE_SOURCE_TYPE_MAP.put("voip_record", ", decoded_as AS type");
         TIMELINE_SOURCE_TYPE_MAP.put("security_event", ", security_action AS type");
         TIMELINE_SOURCE_TYPE_MAP.put("proxy_event", ", proxy_action AS type");
-        TIMELINE_SOURCE_TYPE_MAP.put("dos_event", ", attack_type AS type");
     }
 
     @Override
