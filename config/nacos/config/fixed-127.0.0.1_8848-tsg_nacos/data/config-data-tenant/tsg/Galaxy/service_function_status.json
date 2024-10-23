@@ -53,7 +53,7 @@
       "label": "Insert Time",
       "type": "long",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       }
     },
     {
