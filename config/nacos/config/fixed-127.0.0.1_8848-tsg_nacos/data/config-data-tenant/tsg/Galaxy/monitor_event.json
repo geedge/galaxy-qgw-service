@@ -1321,7 +1321,7 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1336,7 +1336,7 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1351,7 +1351,7 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
