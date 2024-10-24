@@ -63,44 +63,42 @@ public class FqdnProviderImpl implements QueryProvider {
         StringBuffer protocolsb = new StringBuffer();
         StringBuffer distCiptsb = new StringBuffer();
         StringBuffer othersb = new StringBuffer();
-        if(!ObjectUtils.isEmpty(parameters)){
+        if (!ObjectUtils.isEmpty(parameters)) {
             limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
             //3.构建查询语句 range depth ,protocols, limit
             List<Range> ranges = parameters.getRange();
             List<Match> matches = parameters.getMatch();
 
-            if(!ObjectUtils.isEmpty(ranges)){
+            if (!ObjectUtils.isEmpty(ranges)) {
 
                 for (Range r : ranges) {
                     //查询深度
                     if ("DEPTH".equals(r.getFieldKey())) {
-                        if (ObjectUtils.isEmpty(r.getFieldValues())){
+                        if (ObjectUtils.isEmpty(r.getFieldValues())) {
                             throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.FIELD_VALUES_FORMAT_ERROR));
                         }
-                        if (!Pattern.matches(depthregex, String.valueOf(r.getFieldValues().get(0)))){
+                        if (!Pattern.matches(depthregex, String.valueOf(r.getFieldValues().get(0)))) {
                             throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.FIELD_VALUES_FORMAT_ERROR));
                         }
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {
-                        List<String> protocols = Lists.newArrayList();
-                        for (Object protocol : r.getFieldValues()) {
-                            if (HTTP.equals(protocol)) {
-                                protocols.add("e.HTTP_CNT_TOTAL > 0");
-                            } else if (DNS.equals(protocol)) {
-                                protocols.add("e.DNS_CNT_TOTAL > 0");
-                            } else if (SSL.equals(protocol)||TLS.equals(protocol)) {
-                                protocols.add("e.TLS_CNT_TOTAL > 0");
-                            }
-                        }
-                        if (protocols.size() > 0) {
-                            protocolsb.append(Joiner.on("").skipNulls().join(" and (", Joiner.on(" or ").skipNulls().join(protocols), ")"));
-                        }
+                        List<Object> fieldValues = r.getFieldValues();
+                        buildProtocol(protocolsb, fieldValues);
                     } else if ("UNIQ_CIP".equals(r.getFieldKey())) {
                         distCiptsb.append(" and count(e.DIST_CIP) ").append(EnumUtils.getEnum(RangeEnum.class, StringUtil.upperCase(r.getType())).getSymbol()).append(r.getFieldValues().get(0));
                     } else {
                         //构建range范围条件
-                        othersb.append(ObjectUtils.isEmpty(r)?"":" and " + Range.getRangExp(r,"e"));
+                        othersb.append(ObjectUtils.isEmpty(r) ? "" : " and " + Range.getRangExp(r, "e"));
+                    }
+                }
+            }
+
+            if (!ObjectUtils.isEmpty(matches)) {
+                for (Match m : matches) {
+                    if ("PROTOCOL".equals(m.getFieldKey())) {
+                        List<Object> fieldValues = m.getFieldValues();
+                        buildProtocol(protocolsb, fieldValues);
                     }
                 }
             }
@@ -137,8 +135,8 @@ public class FqdnProviderImpl implements QueryProvider {
         int offSet = 0;
         int pageSize = 0;
         List<String> limitList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
-        if(limitList.size()<2){
-            pageSize= pageRow = Integer.valueOf(limitList.get(0));
+        if (limitList.size() < 2) {
+            pageSize = pageRow = Integer.valueOf(limitList.get(0));
         } else {
             pageRow = Integer.valueOf(limitList.get(0)) + Integer.valueOf(limitList.get(1));
             offSet = Integer.valueOf(limitList.get(0));
@@ -150,10 +148,27 @@ public class FqdnProviderImpl implements QueryProvider {
         return parseResult(ipEdgesList);
 
     }
+
+    private static void buildProtocol(StringBuffer protocolsb, List<Object> fieldValues) {
+        List<String> protocols = Lists.newArrayList();
+        for (Object protocol : fieldValues) {
+            if (HTTP.equals(protocol)) {
+                protocols.add("e.HTTP_CNT_TOTAL > 0");
+            } else if (DNS.equals(protocol)) {
+                protocols.add("e.DNS_CNT_TOTAL > 0");
+            } else if (SSL.equals(protocol) || TLS.equals(protocol)) {
+                protocols.add("e.TLS_CNT_TOTAL > 0");
+            }
+        }
+        if (protocols.size() > 0) {
+            protocolsb.append(Joiner.on("").skipNulls().join(" and (", Joiner.on(" or ").skipNulls().join(protocols), ")"));
+        }
+    }
+
     //循环查询 ，目的为了数量达到limit , 结果数据是否为limit , 1.当查询数量小于limit停止 2.当结果数量=limit停止
-    private List<IpLearningPath.IplearningEdges> getDistinctList(StringBuffer aqlsb ,int pageRow,int offSet, int pageSize){
+    private List<IpLearningPath.IplearningEdges> getDistinctList(StringBuffer aqlsb, int pageRow, int offSet, int pageSize) {
         pageRow = pageRow + offSet + pageSize;//每次多查一点点，去重
-        StringBuffer sb  = new StringBuffer(aqlsb);
+        StringBuffer sb = new StringBuffer(aqlsb);
         sb.append(" limit ").append(pageRow);
         sb.append(" return distinct e ");
         log.info("query knowledge iplearning R_LOCATE_FQDN2IP aql: {}", sb);
@@ -161,18 +176,19 @@ public class FqdnProviderImpl implements QueryProvider {
         List ipEdgesList = new ObjectMapper().convertValue(result, new TypeReference<List<IpLearningPath.IplearningEdges>>() {
         });
         List<IpLearningPath.IplearningEdges> edgesList = (List<IpLearningPath.IplearningEdges>) ipEdgesList.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(IpLearningPath.IplearningEdges::getTo))), ArrayList::new));
-        if(ipEdgesList.size()<pageRow || edgesList.size()>= pageSize+offSet){
-            if(offSet > edgesList.size()){
+        if (ipEdgesList.size() < pageRow || edgesList.size() >= pageSize + offSet) {
+            if (offSet > edgesList.size()) {
                 return new ArrayList<>();
             } else {
-                if(offSet + pageSize > edgesList.size()){
+                if (offSet + pageSize > edgesList.size()) {
                     return edgesList.subList(offSet, edgesList.size());
                 }
                 return edgesList.subList(offSet, offSet + pageSize);
             }
         }
-        return getDistinctList( aqlsb , pageRow, offSet, pageSize);
+        return getDistinctList(aqlsb, pageRow, offSet, pageSize);
     }
+
     /**
      * @return java.lang.Object
      * @Author zhq
@@ -182,38 +198,38 @@ public class FqdnProviderImpl implements QueryProvider {
      **/
     private Object parseResult(List<IpLearningPath.IplearningEdges> edgesList) {
 
-            List<Object> list = Lists.newArrayList();
-            if(!ObjectUtils.isEmpty(edgesList)){
-                for (IpLearningPath.IplearningEdges edges : edgesList) {
-                    Map<String, Object> map = Maps.newHashMap();
-                    List<String> protocolsList = Lists.newArrayList();
-                    map.put("FQDN_NAME", edges.getFqdnName());
-                    map.put("IP", edges.getIp());
-                    map.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getFirstFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-                    map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getLastFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-                    //协议 按 TLS_CNT_TOTAL>0,SESSION_RECENT按 *_CNT_RECENT和，SESSION_TOTAL按 *_CNT_TOTAL和
-                    if (edges.getHttpCntTotal() > 0) {
-                        protocolsList.add(HTTP);
-                    }
-                    if (edges.getTlsCntTotal() > 0) {
-                        protocolsList.add(SSL);
-                    }
-                    if (edges.getDnsCntTotal() > 0) {
-                        protocolsList.add(DNS);
-                    }
-                    map.put("PROTOCOL", Joiner.on(",").join(protocolsList));
-                    map.put("SESSION_TOTAL", edges.getHttpCntTotal() + edges.getTlsCntTotal() + edges.getDnsCntTotal());
-                    map.put("SESSION_RECENT", Stream.of(edges.getHttpCntRecent(), edges.getTlsCntRecent(), edges.getDnsCntRecent()).flatMap(Collection::stream).mapToLong(x -> x).sum());
-
-                    //UNIQ_CIP_RECENT与UNIQ_CIP相同
-                    map.put("UNIQ_CIP", edges.getDistCip()==null?0:edges.getDistCip().size());
-                    map.put("UNIQ_CIP_RECENT", edges.getDistCip()==null?0:edges.getDistCip().size());
-
-                    map.put("VSYS_ID", edges.getVsysId());
-
-                    list.add(map);
+        List<Object> list = Lists.newArrayList();
+        if (!ObjectUtils.isEmpty(edgesList)) {
+            for (IpLearningPath.IplearningEdges edges : edgesList) {
+                Map<String, Object> map = Maps.newHashMap();
+                List<String> protocolsList = Lists.newArrayList();
+                map.put("FQDN_NAME", edges.getFqdnName());
+                map.put("IP", edges.getIp());
+                map.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getFirstFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getLastFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                //协议 按 TLS_CNT_TOTAL>0,SESSION_RECENT按 *_CNT_RECENT和，SESSION_TOTAL按 *_CNT_TOTAL和
+                if (edges.getHttpCntTotal() > 0) {
+                    protocolsList.add(HTTP);
                 }
+                if (edges.getTlsCntTotal() > 0) {
+                    protocolsList.add(SSL);
+                }
+                if (edges.getDnsCntTotal() > 0) {
+                    protocolsList.add(DNS);
+                }
+                map.put("PROTOCOL", Joiner.on(",").join(protocolsList));
+                map.put("SESSION_TOTAL", edges.getHttpCntTotal() + edges.getTlsCntTotal() + edges.getDnsCntTotal());
+                map.put("SESSION_RECENT", Stream.of(edges.getHttpCntRecent(), edges.getTlsCntRecent(), edges.getDnsCntRecent()).flatMap(Collection::stream).mapToLong(x -> x).sum());
+
+                //UNIQ_CIP_RECENT与UNIQ_CIP相同
+                map.put("UNIQ_CIP", edges.getDistCip() == null ? 0 : edges.getDistCip().size());
+                map.put("UNIQ_CIP_RECENT", edges.getDistCip() == null ? 0 : edges.getDistCip().size());
+
+                map.put("VSYS_ID", edges.getVsysId());
+
+                list.add(map);
             }
+        }
 
         return list;
     }
