@@ -160,26 +160,14 @@ public class SQLSyntaxParserUtil {
     private static List<Map<String, Object>> getSelectItems(List<SelectItem<?>> selectItemList) {
 
         List<Map<String, Object>> resultItems = Lists.newArrayList();
-        for (SelectItem item : selectItemList) {
+        for (SelectItem<?> item : selectItemList) {
             Map<String, Object> itemMap = Maps.newHashMap();
             Map<String, Object> exp = Maps.newHashMap();
-            Expression itemExpr = item.getExpression();
-            if (itemExpr instanceof AllTableColumns) {
-                AllTableColumns allTableColumns = (AllTableColumns) itemExpr;
-                itemMap.put(ITEM, allTableColumns.toString());
-                exp.put(NODE, COLUMN);
-                exp.put(NAME, allTableColumns.toString());
-                itemMap.put(EXPRESSION, exp);
-            } else if (itemExpr instanceof AllColumns) {
-                AllColumns allColumns = (AllColumns) itemExpr;
-                itemMap.put(ITEM, allColumns.toString());
-                exp.put(NODE, COLUMN);
-                exp.put(NAME, allColumns.toString());
-                itemMap.put(EXPRESSION, exp);
-            } else if (itemExpr instanceof SelectItem) {
+            if (item != null) {
+                Expression expression = item.getExpression();
                 itemMap.put(ITEM, item.toString());
-                itemMap.put(EXPRESSION, getExpression(itemExpr));
-                Optional<Alias> alias = Optional.ofNullable(item.getAlias());
+                itemMap.put(EXPRESSION, getExpression(expression));
+                Optional<Alias> alias = Optional.ofNullable((item).getAlias());
                 alias.ifPresent(o -> {
                     exp.put(NAME, o.getName());
                     exp.put(USEAS, o.isUseAs());
@@ -241,7 +229,7 @@ public class SQLSyntaxParserUtil {
             resultMap.put(RIGHT_EXPRESSION, getExpression(rightExpression));
             resultMap.put("operator", stringExpression);
         } else if (expression instanceof ParenthesedExpressionList) {
-            return getExpression(expression);
+            return getExpression(((ParenthesedExpressionList<?>) expression).get(0));
         } else if (expression instanceof InExpression) {
             InExpression inExpression = (InExpression) expression;
             resultMap.put(NODE, IN_EXPRESSION);
