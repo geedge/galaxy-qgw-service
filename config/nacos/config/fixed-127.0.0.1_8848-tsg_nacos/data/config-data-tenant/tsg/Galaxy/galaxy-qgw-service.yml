@@ -131,6 +131,16 @@ knowledge:
     userDefined: 004390bc-3135-4a6f-a492-3662ecb9e289_latest
     builtIn: 64af7077-eb9b-4b8f-80cf-2ceebc89bea9_latest
     asn: f9f6bc91-2142-4673-8249-e097c00fe1ea_latest
+vault:
+  url: https://192.168.40.223:8200
+  username: tsg_olap
+  password: tsg_olap
+  keyPath: tsg_olap/transit
+  ssl: ## SSL/TLS 客户端链接配置
+    skipVerification: true                      # 忽略SSL证书校验
+    privateKeyPath: /path/to/certs/worker.key   # 客户端私钥文件路径
+    certificatePath: /path/to/certs/worker.pem   # 客户端证书文件路径
+    caCertificatePath: /path/to/certs/root.pem  # CA 根证书路径
 ## http pool config
 http:
   pool:
