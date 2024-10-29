@@ -41,6 +41,7 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.configuration.JobConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -112,6 +113,12 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                 String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_URL_NOT_FOUND));
+    }
+
+    @Override
+    public List<String> getTableEncryptedFields(String table) {
+        Map<String, Object> schema = getSchemaInfo(MetadataType.FIELDS.getValue(), table, false);
+        return JsonPath.read(JSONUtil.toJsonStr(schema), "$.fields[?(@.doc.is_encrypted == \"true\")].name");
     }
 
     @Override

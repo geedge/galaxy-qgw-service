@@ -19,6 +19,16 @@ public interface DatabaseService {
      */
     Map getSchemaInfo(String type, String name, boolean displayStorageSize);
 
+    /**
+     * Desc: Get table's encrypted fields
+     *
+     * @param table name
+     * @return {@link List<String>} encrypted fields list
+     * @created by wWei
+     * @date 2024/10/29 17:12
+     */
+    List<String> getTableEncryptedFields(String table);
+
     Map<String, List<Object>> getSchemaDataDict(String name);
 
     /**

@@ -2,6 +2,7 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Sets;
 import com.jayway.jsonpath.JsonPath;
@@ -40,12 +41,17 @@ public class DatabaseController {
 
     @RequestMapping(value = "/table/{table_name}/schema", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
     @AuditLog("DatabaseController.getSchemaByTable")
-    public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
+    public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName
+            , @RequestParam(value = "option", required = false) String option) {
         log.debug("get Schema api, params is: {}", tableName);
         if (StringUtil.isBlank(tableName)) {
             return BaseResultGenerator.success4Message("ok");
         }
-        return BaseResultGenerator.success(databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, true));
+        if (StrUtil.isBlankIfStr(option)) {
+            return BaseResultGenerator.success(databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, true));
+        }
+        List<String> tableEncryptedFields = databaseService.getTableEncryptedFields(tableName);
+        return BaseResultGenerator.success(tableEncryptedFields);
     }
 
     @PutMapping(value = "/table/{table_name}/schema", consumes = "application/json")

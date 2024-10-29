@@ -784,6 +784,10 @@
       "tunnel_endpoint_a_desc",
       "tunnel_endpoint_b_desc"
     ],
+    "sensitive_columns": [
+      "subscriber_id",
+      "phone_number"
+    ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
     },
@@ -2044,6 +2048,16 @@
       "label": "Subscriber ID",
       "doc": {
         "visibility": "enabled",
+        "is_encrypted": "true",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "subscriber_id_hmac",
+      "label": "Subscriber ID HMAC",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -2080,6 +2094,16 @@
       "label": "Phone Number",
       "doc": {
         "visibility": "enabled",
+        "is_encrypted": "true",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "phone_number_hmac",
+      "label": "Phone Number HMAC",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
