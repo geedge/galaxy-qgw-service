@@ -107,6 +107,7 @@ engine:
     clientIPAppResultNum: 100
   highLatency:
     threshold: 60000
+  secretKey: Galaxy2019#
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529

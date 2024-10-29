@@ -3,6 +3,8 @@ package com.mesalab.common.utils.sqlparser;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.digest.HMac;
+import cn.hutool.crypto.digest.HmacAlgorithm;
 import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
@@ -71,6 +73,7 @@ public class SQLFunctionUtil {
     public static final String CONCAT = "concat";
     public static final String NOT_EMPTY = "notEmpty";
     public static final String EMPTY = "empty";
+    public static final String HMAC = "HMAC";
 
     private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private static EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
@@ -208,6 +211,7 @@ public class SQLFunctionUtil {
     public static final Pattern pCast = Pattern.compile("\\WCAST\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
+    public static final Pattern pHmac = Pattern.compile("\\b" + HMAC + "\\(");
     public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString\\(|CAST\\()", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIsIPAddressInRange = Pattern.compile("\\WisIPAddressInRange\\s*\\(", Pattern.CASE_INSENSITIVE);
 
@@ -418,6 +422,7 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pUniqueCount);
         resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
         resultSql = translateByPattern(resultSql, dbType, pGroupUniqArray);
+        resultSql = translateByPattern(resultSql, dbType, pHmac);
         return resultSql;
     }
 
@@ -1945,6 +1950,9 @@ public class SQLFunctionUtil {
             case EMPTY:
                 data = translateEmpty(fun, dbType);
                 break;
+            case HMAC:
+                data = translateHmac(fun);
+                break;
             case MEDIAN_HDR:
             case QUANTILE_HDR:
             case PERCENTILES_HDR:
@@ -2023,6 +2031,41 @@ public class SQLFunctionUtil {
             data = parseFunDefaultValue(fun);
         }
         return data;
+    }
+
+    private static String translateHmac(Function fun) {
+        List<String> paramsList = fun.getParamsList();
+        String data = paramsList.get(0);
+        String algorithm = "sha256";
+        String secretKey = engineConfigSource.getSecretKey();
+        if (paramsList.size() >= 2) {
+            secretKey = paramsList.get(1);
+        }
+        if (paramsList.size() == 3) {
+            algorithm = paramsList.get(2);
+        }
+        HMac hMac = new HMac(getHmacAlgorithm(algorithm), secretKey.getBytes());
+        return "'" + hMac.digestBase64(data, false) + "'";
+    }
+
+    private static String getHmacAlgorithm(String algorithm) {
+        if (StrUtil.containsIgnoreCase(algorithm, "sha256")) {
+            return HmacAlgorithm.HmacSHA256.getValue();
+        } else if (StrUtil.containsIgnoreCase(algorithm, "sha1")) {
+            return HmacAlgorithm.HmacSHA1.getValue();
+        } else if (StrUtil.containsIgnoreCase(algorithm, "md5")) {
+            return HmacAlgorithm.HmacMD5.getValue();
+        } else if (StrUtil.containsIgnoreCase(algorithm, "sha384")) {
+            return HmacAlgorithm.HmacSHA384.getValue();
+        } else if (StrUtil.containsIgnoreCase(algorithm, "sha512")) {
+            return HmacAlgorithm.HmacSHA512.getValue();
+        } else if (StrUtil.containsIgnoreCase(algorithm, "sm3")) {
+            return HmacAlgorithm.HmacSM3.getValue();
+        } else if (StrUtil.containsIgnoreCase(algorithm, "sm4")) {
+            return HmacAlgorithm.SM4CMAC.getValue();
+        } else {
+            return HmacAlgorithm.HmacSHA256.getValue();
+        }
     }
 
     /**

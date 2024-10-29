@@ -22,4 +22,6 @@ public class EngineConfigSource implements Serializable {
     private int trafficSpectrumClientIPAppResultNum;
     @NacosValue(value = "${engine.highLatency.threshold}", autoRefreshed = true)
     private int highLatencyThreshold;
+    @NacosValue(value = "${engine.secretKey}", autoRefreshed = true)
+    private String secretKey;
 }
