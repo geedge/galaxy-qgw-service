@@ -34,6 +34,8 @@ public class DSLQueryRequestParam extends CommonRequestParam implements Serializ
     private String dataSource;
     @JsonProperty("granularity")
     private String granularity;
+    @JsonProperty("fields")
+    private List<String> fields;
     @JsonProperty("filter")
     private String filter;
     @JsonProperty("order_by")

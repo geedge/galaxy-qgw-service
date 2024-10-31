@@ -110,6 +110,15 @@ public class FieldDiscoveryServiceImpl implements FieldDiscoveryService {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Data Source cannot be null or empty."));
         }
+        List<String> fields = request.getFields();
+        if (fields == null || fields.isEmpty()) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Fields cannot be null or empty."));
+        }
+
+        List<String> fieldsDistinct = fields.stream().distinct().collect(Collectors.toList());
+        request.setFields(fieldsDistinct);
+
         List<String> intervals = request.getIntervals();
         if (intervals == null || intervals.size() == 0) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
@@ -119,19 +128,9 @@ public class FieldDiscoveryServiceImpl implements FieldDiscoveryService {
 
         Map<String, Object> customRequestParam = request.getCustomRequestParam();
         if (customRequestParam == null || customRequestParam.size() == 0) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "custom.statistics.dimensions cannot be null or empty."));
+            return;
 
         }
-
-        Object dimensions = customRequestParam.get("custom.statistics.dimensions");
-        if (!(dimensions instanceof List)) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "custom.statistics.dimensions cannot be null or empty."));
-        }
-        List<Map<String, Object>> collect = ((List<Map<String, Object>>) dimensions).stream().distinct().collect(Collectors.toList());
-        request.getCustomRequestParam().put("custom.statistics.dimensions", collect);
-
         Object metrics = customRequestParam.get("custom.statistics.metrics");
         if ((metrics instanceof List) && ((List<Map<String, Object>>) metrics).size() == 1) {
             Map<String, Object> o = ((List<Map<String, Object>>) metrics).get(0);
@@ -155,10 +154,10 @@ public class FieldDiscoveryServiceImpl implements FieldDiscoveryService {
         String dataSource = request.getDataSource();
         String totalMetric = "count(*)";
         Map<String, Object> customRequestParam = request.getCustomRequestParam();
-        Object metrics = customRequestParam.get("custom.statistics.metrics");
         Object metric = null;
         Object fn = null;
-        if (StringUtil.isNotEmpty(metrics)) {
+        if (StringUtil.isNotEmpty(request.getCustomRequestParam()) && StringUtil.isNotEmpty(customRequestParam.get("custom.statistics.metrics"))) {
+            Object metrics = customRequestParam.get("custom.statistics.metrics");
             List<Map<String, Object>> metricsList = (List<Map<String, Object>>) metrics;
             Map<String, Object> map = metricsList.get(0);
             metric = map.get("metric_name");
@@ -178,9 +177,7 @@ public class FieldDiscoveryServiceImpl implements FieldDiscoveryService {
             return;
         }
         Map<String, Future<List<Map<String, Object>>>> taskCallbackList = Maps.newHashMap();
-        List<String> fields = Lists.newArrayList();
-        List<Map<String, Object>> o = (List<Map<String, Object>>) customRequestParam.get("custom.statistics.dimensions");
-        o.forEach(x -> fields.add(String.valueOf(x.get("dimension_name"))));
+        List<String> fields = request.getFields();
 
         for (String field : fields) {
             Object finalMetric = metric;

@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -129,7 +130,7 @@ public class LogQueryServiceImpl implements LogQueryService {
         String partitionKeyLogicalType = partitionKeyLogicalTypes.isEmpty() ? null : partitionKeyLogicalTypes.get(0);
 
         String sqlTemplate2 = dslQueryContextTemp.toSql(sqlTemplate, dataSource, partitionKey, partitionKeyLogicalType);
-        String sql = String.format(sqlTemplate2, fields, partitionKey + " DESC ");
+        String sql = String.format(sqlTemplate2, StrUtil.isEmpty(fields) ? String.join(", ", requestParam.getFields()) : fields, partitionKey + " DESC ");
         return sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).build());
     }
 

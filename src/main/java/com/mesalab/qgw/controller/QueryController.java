@@ -143,7 +143,7 @@ public class QueryController {
     @AuditLog("QueryController.getJobTimelineById")
     public BaseResult getJobListById(@PathVariable String id
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery
-            , @RequestParam(value = "fields", required = false, defaultValue = "*") String fields
+            , @RequestParam(value = "fields", required = false) String fields
             , @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit
             , @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
