@@ -10,7 +10,11 @@ Release 383 (TSG-24.10)
 * 扩展Schema，Druid表增加insert_time字段(TSG-22758)
 * 扩展Schema，新增公共字段tunnel_uuid_list(TSG-22688)
 * 扩展Schema，代理策略子动作Insert修改为Inject(TSG-22760)
+* 修改Schema，默认对ingestion/processing/insert time 字段进行隐藏(TSG-22775)
+* 修改Schema，Metric统计表中action字段类型由int修改为string(TSG-23085)
+* 修复IP Learning, FQDN相关IP推荐接口Protocol条件无效(TSG-22783)
 * 优化引擎，支持基于时间范围的分片优化查询(GAL-638)
 * 规范URL API命名标准，单词分隔符使用hyphen，复数形式(TSG-22727)
 * 适配DoS Threat Map 业务相关Datasets及Schema(TSG-22745)
 * 完善 TIME_FLOOR_WITH_FILL 补全函数对结果数据的排序
+* 完善数据集，策略流量趋势数据集增加 bps 指标
