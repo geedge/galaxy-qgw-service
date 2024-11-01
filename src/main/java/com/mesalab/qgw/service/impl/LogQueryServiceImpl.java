@@ -130,7 +130,11 @@ public class LogQueryServiceImpl implements LogQueryService {
         String partitionKeyLogicalType = partitionKeyLogicalTypes.isEmpty() ? null : partitionKeyLogicalTypes.get(0);
 
         String sqlTemplate2 = dslQueryContextTemp.toSql(sqlTemplate, dataSource, partitionKey, partitionKeyLogicalType);
-        String sql = String.format(sqlTemplate2, StrUtil.isEmpty(fields) ? String.join(", ", requestParam.getFields()) : fields, partitionKey + " DESC ");
+        String sql = String.format(sqlTemplate2
+                , StrUtil.isEmpty(fields) ?
+                        StrUtil.isEmptyIfStr(requestParam.getFields()) ? "*" : String.join(", ", requestParam.getFields())
+                        : fields
+                , partitionKey + " DESC ");
         return sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).build());
     }
 
