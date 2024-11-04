@@ -1,35 +1,79 @@
 {
   "field_discovery_default": {
-    "name": "field_discovery",
+    "name": "field-discovery",
     "data_source": "session_record",
-    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+    "fields": [
+      "client_ip",
+      "server_port"
+    ],
+    "filter": "vsys_id in (1) AND ( 1 = 1 )"
   },
   "field_discovery_sessions": {
-    "name": "field_discovery",
+    "name": "field-discovery",
     "data_source": "session_record",
-    "custom.field_discovery.metric": "sessions",
-    "custom.field_discovery.metric.fn": "count",
-    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+    "fields": [
+      "client_ip",
+      "server_port"
+    ],
+    "filter": "vsys_id in (1) AND ( 1 = 1 )",
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "count"
+        },
+        "metric_name": "sessions"
+      }
+    ]
   },
   "field_discovery_bytes": {
-    "name": "field_discovery",
+    "name": "field-discovery",
     "data_source": "session_record",
-    "custom.field_discovery.metric": "bytes",
-    "custom.field_discovery.metric.fn": "sum",
-    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+    "fields": [
+      "client_ip",
+      "server_port"
+    ],
+    "filter": "vsys_id in (1) AND ( 1 = 1 )",
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "sum"
+        },
+        "metric_name": "bytes"
+      }
+    ]
   },
   "field_discovery_incoming_bytes": {
-    "name": "field_discovery",
+    "name": "field-discovery",
     "data_source": "session_record",
-    "custom.field_discovery.metric": "incoming_bytes",
-    "custom.field_discovery.metric.fn": "sum",
-    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+    "fields": [
+      "client_ip",
+      "server_port"
+    ],
+    "filter": "vsys_id in (1) AND ( 1 = 1 )",
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "sum"
+        },
+        "metric_name": "incoming_bytes"
+      }
+    ]
   },
   "field_discovery_outgoing_bytes": {
-    "name": "field_discovery",
+    "name": "field-discovery",
     "data_source": "session_record",
-    "custom.field_discovery.metric": "outgoing_bytes",
-    "custom.field_discovery.metric.fn": "sum",
-    "filter": "recv_time >= UNIX_TIMESTAMP(now()) - 500 AND recv_time <= UNIX_TIMESTAMP(now()) AND vsys_id = 1"
+    "fields": [
+      "client_ip",
+      "server_port"
+    ],
+    "filter": "vsys_id in (1) AND ( 1 = 1 )",
+    "custom.statistics.metrics": [
+      {
+        "function": {
+          "name": "sum"
+        },
+        "metric_name": "outgoing_bytes"
+      }
+    ]
   }
 }

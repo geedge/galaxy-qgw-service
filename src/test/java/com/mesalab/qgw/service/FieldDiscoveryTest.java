@@ -1,5 +1,8 @@
 package com.mesalab.qgw.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.qgw.controller.QueryController;
@@ -9,6 +12,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.context.request.async.DeferredResult;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,21 +27,21 @@ public class FieldDiscoveryTest extends GalaxyQGWApplicationTests {
 
     @Autowired
     private QueryController queryController;
-    private static final List<String> fields = new ArrayList<>();
+    private static final List<String> intervals = new ArrayList<>();
 
     static {
-        fields.add("flags");
-        fields.add("security_rule_list");
-        fields.add("client_port");
-        fields.add("server_ip");
+        DateTime now = new DateTime();
+        String endTime = DateUtil.format(now, "yyyy-MM-dd HH:mm:ss");
+        String startTime = DateUtil.format(DateUtil.offsetDay(now, -1), "yyyy-MM-dd HH:mm:ss");
+        intervals.add(startTime + "/" + endTime);
     }
 
     @Test
     public void testFieldDiscoveryDefault() {
         DSLQueryRequestParam body = jsonToInParameter("parameters/fieldDiscoveryTest.json", "field_discovery_default", DSLQueryRequestParam.class);
-        body.getCustomRequestParam().put("custom.field_discovery.fields", fields);
+        body.setIntervals(intervals);
         BaseResult commitResult = queryController.createDSLQuery(body);
-        Assert.assertTrue(commitResult.getMessage(), commitResult.getStatus() == 201);
+        Assert.assertEquals(commitResult.getMessage(), 201, (int) commitResult.getStatus());
         String id = ((Map<String, Object>) commitResult.getJob()).get("job_id").toString();
         DeferredResult<BaseResult> getResult = new DeferredResult<>();
         while (true) {
@@ -53,9 +57,9 @@ public class FieldDiscoveryTest extends GalaxyQGWApplicationTests {
     @Test
     public void testFieldDiscoverySessions() {
         DSLQueryRequestParam body = jsonToInParameter("parameters/fieldDiscoveryTest.json", "field_discovery_sessions", DSLQueryRequestParam.class);
-        body.getCustomRequestParam().put("custom.field_discovery.fields", fields);
+        body.setIntervals(intervals);
         BaseResult commitResult = queryController.createDSLQuery(body);
-        Assert.assertTrue(commitResult.getMessage(), commitResult.getStatus() == 201);
+        Assert.assertEquals(commitResult.getMessage(), 201, (int) commitResult.getStatus());
         String id = ((Map<String, Object>) commitResult.getJob()).get("job_id").toString();
         DeferredResult<BaseResult> getResult = new DeferredResult<>();
         while (true) {
@@ -71,9 +75,9 @@ public class FieldDiscoveryTest extends GalaxyQGWApplicationTests {
     @Test
     public void testFieldDiscoveryBytes() {
         DSLQueryRequestParam body = jsonToInParameter("parameters/fieldDiscoveryTest.json", "field_discovery_bytes", DSLQueryRequestParam.class);
-        body.getCustomRequestParam().put("custom.field_discovery.fields", fields);
+        body.setIntervals(intervals);
         BaseResult commitResult = queryController.createDSLQuery(body);
-        Assert.assertTrue(commitResult.getMessage(), commitResult.getStatus() == 201);
+        Assert.assertEquals(commitResult.getMessage(), 201, (int) commitResult.getStatus());
         String id = ((Map<String, Object>) commitResult.getJob()).get("job_id").toString();
         DeferredResult<BaseResult> getResult = new DeferredResult<>();
         while (true) {
@@ -89,9 +93,9 @@ public class FieldDiscoveryTest extends GalaxyQGWApplicationTests {
     @Test
     public void testFieldDiscoveryIncomingBytes() {
         DSLQueryRequestParam body = jsonToInParameter("parameters/fieldDiscoveryTest.json", "field_discovery_incoming_bytes", DSLQueryRequestParam.class);
-        body.getCustomRequestParam().put("custom.field_discovery.fields", fields);
+        body.setIntervals(intervals);
         BaseResult commitResult = queryController.createDSLQuery(body);
-        Assert.assertTrue(commitResult.getMessage(), commitResult.getStatus() == 201);
+        Assert.assertEquals(commitResult.getMessage(), 201, (int) commitResult.getStatus());
         String id = ((Map<String, Object>) commitResult.getJob()).get("job_id").toString();
         DeferredResult<BaseResult> getResult = new DeferredResult<>();
         while (true) {
@@ -107,8 +111,18 @@ public class FieldDiscoveryTest extends GalaxyQGWApplicationTests {
     @Test
     public void testFieldDiscoveryOutgoingBytes() {
         DSLQueryRequestParam body = jsonToInParameter("parameters/fieldDiscoveryTest.json", "field_discovery_outgoing_bytes", DSLQueryRequestParam.class);
-        body.getCustomRequestParam().put("custom.field_discovery.fields", fields);
+        body.setIntervals(intervals);
         BaseResult commitResult = queryController.createDSLQuery(body);
-        Assert.assertTrue(commitResult.getMessage(), commitResult.getStatus() == 201);
+        Assert.assertEquals(commitResult.getMessage(), 201, (int) commitResult.getStatus());
+        String id = ((Map<String, Object>) commitResult.getJob()).get("job_id").toString();
+        DeferredResult<BaseResult> getResult = new DeferredResult<>();
+        while (true) {
+            if (getResult.isSetOrExpired()) {
+                break;
+            }
+            getResult = queryController.getJobStatus(id, 0);
+        }
+        BaseResult result = (BaseResult) getResult.getResult();
+        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 }

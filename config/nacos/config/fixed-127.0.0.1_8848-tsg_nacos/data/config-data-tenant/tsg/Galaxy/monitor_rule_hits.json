@@ -143,26 +143,26 @@
     {
       "name": "action",
       "label": "Action",
-      "type": "long",
+      "type": "string",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
         },
         "data": [
           {
-            "code": 1,
+            "code": "monitor",
             "value": "Monitor"
           },
           {
-            "code": 16,
+            "code": "deny",
             "value": "Deny"
           },
           {
-            "code": 96,
+            "code": "allow",
             "value": "Allow"
           },
           {
-            "code": 128,
+            "code": "shunt",
             "value": "Shunt"
           }
         ],

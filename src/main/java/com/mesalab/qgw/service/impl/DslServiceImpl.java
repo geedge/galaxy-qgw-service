@@ -563,7 +563,7 @@ public class DslServiceImpl implements DSLService {
                 } else {
                     Range range = new Range();
                     range.setFieldKey(left);
-                    range.setType(RangeTypeEnum.EQ.getType());
+                    range.setType(RangeTypeEnum.GE.getType());
                     range.setFieldValues(Lists.newArrayList(right));
                     ranges.add(range);
                 }
