@@ -422,6 +422,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                     field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+                field.put("doc", rewriteDoc("is_encrypted", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
             }
             content = JSON.toJSONString(data, JSONWriter.Feature.WriteNulls);
             log.info("push Schema, content is: {}", content);

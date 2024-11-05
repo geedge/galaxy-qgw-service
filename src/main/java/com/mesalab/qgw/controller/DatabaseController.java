@@ -37,6 +37,7 @@ public class DatabaseController {
     private DatabaseService databaseService;
 
     private final static HashSet<String> VISIBILITY = Sets.newHashSet("enabled", "hidden", "disabled");
+    private final static HashSet<String> IS_ENCRYPTED = Sets.newHashSet("true", "false");
 
 
     @RequestMapping(value = "/table/{table_name}/schema", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
@@ -135,6 +136,10 @@ public class DatabaseController {
         }
         String param = JSON.toJSONString(obj);
         if (!VISIBILITY.containsAll(JsonPath.read(param, "$.fields[?(@.doc.visibility != null)].doc.visibility"))) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_ERROR_VISIBILITY_VALUE));
+        }
+        if (!IS_ENCRYPTED.containsAll(JsonPath.read(param, "$.fields[?(@.doc.is_encrypted != null)].doc.is_encrypted"))) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_ERROR_VISIBILITY_VALUE));
         }
