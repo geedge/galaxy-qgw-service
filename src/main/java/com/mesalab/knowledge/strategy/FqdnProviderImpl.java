@@ -152,11 +152,11 @@ public class FqdnProviderImpl implements QueryProvider {
     private static void buildProtocol(StringBuffer protocolsb, List<Object> fieldValues) {
         List<String> protocols = Lists.newArrayList();
         for (Object protocol : fieldValues) {
-            if (HTTP.equals(protocol)) {
+            if (HTTP.equals(protocol) || ("$" + HTTP).equals(protocol)) {
                 protocols.add("e.HTTP_CNT_TOTAL > 0");
-            } else if (DNS.equals(protocol)) {
+            } else if (DNS.equals(protocol) || ("$" + DNS).equals(protocol)) {
                 protocols.add("e.DNS_CNT_TOTAL > 0");
-            } else if (SSL.equals(protocol) || TLS.equals(protocol)) {
+            } else if (SSL.equals(protocol) || TLS.equals(protocol) || ("$" + SSL).equals(protocol) || ("$" + TLS).equals(protocol)) {
                 protocols.add("e.TLS_CNT_TOTAL > 0");
             }
         }
