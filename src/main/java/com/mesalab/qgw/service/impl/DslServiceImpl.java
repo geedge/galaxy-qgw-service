@@ -380,22 +380,15 @@ public class DslServiceImpl implements DSLService {
             public void visit(LikeExpression expr) {
                 String left = String.valueOf(expr.getLeftExpression());
                 String right = ((StringValue) expr.getRightExpression()).getValue();
-                String type = "";
-                if (right.startsWith("%") && right.endsWith("%")) {
-                    type = MatchEnum.SUBSTRING.getType();
-                    right = right.substring(1, right.length() - 1);
-                } else if (right.startsWith("%")) {
-                    type = MatchEnum.SUFFIX.getType();
-                    right = right.substring(1);
-                } else if (right.endsWith("%")) {
-                    type = MatchEnum.PREFIX.getType();
-                    right = right.substring(0, right.length() - 1);
+                String type = MatchEnum.REGEX.getType();
+                if (right.startsWith("%") || right.endsWith("%")) {
+                    right = right.replaceFirst("^%", "*"); // 替换开头的百分号
+                    right = right.replaceFirst("%$", "*"); // 替换结尾的百分号
                 } else {
-                    type = MatchEnum.EXACTLY.getType();
+                    right = "$" + right; // 没有百分号时添加前缀
                 }
 
-                String finalType = type;
-                if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(finalType))) {
+                if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(type))) {
                     for (Match match : matches) {
                         if (match.getFieldKey().equals(left) && match.getType().equals(type)) {
                             match.getFieldValues().add(right);
@@ -454,14 +447,14 @@ public class DslServiceImpl implements DSLService {
                                 @Override
                                 public void visit(ExpressionList expressionList) {
                                     for (Expression expression : expressionList.getExpressions()) {
-                                        if (expression instanceof StringValue) {
-                                            range.getFieldValues().add(((StringValue) expression).getValue());
-                                        } else if (expression instanceof LongValue) {
-                                            range.getFieldValues().add(((LongValue) expression).getValue());
-                                        }
-
+                                    if (expression instanceof StringValue) {
+                                        range.getFieldValues().add(((StringValue) expression).getValue());
+                                    } else if (expression instanceof LongValue) {
+                                        range.getFieldValues().add(((LongValue) expression).getValue());
                                     }
+
                                 }
+                            }
 
                             });
                         }
@@ -476,14 +469,14 @@ public class DslServiceImpl implements DSLService {
                         @Override
                         public void visit(ExpressionList expressionList) {
                             for (Expression expression : expressionList.getExpressions()) {
-                                if (expression instanceof StringValue) {
-                                    range.getFieldValues().add(((StringValue) expression).getValue());
-                                } else if (expression instanceof LongValue) {
-                                    range.getFieldValues().add(((LongValue) expression).getValue());
-                                }
-
+                            if (expression instanceof StringValue) {
+                                range.getFieldValues().add(((StringValue) expression).getValue());
+                            } else if (expression instanceof LongValue) {
+                                range.getFieldValues().add(((LongValue) expression).getValue());
                             }
+
                         }
+                    }
                     });
                     ranges.add(range);
                 }
@@ -491,22 +484,22 @@ public class DslServiceImpl implements DSLService {
 
             private void strParseIn(InExpression expr) {
                 String left = String.valueOf(expr.getLeftExpression());
-                if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(MatchEnum.EXACTLY.getType()))) {
+                if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(MatchEnum.REGEX.getType()))) {
                     for (Match match : matches) {
-                        if (match.getFieldKey().equals(left) && match.getType().equals(MatchEnum.EXACTLY.getType())) {
+                        if (match.getFieldKey().equals(left) && match.getType().equals(MatchEnum.REGEX.getType())) {
                             ItemsList rightItemsList = expr.getRightItemsList();
                             rightItemsList.accept(new ItemsListVisitorAdapter() {
                                 @Override
                                 public void visit(ExpressionList expressionList) {
                                     for (Expression expression : expressionList.getExpressions()) {
-                                        if (expression instanceof StringValue) {
-                                            match.getFieldValues().add(((StringValue) expression).getValue());
-                                        } else if (expression instanceof LongValue) {
-                                            match.getFieldValues().add(((LongValue) expression).getValue());
-                                        }
-
+                                    if (expression instanceof StringValue) {
+                                            match.getFieldValues().add("$" + ((StringValue) expression).getValue());
+                                    } else if (expression instanceof LongValue) {
+                                        match.getFieldValues().add(((LongValue) expression).getValue());
                                     }
+
                                 }
+                            }
 
                             });
                         }
@@ -515,20 +508,20 @@ public class DslServiceImpl implements DSLService {
                     Match match = new Match();
                     match.setFieldKey(left);
                     match.setFieldValues(Lists.newArrayList());
-                    match.setType(MatchEnum.EXACTLY.getType());
+                    match.setType(MatchEnum.REGEX.getType());
                     ItemsList rightItemsList = expr.getRightItemsList();
                     rightItemsList.accept(new ItemsListVisitorAdapter() {
                         @Override
                         public void visit(ExpressionList expressionList) {
                             for (Expression expression : expressionList.getExpressions()) {
-                                if (expression instanceof StringValue) {
-                                    match.getFieldValues().add(((StringValue) expression).getValue());
-                                } else if (expression instanceof LongValue) {
-                                    match.getFieldValues().add(((LongValue) expression).getValue());
-                                }
-
+                            if (expression instanceof StringValue) {
+                                    match.getFieldValues().add("$" + ((StringValue) expression).getValue());
+                            } else if (expression instanceof LongValue) {
+                                match.getFieldValues().add(((LongValue) expression).getValue());
                             }
+
                         }
+                    }
                     });
                     matches.add(match);
                 }
