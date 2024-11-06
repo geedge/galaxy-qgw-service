@@ -12,27 +12,30 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class VaultConfiguration {
-    @NacosValue("${vault.url}")
+    @NacosValue(value = "${vault.url}", autoRefreshed = true)
     private String url;
 
-    @NacosValue("${vault.username}")
+    @NacosValue(value = "${vault.username}", autoRefreshed = true)
     private String username;
 
-    @NacosValue("${vault.password}")
+    @NacosValue(value = "${vault.password}", autoRefreshed = true)
     private String password;
 
-    @NacosValue("${vault.keyPath}")
+    @NacosValue(value = "${vault.keyPath}", autoRefreshed = true)
     private String keyPath;
 
-    @NacosValue("${vault.ssl.skipVerification}")
+    @NacosValue(value = "${vault.identifier}", autoRefreshed = true)
+    private String identifier;
+
+    @NacosValue(value = "${vault.ssl.skipVerification}", autoRefreshed = true)
     private boolean sslSkipVerification;
 
-    @NacosValue("${vault.ssl.privateKeyPath}")
+    @NacosValue(value = "${vault.ssl.privateKeyPath}", autoRefreshed = true)
     private String sslPrivateKeyPath;
 
-    @NacosValue("${vault.ssl.certificatePath}")
+    @NacosValue(value = "${vault.ssl.certificatePath}", autoRefreshed = true)
     private String sslCertificatePath;
 
-    @NacosValue("${vault.ssl.caCertificatePath}")
+    @NacosValue(value = "${vault.ssl.caCertificatePath}", autoRefreshed = true)
     private String sslCaCertificatePath;
 }

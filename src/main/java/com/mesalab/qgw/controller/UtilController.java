@@ -3,6 +3,7 @@ package com.mesalab.qgw.controller;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.common.configuration.VaultConfiguration;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.EncryptionAlgorithm;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -22,8 +23,8 @@ public class UtilController {
 
     private static final Log log = LogFactory.get();
     private final static int CIPHERTEXT_LIST_MAX_SIZE = 100;
-    @Autowired
     private UtilService utilService;
+    private VaultConfiguration vaultConfiguration;
 
     @GetMapping(value = "/sql-parser", consumes = "application/x-www-form-urlencoded")
     @AuditLog("UtilController.getSQLSyntaxTree")
@@ -51,13 +52,23 @@ public class UtilController {
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "This ciphertext_list cannot be empty and must contain at most 100 items."));
         }
         if (StringUtil.isEmpty(param.getEncryptionAlgorithm())) {
-            param.setEncryptionAlgorithm(EncryptionAlgorithm.AES_128_GCM96.getValue());
+            param.setEncryptionAlgorithm(vaultConfiguration.getIdentifier());
         }
         if (!EncryptionAlgorithm.isValid(param.getEncryptionAlgorithm())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "The encryption_algorithm default is aes-128-gcm96, Supported Include aes-128-gcm, aes-128-gcm96, aes-256-gcm96, sm4-gcm96."));
         }
         return utilService.decryptWithKMS(param);
+    }
+
+    @Autowired
+    public void setVaultConfiguration(VaultConfiguration vaultConfiguration) {
+        this.vaultConfiguration = vaultConfiguration;
+    }
+
+    @Autowired
+    public void setUtilService(UtilService utilService) {
+        this.utilService = utilService;
     }
 
 }
