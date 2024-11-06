@@ -56,7 +56,9 @@
         "statistics_rule_list",
         "statistics_rule_uuid_list",
         "sc_rsp_raw",
+        "sc_rsp_raw_uuid_list",
         "sc_rsp_decrypted",
+        "sc_rsp_decrypted_uuid_list",
         "proxy_action",
         "proxy_rule_list",
         "proxy_rule_uuid_list",
@@ -387,7 +389,9 @@
         "statistics_rule_list",
         "statistics_rule_uuid_list",
         "sc_rsp_raw",
+        "sc_rsp_raw_uuid_list",
         "sc_rsp_decrypted",
+        "sc_rsp_decrypted_uuid_list",
         "proxy_rule_list",
         "proxy_rule_uuid_list",
         "proxy_action",
@@ -1830,7 +1834,7 @@
     },
     {
       "name": "sc_rsp_raw",
-      "label": "Service Chaining Rendered Service Path(Raw)",
+      "label": "Service Chaining Rendered Service Path(Raw)(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1845,8 +1849,24 @@
       }
     },
     {
+      "name": "sc_rsp_raw_uuid_list",
+      "label": "Service Chaining Rendered Service Path(Raw)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "sc_rsp_decrypted",
-      "label": "Service Chaining Rendered Service Path(Decrypted)",
+      "label": "Service Chaining Rendered Service Path(Decrypted)(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1857,6 +1877,22 @@
       "type": {
         "type": "array",
         "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_decrypted_uuid_list",
+      "label": "Service Chaining Rendered Service Path(Decrypted)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
         "logicalType": "array"
       }
     },
