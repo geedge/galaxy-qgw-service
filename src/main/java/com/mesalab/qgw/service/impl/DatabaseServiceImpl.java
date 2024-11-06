@@ -118,7 +118,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public List<String> getTableEncryptedFields(String table) {
         Map<String, Object> schema = getSchemaInfo(MetadataType.FIELDS.getValue(), table, false);
-        return JsonPath.read(JSONUtil.toJsonStr(schema), "$.fields[?(@.doc.is_encrypted == \"true\")].name");
+        return JsonPath.read(JSONUtil.toJsonStr(schema), "$.fields[?(@.doc.is_encrypted == true || @.doc.is_encrypted == \"true\")].name");
     }
 
     @Override

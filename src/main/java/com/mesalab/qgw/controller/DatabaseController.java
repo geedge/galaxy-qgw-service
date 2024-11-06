@@ -37,7 +37,7 @@ public class DatabaseController {
     private DatabaseService databaseService;
 
     private final static HashSet<String> VISIBILITY = Sets.newHashSet("enabled", "hidden", "disabled");
-    private final static HashSet<String> IS_ENCRYPTED = Sets.newHashSet("true", "false");
+    private final static HashSet<Object> IS_ENCRYPTED = Sets.newHashSet(true, false, "true", "false");
 
 
     @RequestMapping(value = "/table/{table_name}/schema", method = RequestMethod.GET, consumes = "application/x-www-form-urlencoded")
