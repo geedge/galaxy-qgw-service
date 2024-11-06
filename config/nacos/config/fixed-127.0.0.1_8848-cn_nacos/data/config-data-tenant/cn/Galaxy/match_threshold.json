@@ -51,12 +51,12 @@
       "type": "string"
     },
     {
-      "name": "threshold_num",
-      "type": "long"
+      "name": "threshold_value",
+      "type": "float"
     },
     {
-      "name": "records_num",
-      "type": "long"
+      "name": "metric_value",
+      "type": "float"
     },
     {
       "name": "reset",
