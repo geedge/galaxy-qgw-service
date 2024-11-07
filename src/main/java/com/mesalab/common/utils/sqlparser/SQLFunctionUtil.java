@@ -2035,7 +2035,7 @@ public class SQLFunctionUtil {
 
     private static String translateHmac(Function fun) {
         List<String> paramsList = fun.getParamsList();
-        String data = paramsList.get(0);
+        String data = paramsList.get(0).replaceAll("^'|'$", "");
         String algorithm = "sha256";
         String secretKey = engineConfigSource.getSecretKey();
         if (paramsList.size() >= 2) {
@@ -2045,7 +2045,7 @@ public class SQLFunctionUtil {
             algorithm = paramsList.get(2);
         }
         HMac hMac = new HMac(getHmacAlgorithm(algorithm), secretKey.getBytes());
-        return "'" + hMac.digestBase64(data, false) + "'";
+        return "'" + hMac.digestBase64(new String(Base64.getDecoder().decode(data)), false) + "'";
     }
 
     private static String getHmacAlgorithm(String algorithm) {
