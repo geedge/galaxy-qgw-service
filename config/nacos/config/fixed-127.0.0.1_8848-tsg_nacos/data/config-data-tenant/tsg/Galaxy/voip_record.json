@@ -902,7 +902,7 @@
       "name": "t_vsys_id",
       "label": "Traffic Vsys ID",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "visibility": "enabled",
         "ttl": null
       },
@@ -1395,7 +1395,7 @@
       "name": "rtp_pcap_path",
       "label": "RTP.PCAP",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },

@@ -1119,7 +1119,7 @@
         "label": "Security Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(security_rule_list), arrayPushFront(security_rule_list, null),security_rule_list))"
         }
       },
@@ -1128,7 +1128,7 @@
         "label": "Security Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(security_rule_uuid_list), arrayPushFront(security_rule_uuid_list, null),security_rule_uuid_list))"
         }
       },
@@ -1137,7 +1137,7 @@
         "label": "Client IP Tag",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(client_ip_tags), arrayPushFront(client_ip_tags, null),client_ip_tags))"
         }
       },
@@ -1146,7 +1146,7 @@
         "label": "Server IP Tag",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(server_ip_tags), arrayPushFront(server_ip_tags, null),server_ip_tags))"
         }
       },
@@ -1155,7 +1155,7 @@
         "label": "Server FQDN Tag",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(server_fqdn_tags), arrayPushFront(server_fqdn_tags, null),server_fqdn_tags))"
         }
       }
@@ -1494,7 +1494,7 @@
       "name": "t_vsys_id",
       "label": "Traffic Vsys ID",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "visibility": "enabled",
         "ttl": null
       },
@@ -2084,7 +2084,7 @@
       "label": "Subscriber ID",
       "doc": {
         "visibility": "enabled",
-        "is_encrypted": "true",
+        "is_encrypted": true,
         "ttl": null
       },
       "type": "string"
@@ -2130,7 +2130,7 @@
       "label": "Phone Number",
       "doc": {
         "visibility": "enabled",
-        "is_encrypted": "true",
+        "is_encrypted": true,
         "ttl": null
       },
       "type": "string"
@@ -2615,7 +2615,7 @@
       "name": "packet_capture_file",
       "label": "Packet Capture File",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "visibility": "enabled",
         "constraints": {
           "type": "file"
@@ -2807,7 +2807,7 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },
@@ -2820,7 +2820,7 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },
@@ -3797,7 +3797,7 @@
       "name": "rtp_pcap_path",
       "label": "RTP.PCAP",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },

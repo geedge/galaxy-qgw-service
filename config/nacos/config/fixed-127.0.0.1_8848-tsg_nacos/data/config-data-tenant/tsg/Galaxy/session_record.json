@@ -1170,7 +1170,7 @@
         "label": "Security Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(security_rule_list), arrayPushFront(security_rule_list, null),security_rule_list))"
         }
       },
@@ -1179,7 +1179,7 @@
         "label": "Security Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(security_rule_uuid_list), arrayPushFront(security_rule_uuid_list, null),security_rule_uuid_list))"
         }
       },
@@ -1188,7 +1188,7 @@
         "label": "Proxy Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(proxy_rule_list), arrayPushFront(proxy_rule_list, null),proxy_rule_list))"
         }
       },
@@ -1197,7 +1197,7 @@
         "label": "Proxy Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(proxy_rule_uuid_list), arrayPushFront(proxy_rule_uuid_list, null),proxy_rule_uuid_list))"
         }
       },
@@ -1206,7 +1206,7 @@
         "label": "Monitor Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
         }
       },
@@ -1215,7 +1215,7 @@
         "label": "Monitor Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(monitor_rule_uuid_list), arrayPushFront(monitor_rule_uuid_list, null),monitor_rule_uuid_list))"
         }
       },
@@ -1224,7 +1224,7 @@
         "label": "Shaping Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(shaping_rule_list), arrayPushFront(shaping_rule_list, null),shaping_rule_list))"
         }
       },
@@ -1233,7 +1233,7 @@
         "label": "Shaping Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(shaping_rule_uuid_list), arrayPushFront(shaping_rule_uuid_list, null),shaping_rule_uuid_list))"
         }
       },
@@ -1242,7 +1242,7 @@
         "label": "Service Chaining Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(sc_rule_list), arrayPushFront(sc_rule_list, null),sc_rule_list))"
         }
       },
@@ -1251,7 +1251,7 @@
         "label": "Service Chaining Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(sc_rule_uuid_list), arrayPushFront(sc_rule_uuid_list, null),sc_rule_uuid_list))"
         }
       },
@@ -1260,7 +1260,7 @@
         "label": "Statistics Rule ID(Deprecated)",
         "type": "long",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(statistics_rule_list), arrayPushFront(statistics_rule_list, null),statistics_rule_list))"
         }
       },
@@ -1269,7 +1269,7 @@
         "label": "Statistics Rule UUID",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(statistics_rule_uuid_list), arrayPushFront(statistics_rule_uuid_list, null),statistics_rule_uuid_list))"
         }
       },
@@ -1278,7 +1278,7 @@
         "label": "Client IP Tag",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(client_ip_tags), arrayPushFront(client_ip_tags, null),client_ip_tags))"
         }
       },
@@ -1287,7 +1287,7 @@
         "label": "Server IP Tag",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(server_ip_tags), arrayPushFront(server_ip_tags, null),server_ip_tags))"
         }
       },
@@ -1296,7 +1296,7 @@
         "label": "Server FQDN Tag",
         "type": "string",
         "doc": {
-          "allow_query": "false",
+          "allow_query": false,
           "expression": "arrayJoin(IF(empty(server_fqdn_tags), arrayPushFront(server_fqdn_tags, null),server_fqdn_tags))"
         }
       }
@@ -1635,7 +1635,7 @@
       "name": "t_vsys_id",
       "label": "Traffic Vsys ID",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "visibility": "enabled",
         "ttl": null
       },
@@ -2225,7 +2225,7 @@
       "label": "Subscriber ID",
       "doc": {
         "visibility": "enabled",
-        "is_encrypted": "true",
+        "is_encrypted": true,
         "ttl": null
       },
       "type": "string"
@@ -2271,7 +2271,7 @@
       "label": "Phone Number",
       "doc": {
         "visibility": "enabled",
-        "is_encrypted": "true",
+        "is_encrypted": true,
         "ttl": null
       },
       "type": "string"
@@ -2756,7 +2756,7 @@
       "name": "packet_capture_file",
       "label": "Packet Capture File",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "visibility": "enabled",
         "constraints": {
           "type": "file"
@@ -2948,7 +2948,7 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },
@@ -2961,7 +2961,7 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },
@@ -3944,7 +3944,7 @@
       "name": "rtp_pcap_path",
       "label": "RTP.PCAP",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },

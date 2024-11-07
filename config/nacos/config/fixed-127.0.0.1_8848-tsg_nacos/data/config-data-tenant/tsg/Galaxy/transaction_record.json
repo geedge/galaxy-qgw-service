@@ -822,7 +822,7 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },
@@ -835,7 +835,7 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
-        "allow_query": "false",
+        "allow_query": false,
         "constraints": {
           "type": "file"
         },
