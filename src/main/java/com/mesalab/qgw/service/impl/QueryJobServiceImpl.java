@@ -444,7 +444,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             if (queryCache == null) {
                 continue;
             }
-            if (JobConfig.FIELD_DISCOVERY_DEPRECATED_V2410.equals(queryCache.getType())) {
+            if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
                 queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
             }
             baseResult = queryCache.getBaseResult();
