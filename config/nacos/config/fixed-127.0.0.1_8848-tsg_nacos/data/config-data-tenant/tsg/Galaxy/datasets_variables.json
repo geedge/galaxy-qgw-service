@@ -172,6 +172,10 @@
     "default": "unknown"
   },
   {
+    "key": "protocol_stack_id",
+    "default": "ETHERNET"
+  },
+  {
     "key": "dimension_list",
     "default": {
       "dimension_name": "client_ip"

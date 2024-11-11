@@ -1,0 +1,11 @@
+{
+  "namespace": "system",
+  "type": "record",
+  "name": "clusters",
+  "fields": [
+    {
+      "name": "host_address",
+      "type": "string"
+    }
+  ]
+}

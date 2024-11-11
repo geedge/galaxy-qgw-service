@@ -1,0 +1,192 @@
+##############静态参数配置(修改后需要重启项目)##############
+## 服务配置
+server:
+  port: 9999
+## 监控参数
+management:
+  metrics:
+    tags:
+      application: ${project.name}
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: true
+  health:
+    redis:
+      enabled: false
+    db:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+        exclude: env,auditevents,beans,conditions,info
+      base-path: /v1/monitor
+      path-mapping:
+        health: /component_status
+#MySql configuration
+spring:
+  sleuth:
+    enabled: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.44.12:3306/tsg_olap?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
+    username: ENC(63aTpwv2vH0vPikW+3Jjig==)
+    password: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
+  flyway:
+    enabled: true              # 是否开启
+    encoding: UTF-8            # 编码
+    sql-migration-prefix: V    # 脚本文件的前缀，默认为V
+    sql-migration-separator: __ #  双下划线
+    baseline-on-migrate: true  # 连接数据库中存在表时设置为true
+    check-location: false
+    locations: filesystem:./config/flyway/tsg-starrocks   # 脚本路径
+    clean-disabled: true      # flyway 的 clean 命令会删除指定 schema 下的所有 table, 生产务必禁掉。这个默认值是 false 理论上作为默认配置是不科学的
+    validate-on-migrate: true # 执行迁移时是否自动调用验证   当你的 版本不符合逻辑 比如 你先执行了 DML 而没有 对应的DDL 会抛出异常
+    placeholder-replacement: false  # 不做取值替换 默认替换为 ${} ，初始化sql中有sql语句存在freemarker替换，所以禁用此项
+## Hbase configuration
+hbase:
+  zookeeperQuorum: 192.168.44.12:2181
+  zookeeperZnodeParent: /hbase
+  rpcTimeout: 60000
+  report:
+    dbname: tsg_galaxy
+    tableName: saved_query_result
+    columnFamily: response
+    columnName: result
+##############动态参数配置(修改后不需要重启项目)##############
+## 项目参数
+project:
+  name: galaxy-qgw-service-nacos
+  description: 统一数据查询网关
+  version: 1.1
+  groupId: com.mesalab
+  artifactId: galaxy-qgw-service
+  basedir:
+  corePackage: com.mesalab.common
+  servicePackage: com.mesalab.qgw
+  author:
+    name: darnell
+    url:
+    email:
+## ClickhHouse configuration
+clickhouse:
+  url: http://192.168.44.12:8124
+  dbname: tsg_galaxy_v3
+  enableApproximateOptimizer: true
+  convertDefaultTimezoneIntoUTC: false
+  realTimeAccount:
+    username: ENC(hYFEuRJJWd93TZg5VbK/o3OXUmxI/irv)
+    pin: ENC(qUA355VopKSx6kwwwXZwqWWEYSu76Slz)
+    socketTimeOut: 120000
+  longTermAccount:
+    username: ENC(z3gVlaa7Q4IMDqtUgvhwoJzKAkH1Uznc)
+    pin: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
+    socketTimeOut: 21700000
+## StarRocks configuration
+starRocks:
+  url: http://192.168.44.12:8061
+  username: root
+  pin:
+  dbname: tsg_olap
+  socketTimeOut: 120000
+## Druid configuration
+druid:
+  url: 192.168.44.12:8089/druid/v2/sql
+  dbname: druid
+  socketTimeOut: 120000
+  maxSubqueryRows: 2147483647
+## xxl-job-admin configuration
+xxl-job-admin:
+  url: http://192.168.44.12:8181/xxl-job-admin
+  userName: ENC(v8NKKlLWitI7vGhuGYorRQ==)
+  pin: ENC(xTCafSByYA6SyvhUJ6vrh2VSXuZAVK/O)
+## Engine、Service configuration
+engine:
+  maxCacheNum: 1048575
+  defaultResultNum: 100000
+  fieldDiscovery:
+    topK: 100
+  packetCombine:
+    delaySeconds: 5
+  trafficSpectrum:
+    clientIPAppResultNum: 100
+  highLatency:
+    threshold: 60000
+  secretKey: Galaxy2019#
+## ArangoDB configuration
+arango:
+  server: http://192.168.44.12:8529
+  database: tsg_galaxy_v3
+  username: ENC(UyZxsi4PT6kQXJAep5qvQQ==)
+  pin: ENC(qUA355VopKSx6kwwwXZwqWWEYSu76Slz)
+  jwturl: ${arango.server}/_db/${arango.database}/_open/auth
+  queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
+  maxrows: 10000
+  socketTimeOut: 300000
+## hos cfg
+hos:
+  uri: http://192.168.44.12:9098/hos
+  bucket: knowledge_base_bucket
+  token: c21f969b5f03d33d43e04f8f136e7682
+  multiUploadStartSize: 5368709120
+  multiUploadPartSize: 10485760
+## knowledge value 格式 name:版本
+knowledge:
+  ipLocation:
+    userDefined: 004390bc-3135-4a6f-a492-3662ecb9e289_latest
+    builtIn: 64af7077-eb9b-4b8f-80cf-2ceebc89bea9_latest
+    asn: f9f6bc91-2142-4673-8249-e097c00fe1ea_latest
+vault:
+  url: https://192.168.44.12:8200
+  username: ENC(kBsLwvQvA/y2bh2fErd19A==)
+  password: ENC(FEqlbg59V9EIt+SYZJt1HC8o3GKo0Md0)
+  keyPath: tsg_olap/transit
+  identifier: aes-128-gcm
+  ssl: ## SSL/TLS 客户端链接配置
+    skipVerification: true                      # 忽略SSL证书校验
+    privateKeyPath: /path/to/certs/worker.key   # 客户端私钥文件路径
+    certificatePath: /path/to/certs/worker.pem   # 客户端证书文件路径
+    caCertificatePath: /path/to/certs/root.pem  # CA 根证书路径
+## http pool config
+http:
+  pool:
+    connect:
+      timeout: 30000
+    max:
+      connection: 500
+      per:
+        route: 200
+    request:
+      timeout: 30000
+    response:
+      timeout: 120000
+## job cfg
+job:
+  timeSlicing:
+    enabled: true
+    interval: 3600 #单位: Second
+  longPolling:
+    enabled: true
+  interactive:
+    timeout: 10000
+  response:
+    timeout: 3000
+  execution:
+    timeout: 300000
+  threadPool:
+    lightWeight:
+      corePoolSize: 10
+      maxPoolSize: 20
+      queueCapacity: 100
+    heavyResource:
+      corePoolSize: 1
+      maxPoolSize: 2
+      queueCapacity: 80
+## task cfg
+task:
+  pool:
+    corePoolSize: 8
+    maxPoolSize: 16
+    queueCapacity: 1000

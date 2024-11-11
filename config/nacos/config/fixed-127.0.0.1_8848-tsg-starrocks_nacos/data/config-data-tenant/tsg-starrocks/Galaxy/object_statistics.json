@@ -1,0 +1,326 @@
+{
+  "type": "record",
+  "name": "object_statistics",
+  "namespace": "tsg_olap",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "template_uuid",
+        "chart_uuid",
+        "version",
+        "object_type",
+        "object_uuid",
+        "item_uuid"
+      ],
+      "metrics": [
+        "in_bytes",
+        "out_bytes",
+        "bytes",
+        "new_in_sessions",
+        "new_out_sessions",
+        "sessions"
+      ],
+      "filters": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "template_uuid",
+        "chart_uuid",
+        "version",
+        "object_type",
+        "object_uuid",
+        "item_uuid"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "retentions": "1s:1d,1m:1800d",
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "bytes": "bytes",
+          "new_in_sessions": "sessions",
+          "new_out_sessions": "sessions",
+          "sessions": "sessions"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "bytes": "Bps",
+          "new_in_sessions": "sps",
+          "new_out_sessions": "sps",
+          "sessions": "sps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps",
+          "bytes": "bps"
+        }
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "template_uuid",
+      "label": "Template UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "chart_uuid",
+      "label": "Chart UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "version",
+      "label": "Version",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "object_type",
+      "label": "Object Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": [
+          {
+            "code": "ip",
+            "value": "IP"
+          },
+          {
+            "code": "url",
+            "value": "URL"
+          },
+          {
+            "code": "fqdn",
+            "value": "FQDN"
+          },
+          {
+            "code": "account",
+            "value": "Account"
+          },
+          {
+            "code": "subscriberid",
+            "value": "Subscriber ID"
+          },
+          {
+            "code": "keywords",
+            "value": "Keywords"
+          },
+          {
+            "code": "http_signature",
+            "value": "HTTP Signature"
+          },
+          {
+            "code": "mobile_identity",
+            "value": "Mobile Identity"
+          },
+          {
+            "code": "apn",
+            "value": "APN"
+          },
+          {
+            "code": "flag",
+            "value": "Flag"
+          },
+          {
+            "code": "application",
+            "value": "Application"
+          },
+          {
+            "code": "tunnel",
+            "value": "Tunnel"
+          },
+          {
+            "code": "fqdn_category",
+            "value": "FQDN Category"
+          }
+        ],
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "object_uuid",
+      "label": "Object UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "item_uuid",
+      "label": "Item UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_in_sessions",
+      "label": "New Incoming Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_out_sessions",
+      "label": "New Outgoing Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

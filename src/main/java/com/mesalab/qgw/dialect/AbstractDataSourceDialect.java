@@ -15,6 +15,7 @@ import java.util.*;
 public abstract class AbstractDataSourceDialect implements Dialect {
     protected SQLQueryContext sqlQueryContext;
     private static final Log log = LogFactory.get();
+
     public AbstractDataSourceDialect(SQLQueryContext sqlQueryContext) {
         this.sqlQueryContext = sqlQueryContext;
     }
@@ -42,6 +43,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
      * @return
      */
     abstract String getSampleQuery();
+
+    /**
+     * get Desc Statement
+     *
+     * @return
+     */
+    abstract String getDescQuery(String table);
 
     /**
      * get Explain Statement
@@ -81,6 +89,16 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         String transformedSQL = convertQuery(generateRuleBaseOptimizedQuery());
         return generateBaseResult(transformedSQL, Optional.of("OK"));
     }
+
+    @Override
+    final public BaseResult executeDesc(String table) {
+        init();
+        String descQuery = getDescQuery(table);
+        BaseResult baseResult = generateBaseResult(descQuery, Optional.of("OK"));
+        return encapsulateSchemaData(baseResult, table);
+    }
+
+    abstract BaseResult encapsulateSchemaData(BaseResult baseResult, String table);
 
     @Override
     final public BaseResult executeSampleQuery() {
@@ -126,6 +144,7 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         }
         return baseResult;
     }
+
     @Override
     final public BaseResult executeAdministrativeQuery() {
         init();

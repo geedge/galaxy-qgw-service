@@ -41,7 +41,6 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.mesalab.services.configuration.JobConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -66,6 +65,7 @@ import static com.mesalab.services.service.impl.SQLDatasetServiceImpl.QUERY_ID_S
 public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     private static final Log log = LogFactory.get();
+
     @Autowired
     private NacosConfig nacosConfig;
     @Autowired
@@ -97,6 +97,16 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     private Environment env;
 
     private Map<String, String> headers = Maps.newHashMap();
+
+
+    private final static Map<String, String> METAGROUP_TO_ENGINE_MAP = new HashMap<>();
+
+    static {
+        METAGROUP_TO_ENGINE_MAP.put("CLICKHOUSE_GROUP", DBEngineType.CLICKHOUSE.getValue());
+        METAGROUP_TO_ENGINE_MAP.put("HBASE_GROUP", DBEngineType.HBASE.getValue());
+        METAGROUP_TO_ENGINE_MAP.put("DRUID_GROUP", DBEngineType.DRUID.getValue());
+        METAGROUP_TO_ENGINE_MAP.put("STAR_ROCKS_GROUP", DBEngineType.STAR_ROCKS.getValue());
+    }
 
     @PostConstruct
     public void init() {
@@ -194,35 +204,17 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     @Override
     public String getDBEngineByTableName(String tableName) {
-        LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
+        /*LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
         String data = StringUtil.EMPTY;
         if (StringUtil.isEmpty(schemaMap)) {
             return data;
-        }
+        }*/
         for (MetadataBean meta : metadataConfig.getMetadata()) {
             if (meta.getTables().contains(tableName)) {
-                return getDBTypeByGroup(meta.getGroup());
+                return METAGROUP_TO_ENGINE_MAP.getOrDefault(meta.getGroup(), null);
             }
         }
-        return data;
-    }
-
-    private String getDBTypeByGroup(String group) {
-        String type;
-        switch (group) {
-            case "CLICKHOUSE_GROUP":
-                type = DBEngineType.CLICKHOUSE.getValue();
-                break;
-            case "HBASE_GROUP":
-                type = DBEngineType.HBASE.getValue();
-                break;
-            case "DRUID_GROUP":
-                type = DBEngineType.DRUID.getValue();
-                break;
-            default:
-                type = StringUtil.EMPTY;
-        }
-        return type;
+        return null;
     }
 
     @Override

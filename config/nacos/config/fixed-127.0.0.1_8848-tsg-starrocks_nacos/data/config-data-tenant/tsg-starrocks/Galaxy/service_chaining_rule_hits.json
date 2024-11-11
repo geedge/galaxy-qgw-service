@@ -1,0 +1,209 @@
+{
+  "type": "record",
+  "name": "service_chaining_rule_hits",
+  "namespace": "tsg_olap",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "rule_uuid",
+        "sff_profile_uuid",
+        "sf_profile_uuid",
+        "device_group",
+        "data_center"
+      ],
+      "metrics": [
+        "sent_bytes",
+        "recv_bytes",
+        "sent_pkts",
+        "recv_pkts"
+      ],
+      "filters": [
+        "rule_uuid",
+        "sff_profile_uuid",
+        "sf_profile_uuid",
+        "device_group",
+        "data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+     "retentions": "1s:1800d",
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sent_bytes": "bytes",
+          "recv_bytes": "bytes",
+          "sent_pkts": "packets",
+          "recv_pkts": "packets"
+        },
+        "RATE": {
+          "sent_bytes": "Bps",
+          "recv_bytes": "Bps",
+          "sent_pkts": "pps",
+          "recv_pkts": "pps"
+        },
+        "BITRATE": {
+          "sent_bytes": "bps",
+          "recv_bytes": "bps"
+        }
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "rule_uuid",
+      "label": "Rule",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sff_profile_uuid",
+      "label": "Service Function Forwarder Profile UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sf_profile_uuid",
+      "label": "Service Function Profile UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "recv_bytes",
+      "label": "Bytes Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "sent_bytes",
+      "label": "Bytes Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "recv_pkts",
+      "label": "Packets Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "sent_pkts",
+      "label": "Packets Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

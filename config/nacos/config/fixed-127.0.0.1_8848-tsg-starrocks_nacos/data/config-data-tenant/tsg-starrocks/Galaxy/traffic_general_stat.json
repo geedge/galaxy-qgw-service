@@ -1,0 +1,295 @@
+{
+  "type": "record",
+  "name": "traffic_general_stat",
+  "namespace": "tsg_olap",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "device_group",
+        "data_center"
+      ],
+      "metrics": [
+        "sessions",
+        "closed_sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "asymmetric_c2s_flows",
+        "asymmetric_s2c_flows"
+      ],
+      "filters": [
+        "device_group",
+        "data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "retentions": "1s:7d,1m:1800d",
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "asymmetric_c2s_flows": "flows",
+          "asymmetric_s2c_flows": "flows",
+          "sessions": "sessions",
+          "closed_sessions": "sessions",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "asymmetric_c2s_flows": "fps",
+          "asymmetric_s2c_flows": "fps",
+          "sessions": "sps",
+          "closed_sessions": "sps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "sessions",
+      "label": "New Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "active_sessions",
+      "label": "Active Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "closed_sessions",
+      "label": "Closed Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "asymmetric_c2s_flows",
+      "label": "Asymmetric Flows(c2s)",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "asymmetric_s2c_flows",
+      "label": "Asymmetric Flows(s2c)",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_syn_pkts",
+      "label": "TCP SYN Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_ack_pkts",
+      "label": "TCP ACK Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_fin_pkts",
+      "label": "TCP FIN Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_rst_pkts",
+      "label": "TCP RST Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      }
+    }
+  ]
+}

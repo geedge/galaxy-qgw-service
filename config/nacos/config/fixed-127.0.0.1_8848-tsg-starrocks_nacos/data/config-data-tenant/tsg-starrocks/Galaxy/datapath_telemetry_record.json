@@ -1,0 +1,197 @@
+{
+  "type": "record",
+  "name": "datapath_telemetry_record",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
+    "index_key": [
+      "vsys_id",
+      "job_id",
+      "recv_time",
+      "timestamp_us"
+    ],
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "recv_time",
+        "timestamp_us"
+      ]
+    }
+  },
+  "fields": [
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "timestamp_us",
+      "label": "Timestamp",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp_us"
+        },
+        "visibility": "enabled"
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp_us"
+      }
+    },
+    {
+      "name": "egress_action",
+      "label": "Egress Action",
+      "doc": {
+        "visibility": "enabled",
+        "data": [
+          {
+            "code": 0,
+            "value": "send"
+          },
+          {
+            "code": 1,
+            "value": "drop"
+          }
+        ]
+      },
+      "type": {
+        "type": "int"
+      }
+    },
+    {
+      "name": "job_id",
+      "label": "Job ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sled_ip",
+      "label": "Sled IP",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
+          "type": "ip"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "traffic_link_id",
+      "label": "Traffic Link ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "source_ip",
+      "label": "Source IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "source_port",
+      "label": "Source Port",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "destination_ip",
+      "label": "Destination IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "destination_port",
+      "label": "DestinationPort",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "packet",
+      "label": "Packet",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "packet_length",
+      "label": "Packet Length",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "measurements",
+      "label": "Measurements",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    }
+  ]
+}

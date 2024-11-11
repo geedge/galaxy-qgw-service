@@ -84,6 +84,13 @@ clickhouse:
     username: ENC(lgnlVXRIN8qNh+B0scCBKp9QMID22Nc7)
     pin: ENC(AkmSSo5VBw6TOz+AXhorb+tmuLn3WANm)
     socketTimeOut: 21700000
+## StarRocks configuration
+starRocks:
+  url: http://192.168.44.12:8061
+  username: root
+  pin:
+  dbname: tsg_olap
+  socketTimeOut: 120000
 ## Druid configuration
 druid:
   url: 127.0.0.1:8082/druid/v2/sql

@@ -1,0 +1,167 @@
+{
+  "CDN": {
+    "Akamai": [
+      "akadns.net",
+      "akagtm.org",
+      "akahost.net",
+      "akamai.com",
+      "akamaiedge.net",
+      "akamaiedge-staging.net",
+      "akamaientrypoint.net",
+      "akamaihd.net",
+      "akamai.net",
+      "akamaistream.net",
+      "akamaitech.net",
+      "akamaitechnologies.com",
+      "akamaitechnologies.fr",
+      "akamaized.net",
+      "akam.net",
+      "akasecure.net",
+      "edgekey.net",
+      "edgesuite.net"
+    ],
+    "Cloudflare": [
+      "cloudflareaccess.com",
+      "cloudflareclient.com",
+      "cloudflare.com",
+      "cloudflare-dm-cmpimg.com",
+      "cloudflareinsights.com",
+      "cloudflare-ipfs.com",
+      "cloudflare.net",
+      "cloudflareok.com",
+      "cloudflareportal.com",
+      "cloudflare-quic.com",
+      "cloudflareresolve.com",
+      "cloudflaressl.com",
+      "cloudflarestatus.com",
+      "cloudflare-terms-of-service-abuse.com",
+      "sn-cloudflare.com"
+    ],
+    "Google": [
+      "cache.google.com",
+      "googlevideo.com"
+    ],
+    "Amazon CloudFront": [
+      "cloudfront.net"
+    ],
+    "Fastly": [
+      "astly-analytics.com",
+      "fastly.com",
+      "fastly-debug.com",
+      "fastlydns.net",
+      "fastly-insights.com",
+      "fastly.io",
+      "fastlylabs.com",
+      "fastlylb.net",
+      "fastly.net",
+      "fastly-status.com",
+      "secretcdn-stg.net"
+    ],
+    "Bunny": [
+      "b-cdn.net",
+      "bunnyinfra.net",
+      "bunny.net"
+    ],
+    "G-Core": [
+      "gcdn.co",
+      "gcorelabs.com"
+    ],
+    "KeyCDN": [
+      "keycdn.com",
+      "kxcdn.com"
+    ],
+    "Alibaba": [
+      "alicdn.com"
+    ],
+    "Edgecast": [
+      "edgecastcdn.net",
+      "edgecast.com",
+      "edgecastdns.net",
+      "phicdn.net",
+      "verizondigitalmedia.com",
+      "verizonmedia.com"
+    ],
+    "Huawei": [
+      "cdnhwc1.com",
+      "cdnhwc2.com",
+      "cdnhwc3.com",
+      "cdnhwc5.com",
+      "cdnhwc6.com",
+      "cdnhwc7.com",
+      "cdnhwc8.com",
+      "livehwc3.cn"
+    ],
+    "Azure Front Door": [
+      "a-msedge.net",
+      "au-msedge.net",
+      "b-msedge.net",
+      "c-msedge.net",
+      "cn-msedge.net",
+      "dc-msedge.net",
+      "e-msedge.net",
+      "exo-msedge.net",
+      "fbs1-t-msedge.net",
+      "fbs2-a-msedge.net",
+      "fbs2-e-msedge.net",
+      "fb-t-msedge.net",
+      "f-msedge.net",
+      "k-msedge.net",
+      "l-msedge.net",
+      "m1-msedge.net",
+      "msedge.net",
+      "o-msedge.net",
+      "q-msedge.net",
+      "q-t-msedge.net",
+      "segment2-s-msedge.net",
+      "s-msedge.net",
+      "t-msedge.net"
+    ],
+    "BaishanCloud": [
+      "baishancloud.com"
+    ],
+    "CDN77": [
+      "cdn77.com",
+      "cdn77.org"
+    ],
+    "Limelight Networks": [
+      "delvenetworks.com",
+      "limelight.com",
+      "lldns.net",
+      "llnw.com",
+      "llnwd.net",
+      "llnwi.net",
+      "llnw.net",
+      "llnw-trials.com"
+    ],
+    "Lumen": [
+      "footprintdns.com",
+      "footprint.net"
+    ],
+    "Meta": [
+      "fbcdn.net"
+    ],
+    "StackPath": [
+      "highwinds.com",
+      "hwcdn.net",
+      "stackpath.com",
+      "stackpathedge.net"
+    ],
+    "Wangsu": [
+      "cdn20.com",
+      "cdn30.com",
+      "cdnetworks.com",
+      "cdnetworks.net",
+      "chinanetcenter.com",
+      "lxdns.com",
+      "quantil.com",
+      "wangsu.com",
+      "wscdns.com",
+      "wscloudcdn.com",
+      "wsdvs.com",
+      "wsglb0.com",
+      "wswebcdn.com",
+      "wswebpic.com",
+      "wtxcdn.com"
+    ]
+  }
+}

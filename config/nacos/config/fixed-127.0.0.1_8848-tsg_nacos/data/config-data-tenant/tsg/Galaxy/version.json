@@ -25,6 +25,11 @@
       "description": "Apache HBase is a distributed, scalable, NoSQL database built on top of the Hadoop Distributed File System (HDFS)."
     },
     {
+      "name": "StarRocks",
+      "version": "3.3",
+      "description": "StarRocks is a next-gen, high-performance analytical data warehouse that enables real-time, multi-dimensional, and highly concurrent data analysis."
+    },
+    {
       "name": "ClickHouse",
       "version": "23.3.19.32",
       "description": "ClickHouse is an open-source, columnar database management system designed for real-time analytical processing of large volumes of data."

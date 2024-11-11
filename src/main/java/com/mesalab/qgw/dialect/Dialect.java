@@ -23,6 +23,12 @@ public interface Dialect {
      * @return
      */
     BaseResult executeQuery();
+    /**
+     * Desc: DDL DESC/DESCRIBE
+     * @param
+     * @return {@link BaseResult}
+     */
+    BaseResult executeDesc(String table);
 
     /**
      * Shows the execution plan of a select statement.

@@ -30,10 +30,6 @@ public class NacosConst {
 
     public static final String DEFAULT_GROUP = "DEFAULT_GROUP";
 
-    public static final String CLICKHOUSE_GROUP = "CLICKHOUSE_GROUP";
-
-    public static final String DRUID_GROUP = "DRUID_GROUP";
-
     public static final String META_DATA_ID = "meta_data.json";
     public static final String SYSTEM_MANAGEMENT = "system_management.json";
     public static final String SYSTEM_MANAGEMENT_STORAGE_QUOTA = "storage_quota";

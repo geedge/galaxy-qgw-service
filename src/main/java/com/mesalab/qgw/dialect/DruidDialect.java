@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
+import com.mesalab.common.entity.SchemaBase;
 import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
@@ -122,6 +123,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
                     sampleSQL, sampleSQL = sqlQueryContext.getDbSelectStatement().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sampleSQL;
+    }
+
+    @Override
+    String getDescQuery(String table) {
+        return "SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "'";
     }
 
     @Override
@@ -278,6 +284,23 @@ public class DruidDialect extends AbstractDataSourceDialect {
         String queryType = QueryTypeHelper.determineQueryType(sqlQueryContext.getDbSelectStatement());
         Object param = QueryTypeHelper.determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
         return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schemaDataDict, param);
+    }
+
+    @Override
+    BaseResult encapsulateSchemaData(BaseResult baseResult, String table) {
+        SchemaBase schema = new SchemaBase();
+        schema.setName(table);
+        List<Map<String, Object>> fields = new ArrayList<>();
+        List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
+        for (Map<String, Object> resultMap : list) {
+            Map<String, Object> schemaMap = Maps.newHashMap();
+            schemaMap.put("name", resultMap.get("name"));
+            schemaMap.put("type", resultMap.get("type"));
+            fields.add(schemaMap);
+        }
+        schema.setFields(fields);
+        baseResult.setData(schema);
+        return baseResult;
     }
 
     /**

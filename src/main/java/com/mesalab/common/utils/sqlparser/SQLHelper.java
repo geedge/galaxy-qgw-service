@@ -22,6 +22,7 @@ import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,6 +118,8 @@ public class SQLHelper {
             return JdbcConstants.HIVE;
         } else if (DBEngineType.HBASE.getValue().equals(dbEngine)) {
             return JdbcConstants.MYSQL;
+        } else if (DBEngineType.STAR_ROCKS.getValue().equals(dbEngine)) {
+            return JdbcConstants.MYSQL;
         } else {
             return null;
         }
@@ -132,21 +135,14 @@ public class SQLHelper {
      * @date 2023/8/30 14:38
      */
     public static List<String> getTableName(String sql) {
-        List<String> result = Lists.newArrayList();
         try {
             Statement statement = CCJSqlParserUtil.parse(sql);
-            TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-            List<String> tableList = tablesNamesFinder.getTableList(statement);
-            tableList.forEach(o -> {
-                int i = o.lastIndexOf(".");
-                result.add(i < 0 ? o : o.substring(i + 1));
-            });
+            return getTableName(statement);
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
-        return result;
     }
 
     /**
@@ -159,9 +155,9 @@ public class SQLHelper {
      */
     public static List<String> getTableName(Statement statement) {
         List<String> result = Lists.newArrayList();
-        TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-        List<String> tableList = tablesNamesFinder.getTableList(statement);
-        tableList.forEach(o -> {
+        TablesNamesFinder<Void> tablesNamesFinder = new TablesNamesFinder<>();
+        Set<String> tables = tablesNamesFinder.getTables(statement);
+        tables.forEach(o -> {
             int i = o.lastIndexOf(".");
             result.add(i < 0 ? o : o.substring(i + 1));
         });

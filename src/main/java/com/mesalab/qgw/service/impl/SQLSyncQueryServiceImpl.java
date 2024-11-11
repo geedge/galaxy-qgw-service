@@ -59,7 +59,8 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
     @Override
     public BaseResult executeQuery(SQLQueryContext queryContext) {
-        checkQueryContextParam(queryContext);
+        initializeQueryContextParams(queryContext);
+        validateQueryContextParams(queryContext);
         parseAndSetConnectorType(queryContext);
         Statement statement;
         try {
@@ -89,22 +90,32 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         return baseResult;
     }
 
+    /**
+     * Desc: Sets the database engine and SQL dialect by parsing the table names from the SQL query.
+     *
+     * @param queryContext The context object containing the original SQL query.
+     * @created by wWei
+     * @date 2024/10/24 15:35
+     */
     private void parseAndSetConnectorType(SQLQueryContext queryContext) {
-        if (SQLHelper.getTableName(queryContext.getOriginalSQL()).isEmpty()) {
-            return;
+        List<String> tableList = SQLHelper.getTableName(queryContext.getOriginalSQL());
+        if (!tableList.isEmpty()) {
+            queryContext.setDbEngine(databaseService.getDBEngineByTableName(tableList.get(0)));
+            queryContext.setSqlDialect(SQLHelper.getDialectType(queryContext.getDbEngine()));
         }
-        String tableName = SQLHelper.getTableName(queryContext.getOriginalSQL()).get(0);
-        queryContext.setDbEngine(databaseService.getDBEngineByTableName(tableName));
-        queryContext.setSqlDialect(SQLHelper.getDialectType(queryContext.getDbEngine()));
     }
 
-    private void checkQueryContextParam(SQLQueryContext queryContext) {
+
+    private void initializeQueryContextParams(SQLQueryContext queryContext) {
         if (StringUtil.isBlank(queryContext.getOption())) {
             queryContext.setOption(QueryOption.REAL_TIME.getValue());
         }
         if (StringUtil.isBlank(queryContext.getFormat())) {
             queryContext.setFormat(OutputMode.JSON.getValue());
         }
+    }
+
+    private void validateQueryContextParams(SQLQueryContext queryContext) {
         if (StringUtil.isBlank(queryContext.getOriginalSQL())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_MUST_BE_EXISTS));
@@ -118,7 +129,6 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.FORMAT_TYPE_ERROR));
         }
     }
-
 
     /**
      * Desc: 简化JSQLParser语法异常信息
@@ -283,9 +293,8 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             } else if (statement instanceof ExplainStatement) {
                 selectStatement = ((ExplainStatement) statement).getStatement();
             } else {
-                log.error("Not support DML Parser");
-                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                log.warn(QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT);
+                return null;
             }
 
             sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
@@ -503,36 +512,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
      */
     private BaseResult executeDescStatement(SQLQueryContext queryContext, DescribeStatement statement) {
         String tableName = statement.getTable().getName();
-        String dbEngineType = queryContext.getDbEngine();
-        if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(dbEngineType)) {
-            queryContext.setDbEngine(DBEngineType.CLICKHOUSE.getValue());
-            queryContext.setSqlDialect(DBEngineType.CLICKHOUSE.getValue());
-        } else if (DBEngineType.DRUID.getValue().equalsIgnoreCase(dbEngineType)) {
-            queryContext.setDbEngine(DBEngineType.DRUID.getValue());
-            queryContext.setSqlDialect(DBEngineType.DRUID.getValue());
-            queryContext.setOriginalSQL("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
-        } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(dbEngineType)) {
-            queryContext.setDbEngine(DBEngineType.HBASE.getValue());
-            queryContext.setSqlDialect(DBEngineType.HBASE.getValue());
-            queryContext.setOriginalSQL(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
-        } else {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),
-                            tableName + ":" + QGWMessageConst.TABLE_NOT_EXIST));
-        }
-
-        queryContext.setFormat(OutputMode.JSON.getValue());
-        SelectStatement dbSelectStatement = new SelectStatement();
-        dbSelectStatement.setSqlBody(queryContext.getOriginalSQL());
-        queryContext.setDbSelectStatement(dbSelectStatement);
-        Dialect dialect = getReflectiveDialectObject(queryContext);
-        BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), queryContext);
-
-        if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.CHECK_TABLE));
-        }
-        return baseResult;
+        return getDialect(queryContext).executeDesc(tableName);
     }
 
     private BaseResult executeExplainStatement(SQLQueryContext param) {
@@ -606,30 +586,6 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         });
 
         return BaseResultGenerator.success("ok", dataMap);
-    }
-
-
-    /**
-     * 表描述信息结果封装
-     *
-     * @param result
-     * @param param
-     * @return
-     */
-    public BaseResult dataEncapsulationOfSchema(BaseResult result, SQLQueryContext param) {
-        SchemaBase schema = new SchemaBase();
-        schema.setName(SQLHelper.getTableName(param.getOriginalSQL()).get(0));
-        List<Map> fields = new ArrayList<>();
-        List<Map> list = (List<Map>) result.getData();
-        for (Map resultMap : list) {
-            Map schemaMap = Maps.newHashMap();
-            schemaMap.put("name", resultMap.get("name"));
-            schemaMap.put("type", resultMap.get("type"));
-            fields.add(schemaMap);
-        }
-        schema.setFields(fields);
-        result.setData(schema);
-        return result;
     }
 
     /**

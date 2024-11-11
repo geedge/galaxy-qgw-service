@@ -14,6 +14,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
+import com.mesalab.common.entity.SchemaBase;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
@@ -66,25 +67,25 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private final static double PERCENT_DOWN_LINE = 0.01;
     private final static String DB_EXCEPTION_START = "e.displayText() = DB::Exception: ";
 
-    private final static Map<String, String> metaMap = Maps.newHashMap();
+    private final static Map<String, String> META_MAP = Maps.newHashMap();
 
     static {
         //实际Int128、Int256、UInt64、UInt256的最大值已经超过long最大值
-        metaMap.put("Int8", DataTypeMapping.INT);
-        metaMap.put("Int16", DataTypeMapping.INT);
-        metaMap.put("Int32", DataTypeMapping.INT);
-        metaMap.put("Int64", DataTypeMapping.LONG);
-        metaMap.put("Int128", DataTypeMapping.LONG);
-        metaMap.put("Int256", DataTypeMapping.LONG);
-        metaMap.put("UInt8", DataTypeMapping.INT);
-        metaMap.put("UInt16", DataTypeMapping.INT);
-        metaMap.put("UInt32", DataTypeMapping.LONG);
-        metaMap.put("UInt64", DataTypeMapping.LONG);
-        metaMap.put("UInt256", DataTypeMapping.LONG);
-        metaMap.put("Float32", DataTypeMapping.FLOAT);
-        metaMap.put("Float64", DataTypeMapping.DOUBLE);
-        metaMap.put("Date", DataTypeMapping.DATE);
-        metaMap.put("DateTime", DataTypeMapping.TIMESTAMP);
+        META_MAP.put("Int8", DataTypeMapping.INT);
+        META_MAP.put("Int16", DataTypeMapping.INT);
+        META_MAP.put("Int32", DataTypeMapping.INT);
+        META_MAP.put("Int64", DataTypeMapping.LONG);
+        META_MAP.put("Int128", DataTypeMapping.LONG);
+        META_MAP.put("Int256", DataTypeMapping.LONG);
+        META_MAP.put("UInt8", DataTypeMapping.INT);
+        META_MAP.put("UInt16", DataTypeMapping.INT);
+        META_MAP.put("UInt32", DataTypeMapping.LONG);
+        META_MAP.put("UInt64", DataTypeMapping.LONG);
+        META_MAP.put("UInt256", DataTypeMapping.LONG);
+        META_MAP.put("Float32", DataTypeMapping.FLOAT);
+        META_MAP.put("Float64", DataTypeMapping.DOUBLE);
+        META_MAP.put("Date", DataTypeMapping.DATE);
+        META_MAP.put("DateTime", DataTypeMapping.TIMESTAMP);
     }
 
     public ClickHouseDialect(SQLQueryContext queryContext) {
@@ -137,6 +138,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     sampleSQL, sampleSQL = sqlQueryContext.getDbSelectStatement().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sampleSQL;
+    }
+
+    @Override
+    String getDescQuery(String table) {
+        return "DESC " + table;
     }
 
     @Override
@@ -218,7 +224,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (matcher.find()) {
                 type = matcher.group(1);
             }
-            x.put("type", metaMap.get(type) == null ? DataTypeMapping.STRING : metaMap.get(type));
+            x.put("type", META_MAP.getOrDefault(type, DataTypeMapping.STRING));
         });
         return metaList;
     }
@@ -852,6 +858,23 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schemaDataDict, param);
     }
 
+    @Override
+    BaseResult encapsulateSchemaData(BaseResult baseResult, String table) {
+        SchemaBase schema = new SchemaBase();
+        schema.setName(table);
+        List<Map<String, Object>> fields = new ArrayList<>();
+        List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
+        for (Map<String, Object> resultMap : list) {
+            Map<String, Object> schemaMap = Maps.newHashMap();
+            schemaMap.put("name", resultMap.get("name"));
+            schemaMap.put("type", resultMap.get("type"));
+            fields.add(schemaMap);
+        }
+        schema.setFields(fields);
+        baseResult.setData(schema);
+        return baseResult;
+    }
+
     private boolean containAggregateFunction(String sql) {
         return (SQLFunctionUtil.pAggregateFunStandard.matcher(sql).find()
                 || pAggregateFunSpecificOfCK.matcher(sql).find());
@@ -873,7 +896,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private String convertSampleSql(String sql) throws JSQLParserException {
+    private String  convertSampleSql(String sql) throws JSQLParserException {
         return new SampleSQLHelper(sql, " 1 != 1 ", false, null).build();
     }
 

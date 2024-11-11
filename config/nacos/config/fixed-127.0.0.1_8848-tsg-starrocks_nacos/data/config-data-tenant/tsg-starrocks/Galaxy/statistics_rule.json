@@ -1,0 +1,547 @@
+{
+  "type": "record",
+  "name": "statistics_rule",
+  "namespace": "tsg_olap",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_uuid",
+        "template_uuid",
+        "chart_uuid",
+        "version",
+        "client_ip",
+        "server_ip",
+        "client_country",
+        "server_country",
+        "client_asn",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "app",
+        "app_category",
+        "c2s_ttl",
+        "s2c_ttl",
+        "c2s_link_id",
+        "s2c_link_id",
+        "client_port",
+        "server_port",
+        "ssl_ja3_hash",
+        "http_host",
+        "ssl_sni",
+        "subscriber_id",
+        "decoded_as",
+        "sled_ip",
+        "flags",
+        "direction"
+      ],
+      "metrics": [
+        "count_1",
+        "count_2",
+        "count_3",
+        "count_4",
+        "unique_count_1",
+        "unique_count_2",
+        "unique_count_3",
+        "unique_count_4",
+        "distribution_1",
+        "distribution_2",
+        "distribution_3",
+        "distribution_4"
+      ],
+      "filters": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_uuid",
+        "template_uuid",
+        "chart_uuid",
+        "version"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "retentions": "1s:1d,1m:1800d",
+      "ingestion_delay": 15
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "rule_uuid",
+      "label": "Rule",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "template_uuid",
+      "label": "Template UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "chart_uuid",
+      "label": "Chart UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "version",
+      "label": "Version",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "client_ip_object_list",
+      "label": "Client IP Matched Objects",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip_object_list",
+      "label": "Server IP Matched Objects",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "fqdn_category_list",
+      "label": "WebSketch Categories",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip",
+      "label": "Client IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip",
+      "label": "Server IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_country",
+      "label": "Client Country",
+      "doc": {
+        "constraints": {
+          "type": "country"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_country",
+      "label": "Server Country",
+      "doc": {
+        "constraints": {
+          "type": "country"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_asn",
+      "label": "Client ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_asn",
+      "label": "Server ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "constraints": {
+          "type": "fqdn"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "constraints": {
+          "type": "domain"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app",
+      "label": "Application",
+      "doc": {
+        "constraints": {
+          "type": "app"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_category",
+      "label": "Application Category",
+      "doc": {
+        "constraints": {
+          "type": "app"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "c2s_ttl",
+      "label": "Client-to-Server TTL",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_ttl",
+      "label": "Server-to-Client TTL",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_link_id",
+      "label": "Client-to-Server Link ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_link_id",
+      "label": "Server-to-Client Link ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "client_port",
+      "label": "Client Port",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_port",
+      "label": "Server Port",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "label": "SSL JA3 Hash",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_host",
+      "label": "HTTP Host",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL SNI",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "subscriber_id",
+      "label": "Subscriber ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "decoded_as",
+      "label": "Decoded AS",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sled_ip",
+      "label": "Sled IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "flags",
+      "label": "Flags",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "count_1",
+      "label": "First Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "count_2",
+      "label": "Second Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "count_3",
+      "label": "Third Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "count_4",
+      "label": "Fourth Count",
+      "doc": {
+        "metric_type": "count",
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "unique_count_1",
+      "label": "First Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "unique_count_2",
+      "label": "Second Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "unique_count_3",
+      "label": "Third Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "unique_count_4",
+      "label": "Fourth Unique Count",
+      "doc": {
+        "type": "HLLDSketchMerge",
+        "metric_type": "unique_count",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_1",
+      "label": "First Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_2",
+      "label": "Second Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_3",
+      "label": "Third Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "distribution_4",
+      "label": "Fourth Distribution",
+      "doc": {
+        "type": "HdrHistogramSketchMerge",
+        "metric_type": "distribution",
+        "visibility": "enabled"
+      },
+      "type": "string"
+    }
+  ]
+}

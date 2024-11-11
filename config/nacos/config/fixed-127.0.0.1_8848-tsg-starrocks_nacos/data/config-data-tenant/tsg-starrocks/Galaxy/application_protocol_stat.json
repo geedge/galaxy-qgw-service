@@ -1,0 +1,392 @@
+{
+  "type": "record",
+  "name": "application_protocol_stat",
+  "namespace": "tsg_olap",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "app_name"
+      ],
+      "metrics": [
+        "sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "c2s_pkts",
+        "s2c_pkts",
+        "c2s_bytes",
+        "s2c_bytes"
+      ],
+      "filters": [
+        "device_group",
+        "data_center",
+        "app_name"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "retentions": "1s:7d,1m:1800d",
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sessions": "sessions",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets",
+          "c2s_bytes": "bytes",
+          "s2c_bytes": "bytes",
+          "c2s_pkts": "packets",
+          "s2c_pkts": "packets"
+        },
+        "RATE": {
+          "sessions": "sps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps",
+          "c2s_bytes": "Bps",
+          "s2c_bytes": "Bps",
+          "c2s_pkts": "pps",
+          "s2c_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps",
+          "c2s_bytes": "bps",
+          "s2c_bytes": "bps"
+        }
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "protocol_stack_id",
+      "label": "Protocol Stack ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_name",
+      "label": "App Name",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in,notEmpty,empty"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkts",
+      "label": "Packets Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkts",
+      "label": "Packets Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_bytes",
+      "label": "Bytes Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_bytes",
+      "label": "Bytes Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_fragments",
+      "label": "Fragmentation Packets(c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_fragments",
+      "label": "Fragmentation Packets(s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_lost_bytes",
+      "label": "Sequence Gap Loss(c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_lost_bytes",
+      "label": "Sequence Gap Loss(s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_ooorder_pkts",
+      "label": "TCP out-of-order Packets(c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_ooorder_pkts",
+      "label": "TCP out-of-order Packets(s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_retransmitted_pkts",
+      "label": "TCP Retransmission Packets(c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_retransmitted_pkts",
+      "label": "TCP Retransmission Packets(s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_retransmitted_bytes",
+      "label": "TCP Retransmission Bytes(c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_retransmitted_bytes",
+      "label": "TCP Retransmission Bytes(s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

@@ -1,0 +1,347 @@
+{
+  "type": "record",
+  "name": "dos_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
+    "ttl": null,
+    "default_ttl": 2592000,
+    "index_key": [
+      "vsys_id",
+      "destination_ip",
+      "recv_time",
+      "log_id"
+    ],
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "recv_time",
+        "start_time",
+        "end_time"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "default_columns": [
+      "log_id",
+      "rule_uuid",
+      "attack_type",
+      "source_ip",
+      "destination_ip",
+      "severity",
+      "start_time",
+      "end_time",
+      "packet_rate",
+      "bit_rate",
+      "session_rate"
+    ],
+    "internal_columns": [
+      "recv_time",
+      "log_id"
+    ],
+    "measurements": {
+      "field_discovery_metric": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "log_id",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ]
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "start_time",
+      "label": "Start Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "end_time",
+      "label": "End Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "rule_id",
+      "label": "Rule ID(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "rule_uuid",
+      "label": "Rule UUID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "attack_type",
+      "label": "Attack Type(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": [
+          {
+            "code": "TCP SYN Flood",
+            "value": "TCP SYN Flood"
+          },
+          {
+            "code": "UDP Flood",
+            "value": "UDP Flood"
+          },
+          {
+            "code": "ICMP Flood",
+            "value": "ICMP Flood"
+          },
+          {
+            "code": "DNS Flood",
+            "value": "DNS Flood"
+          },
+          {
+            "code": "NTP Flood",
+            "value": "NTP Flood"
+          },
+          {
+            "code": "Custom Network Attack",
+            "value": "Custom Network Attack"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "label": "Severity(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": [
+          {
+            "code": "Critical",
+            "value": "Critical"
+          },
+          {
+            "code": "Severe",
+            "value": "Severe"
+          },
+          {
+            "code": "Major",
+            "value": "Major"
+          },
+          {
+            "code": "Warning",
+            "value": "Warning"
+          },
+          {
+            "code": "Minor",
+            "value": "Minor"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "conditions",
+      "label": "Conditions(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "destination_ip",
+      "label": "Destination IP",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "destination_country",
+      "label": "Destination Country",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "source_ip",
+      "label": "Source IP",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },{
+      "name": "source_country",
+      "label": "Source Country",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },{
+      "name": "source_ip_list",
+      "label": "Source IP List(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "source_country_list",
+      "label": "Source Country List(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "session_rate",
+      "label": "Sessions/s",
+      "doc": {
+        "constraints": {
+          "type": "sessions/sec"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "double"
+    },
+    {
+      "name": "packets",
+      "label": "Packets",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "packet_rate",
+      "label": "Packets/s",
+      "doc": {
+        "constraints": {
+          "type": "packets/sec"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "double"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "bit_rate",
+      "label": "Bits/s",
+      "doc": {
+        "constraints": {
+          "type": "bits/sec"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "double"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "product": "TSG OLAP",
+  "version": "24.10",
+  "registered": "Geedge Networks",
+  "updated": "2024-08-05 12:00:00",
+  "components": [
+    {
+      "name": "Apache Zookeeper",
+      "version": "3.5.9",
+      "description": "Apache ZooKeeper is a distributed coordination service designed to manage and synchronize large-scale distributed systems."
+    },
+    {
+      "name": "Apache Kafka",
+      "version": "3.4.1",
+      "description": "Apache Kafka is a high-throughput, distributed messaging system designed for real-time data streaming and processing."
+    },
+    {
+      "name": "Flink on Yarn",
+      "version": "2.7.1-1.13.1",
+      "description": "Running Apache Flink on YARN (Yet Another Resource Negotiator) involves deploying and managing Flink jobs in a Hadoop ecosystem."
+    },
+    {
+      "name": "Apache HBase",
+      "version": "2.2.3",
+      "description": "Apache HBase is a distributed, scalable, NoSQL database built on top of the Hadoop Distributed File System (HDFS)."
+    },
+    {
+      "name": "StarRocks",
+      "version": "3.3",
+      "description": "StarRocks is a next-gen, high-performance analytical data warehouse that enables real-time, multi-dimensional, and highly concurrent data analysis."
+    },
+    {
+      "name": "ClickHouse",
+      "version": "23.3.19.32",
+      "description": "ClickHouse is an open-source, columnar database management system designed for real-time analytical processing of large volumes of data."
+    },
+    {
+      "name": "Apache Druid",
+      "version": "26.0.0",
+      "description": "Apache Druid is a high-performance, real-time analytics database designed for fast, interactive queries on large-scale data."
+    },
+    {
+      "name":"Nacos",
+      "version": "2.0.2",
+      "description": "Nacos (Naming and Configuration Service) is an open-source platform designed for dynamic service discovery, configuration management, and service management in microservices architectures."
+    },
+    {
+      "name": "HOS",
+      "version": "2.3.0",
+      "description": "HOS is a distributed object storage service designed for storing and managing large volumes of unstructured data."
+    },
+    {
+      "name": "XXL-JOB",
+      "version": "2.2.0",
+      "description": "XXL-JOB is a distributed task scheduling platform designed for managing and executing batch jobs in a distributed environment."
+    },
+    {
+      "name": "MariaDB",
+      "version": "10.5.3",
+      "description": "MariaDB is an open-source relational database management system designed for high-performance, scalable, and secure data storage."
+    },
+    {
+      "name":"ArangoDB",
+      "version": "3.6.4",
+      "description": "ArangoDB is a graph database management system designed for storing, querying, and analyzing graph data."
+    }
+  ]
+}

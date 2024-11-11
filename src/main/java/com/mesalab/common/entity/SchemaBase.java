@@ -19,7 +19,7 @@ public class SchemaBase implements Serializable {
     private String type;
     private String name;
     private String namespace;
-    private List<Map> fields;
+    private List<Map<String, Object>> fields;
 
     public String getNamespace() {
         return namespace = "com.zdjizhi";

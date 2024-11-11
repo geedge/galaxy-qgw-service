@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.util.StrUtil;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -7,6 +8,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
+import com.mesalab.common.entity.SchemaBase;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -123,6 +125,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
+    String getDescQuery(String table) {
+        return StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL"
+                , table);
+    }
+
+    @Override
     String getExplainQuery() {
         throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                 String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.HBASE_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
@@ -145,6 +153,23 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     @Override
     List<Object> buildExampleData() {
         return baseResult.getData() != null ? (List<Object>) baseResult.getData() : null;
+    }
+
+    @Override
+    BaseResult encapsulateSchemaData(BaseResult baseResult, String table) {
+        SchemaBase schema = new SchemaBase();
+        schema.setName(table);
+        List<Map<String, Object>> fields = new ArrayList<>();
+        List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
+        for (Map<String, Object> resultMap : list) {
+            Map<String, Object> schemaMap = Maps.newHashMap();
+            schemaMap.put("name", resultMap.get("name"));
+            schemaMap.put("type", resultMap.get("type"));
+            fields.add(schemaMap);
+        }
+        schema.setFields(fields);
+        baseResult.setData(schema);
+        return baseResult;
     }
 
     @Override

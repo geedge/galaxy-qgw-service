@@ -1,0 +1,132 @@
+{
+  "type": "record",
+  "name": "assessment_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
+    "index_key": [
+      "vsys_id",
+      "recv_time",
+      "log_id"
+    ],
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "recv_time",
+        "assessment_date"
+      ]
+    }
+  },
+  "fields": [
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "lot_number",
+      "label": "Lot Number",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "file_name",
+      "label": "File Name",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "features",
+      "label": "Features",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "assessment_type",
+      "label": "Assessment Type",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "size",
+      "label": "Size",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "file_checksum_sha",
+      "label": "SHA256",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "assessment_date",
+      "label": "Assessment Date",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "assessment_file",
+      "label": "Assessment File",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    }
+  ]
+}

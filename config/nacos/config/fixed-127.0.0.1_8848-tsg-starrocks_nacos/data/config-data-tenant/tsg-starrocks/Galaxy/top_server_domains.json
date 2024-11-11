@@ -1,0 +1,258 @@
+{
+  "type": "record",
+  "name": "top_server_domains",
+  "namespace": "tsg_olap",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "server_domain"
+      ],
+      "metrics": [
+        "sessions",
+        "bytes",
+        "in_bytes",
+        "out_bytes",
+        "pkts",
+        "in_pkts",
+        "out_pkts"
+      ],
+      "filters": [
+        "rank_by",
+        "device_group",
+        "data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+     "retentions": "1m:1800d",
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sessions": "sessions",
+          "bytes": "bytes",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "pkts": "packets",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "sessions": "sps",
+          "bytes": "Bps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "pkts": "pps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "bytes": "bps",
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "rank_by",
+      "label": "Rank",
+      "doc": {
+        "constraints": {
+          "operator_functions": "="
+        },
+        "data": [
+          {
+            "code": "bytes",
+            "value": "Bytes"
+          },
+          {
+            "code": "sessions",
+            "value": "Sessions"
+          },
+          {
+            "code": "packets",
+            "value": "Packets"
+          }
+        ],
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "constraints": {
+          "type": "domain"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "pkts",
+      "label": "Packets",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "count",
+          "aggregation_functions": "SUM, RATE"
+        }
+      },
+      "type": "long"
+    }
+  ]
+}

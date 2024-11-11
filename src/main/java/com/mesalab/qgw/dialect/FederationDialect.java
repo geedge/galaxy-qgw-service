@@ -102,6 +102,11 @@ public class FederationDialect extends AbstractEngineDialect {
     }
 
     @Override
+    public BaseResult executeDesc(String table) {
+        return null;
+    }
+
+    @Override
     final public BaseResult executeKillQuery(String queryId) {
         return null;
     }

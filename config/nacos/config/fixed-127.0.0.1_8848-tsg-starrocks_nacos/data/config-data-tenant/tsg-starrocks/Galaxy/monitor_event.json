@@ -1,0 +1,4100 @@
+{
+  "type": "record",
+  "name": "monitor_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ],
+    "ttl": null,
+    "default_ttl": 2592000,
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "recv_time",
+        "start_timestamp_ms",
+        "end_timestamp_ms",
+        "processing_time",
+        "ingestion_time",
+        "insert_time"
+      ],
+      "dimensions": [
+        "session_id",
+        "device_id",
+        "out_link_id",
+        "in_link_id",
+        "data_center",
+        "sled_ip",
+        "device_group",
+        "address_type",
+        "decoded_as",
+        "direction",
+        "vsys_id",
+        "flags",
+        "flags_identify_info",
+        "c2s_ttl",
+        "s2c_ttl",
+        "monitor_rule_list",
+        "monitor_rule_uuid_list",
+        "client_ip",
+        "client_ip_tags",
+        "client_port",
+        "client_os_desc",
+        "client_geolocation",
+        "client_country",
+        "client_super_administrative_area",
+        "client_administrative_area",
+        "client_sub_administrative_area",
+        "client_asn",
+        "subscriber_id",
+        "imei",
+        "imsi",
+        "apn",
+        "phone_number",
+        "packet_capture_file",
+        "in_src_mac",
+        "out_src_mac",
+        "server_ip",
+        "server_ip_tags",
+        "server_port",
+        "server_os_desc",
+        "server_geolocation",
+        "server_country",
+        "server_super_administrative_area",
+        "server_administrative_area",
+        "server_sub_administrative_area",
+        "server_asn",
+        "server_fqdn",
+        "server_fqdn_tags",
+        "server_domain",
+        "in_dest_mac",
+        "out_dest_mac",
+        "app_transition",
+        "app",
+        "app_category",
+        "app_debug_info",
+        "app_content",
+        "app_extra_info",
+        "ip_protocol",
+        "decoded_path",
+        "dup_traffic_flag",
+        "tunnel_id_list",
+        "tunnel_uuid_list",
+        "tunnel_endpoint_a_desc",
+        "tunnel_endpoint_b_desc",
+        "http_url",
+        "http_host",
+        "http_request_line",
+        "http_response_line",
+        "http_proxy_flag",
+        "http_sequence",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
+        "http_version",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "http_action_file_size",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_password",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_subject_charset",
+        "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_eml_file",
+        "mail_starttls_flag",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_aa",
+        "dns_tc",
+        "dns_rd",
+        "dns_ra",
+        "dns_rcode",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_cname",
+        "dns_sub",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
+        "dtls_cookie",
+        "dtls_version",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_handshake_latency_ms",
+        "dtls_ja3_fingerprint",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject",
+        "quic_sni",
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye",
+        "sip_bye_reason",
+        "ssh_version",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "rtp_originator_dir",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "stratum_mining_subscribe",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_desktop_width",
+        "rdp_desktop_height",
+        "rdp_requested_color_depth",
+        "rdp_certificate_type",
+        "rdp_certificate_count",
+        "rdp_certificate_permanent",
+        "rdp_encryption_level",
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "internal_port_list",
+        "external_port_list",
+        "internal_asn_list",
+        "external_asn_list",
+        "monitor_rule_id",
+        "monitor_rule_uuid"
+      ],
+      "metrics": [
+        "log_id",
+        "c2s_ttl",
+        "s2c_ttl",
+        "client_ip",
+        "client_port",
+        "client_geolocation",
+        "client_country",
+        "client_super_administrative_area",
+        "client_administrative_area",
+        "client_sub_administrative_area",
+        "client_asn",
+        "subscriber_id",
+        "imei",
+        "imsi",
+        "apn",
+        "phone_number",
+        "in_src_mac",
+        "out_src_mac",
+        "server_ip",
+        "server_port",
+        "server_geolocation",
+        "server_country",
+        "server_super_administrative_area",
+        "server_administrative_area",
+        "server_sub_administrative_area",
+        "server_asn",
+        "server_fqdn",
+        "server_domain",
+        "in_dest_mac",
+        "out_dest_mac",
+        "app",
+        "app_category",
+        "decoded_path",
+        "sent_pkts",
+        "received_pkts",
+        "sent_bytes",
+        "received_bytes",
+        "duration_ms",
+        "tcp_handshake_latency_ms",
+        "tcp_c2s_ip_fragments",
+        "tcp_s2c_ip_fragments",
+        "tcp_c2s_lost_bytes",
+        "tcp_s2c_lost_bytes",
+        "tcp_c2s_o3_pkts",
+        "tcp_s2c_o3_pkts",
+        "tcp_c2s_rtx_pkts",
+        "tcp_s2c_rtx_pkts",
+        "tcp_c2s_rtx_bytes",
+        "tcp_s2c_rtx_bytes",
+        "tcp_rtt_ms",
+        "tcp_client_isn",
+        "tcp_server_isn",
+        "http_url",
+        "http_host",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_response_content_length",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_attachment_name",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_aa",
+        "dns_rd",
+        "dns_ra",
+        "dns_rcode",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_qname",
+        "dns_cname",
+        "dns_response_latency_ms",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_handshake_latency_ms",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_handshake_latency_ms",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject",
+        "quic_sni",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "sip_call_id",
+        "sip_server",
+        "ssh_hassh"
+      ],
+      "filters": [
+        "session_id",
+        "start_timestamp_ms",
+        "end_timestamp_ms",
+        "duration_ms",
+        "tcp_handshake_latency_ms",
+        "processing_time",
+        "ingestion_time",
+        "device_id",
+        "out_link_id",
+        "in_link_id",
+        "data_center",
+        "sled_ip",
+        "device_group",
+        "address_type",
+        "decoded_as",
+        "direction",
+        "vsys_id",
+        "flags",
+        "flags_identify_info",
+        "c2s_ttl",
+        "s2c_ttl",
+        "monitor_rule_list",
+        "monitor_rule_uuid_list",
+        "monitor_mirrored_pkts",
+        "monitor_mirrored_bytes",
+        "client_ip",
+        "client_ip_tags",
+        "client_port",
+        "client_os_desc",
+        "client_geolocation",
+        "client_country",
+        "client_super_administrative_area",
+        "client_administrative_area",
+        "client_sub_administrative_area",
+        "client_asn",
+        "subscriber_id",
+        "imei",
+        "imsi",
+        "apn",
+        "phone_number",
+        "in_src_mac",
+        "out_src_mac",
+        "server_ip",
+        "server_ip_tags",
+        "server_port",
+        "server_os_desc",
+        "server_geolocation",
+        "server_country",
+        "server_super_administrative_area",
+        "server_administrative_area",
+        "server_sub_administrative_area",
+        "server_asn",
+        "server_fqdn",
+        "server_fqdn_tags",
+        "server_domain",
+        "in_dest_mac",
+        "out_dest_mac",
+        "app_transition",
+        "app_debug_info",
+        "app",
+        "app_category",
+        "app_content",
+        "app_extra_info",
+        "dup_traffic_flag",
+        "tunnel_id_list",
+        "tunnel_uuid_list",
+        "tunnel_endpoint_a_desc",
+        "tunnel_endpoint_b_desc",
+        "ip_protocol",
+        "decoded_path",
+        "fqdn_category_list",
+        "sent_pkts",
+        "received_pkts",
+        "sent_bytes",
+        "received_bytes",
+        "tcp_c2s_ip_fragments",
+        "tcp_s2c_ip_fragments",
+        "tcp_c2s_lost_bytes",
+        "tcp_s2c_lost_bytes",
+        "tcp_c2s_o3_pkts",
+        "tcp_s2c_o3_pkts",
+        "tcp_c2s_rtx_pkts",
+        "tcp_s2c_rtx_pkts",
+        "tcp_c2s_rtx_bytes",
+        "tcp_s2c_rtx_bytes",
+        "tcp_rtt_ms",
+        "http_url",
+        "http_host",
+        "http_request_line",
+        "http_response_line",
+        "http_proxy_flag",
+        "http_sequence",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
+        "http_version",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "http_action_file_size",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_password",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_subject_charset",
+        "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_eml_file",
+        "mail_starttls_flag",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_aa",
+        "dns_rd",
+        "dns_ra",
+        "dns_rcode",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_qdcount",
+        "dns_ancount",
+        "dns_nscount",
+        "dns_arcount",
+        "dns_qname",
+        "dns_cname",
+        "dns_sub",
+        "dns_rr",
+        "dns_response_latency_ms",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_handshake_latency_ms",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
+        "dtls_cookie",
+        "dtls_version",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_handshake_latency_ms",
+        "dtls_ja3_fingerprint",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject",
+        "quic_sni",
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_originator_sdp_content",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye",
+        "sip_bye_reason",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "rtp_originator_dir",
+        "ssh_version",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "stratum_mining_subscribe",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_desktop_width",
+        "rdp_desktop_height",
+        "rdp_requested_color_depth",
+        "rdp_certificate_type",
+        "rdp_certificate_count",
+        "rdp_certificate_permanent",
+        "rdp_encryption_level",
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "internal_port_list",
+        "external_port_list",
+        "internal_asn_list",
+        "external_asn_list",
+        "monitor_rule_id",
+        "monitor_rule_uuid"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      },
+      "details": {
+        "general": {
+          "$ref": "public_schema_info.json#/details/general"
+        },
+        "treatment": {
+          "$ref": "public_schema_info.json#/details/treatment"
+        },
+        "source": {
+          "$ref": "public_schema_info.json#/details/source"
+        },
+        "destination": {
+          "$ref": "public_schema_info.json#/details/destination"
+        },
+        "application": {
+          "$ref": "public_schema_info.json#/details/application"
+        },
+        "protocol": [
+          "ip_protocol",
+          "decoded_path",
+          "dns_message_id",
+          "dns_qr",
+          "dns_opcode",
+          "dns_aa",
+          "dns_tc",
+          "dns_rd",
+          "dns_ra",
+          "dns_rcode",
+          "dns_qdcount",
+          "dns_ancount",
+          "dns_nscount",
+          "dns_arcount",
+          "dns_qname",
+          "dns_qtype",
+          "dns_qclass",
+          "dns_cname",
+          "dns_sub",
+          "dns_rr",
+          "dns_response_latency_ms",
+          "dtls_cookie",
+          "dtls_version",
+          "dtls_sni",
+          "dtls_san",
+          "dtls_cn",
+          "dtls_handshake_latency_ms",
+          "dtls_ja3_fingerprint",
+          "dtls_ja3_hash",
+          "dtls_cert_issuer",
+          "dtls_cert_subject",
+          "ftp_account",
+          "ftp_url",
+          "ftp_link_type",
+          "http_url",
+          "http_host",
+          "http_request_line",
+          "http_response_line",
+          "http_request_content_length",
+          "http_request_content_type",
+          "http_response_content_length",
+          "http_response_content_type",
+          "http_request_body",
+          "http_response_body",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_set_cookie",
+          "http_version",
+          "http_status_code",
+          "http_response_latency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size",
+          "mail_protocol_type",
+          "mail_account",
+          "mail_from_cmd",
+          "mail_to_cmd",
+          "mail_from",
+          "mail_password",
+          "mail_to",
+          "mail_cc",
+          "mail_bcc",
+          "mail_subject",
+          "mail_subject_charset",
+          "mail_attachment_name",
+          "mail_attachment_name_charset",
+          "mail_eml_file",
+          "mail_starttls_flag",
+          "quic_version",
+          "quic_sni",
+          "quic_user_agent",
+          "rdp_cookie",
+          "rdp_security_protocol",
+          "rdp_client_channels",
+          "rdp_keyboard_layout",
+          "rdp_client_version",
+          "rdp_client_name",
+          "rdp_client_product_id",
+          "rdp_desktop_width",
+          "rdp_desktop_height",
+          "rdp_requested_color_depth",
+          "rdp_certificate_type",
+          "rdp_certificate_count",
+          "rdp_certificate_permanent",
+          "rdp_encryption_level",
+          "rdp_encryption_method",
+          "ssh_version",
+          "ssh_auth_success",
+          "ssh_client_version",
+          "ssh_server_version",
+          "ssh_cipher_alg",
+          "ssh_mac_alg",
+          "ssh_compression_alg",
+          "ssh_kex_alg",
+          "ssh_host_key_alg",
+          "ssh_host_key",
+          "ssh_hassh",
+          "ssl_version",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_handshake_latency_ms",
+          "ssl_ja3_hash",
+          "ssl_ja3s_hash",
+          "ssl_ja4_fingerprint",
+          "ssl_ja4s_fingerprint",
+          "ssl_cert_issuer",
+          "ssl_cert_subject",
+          "ssl_esni_flag",
+          "ssl_ech_flag",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye",
+          "sip_bye_reason",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir",
+          "stratum_cryptocurrency",
+          "stratum_mining_pools",
+          "stratum_mining_program",
+          "stratum_mining_subscribe"
+        ],
+        "transmission": {
+          "$ref": "public_schema_info.json#/details/transmission"
+        },
+        "other": {
+          "$ref": "public_schema_info.json#/details/other"
+        }
+      }
+    },
+    "decoded_as": {
+      "BASE": {
+        "$ref": "public_schema_info.json#/decoded_as/BASE"
+      },
+      "HTTP": {
+        "$ref": "public_schema_info.json#/decoded_as/HTTP"
+      },
+      "MAIL": {
+        "$ref": "public_schema_info.json#/decoded_as/MAIL"
+      },
+      "DNS": {
+        "$ref": "public_schema_info.json#/decoded_as/DNS"
+      },
+      "SSL": {
+        "$ref": "public_schema_info.json#/decoded_as/SSL"
+      },
+      "DTLS": {
+        "$ref": "public_schema_info.json#/decoded_as/DTLS"
+      },
+      "QUIC": {
+        "$ref": "public_schema_info.json#/decoded_as/QUIC"
+      },
+      "FTP": {
+        "$ref": "public_schema_info.json#/decoded_as/FTP"
+      },
+      "SIP": {
+        "$ref": "public_schema_info.json#/decoded_as/SIP"
+      },
+      "RTP": {
+        "$ref": "public_schema_info.json#/decoded_as/RTP"
+      },
+      "RDP": {
+        "$ref": "public_schema_info.json#/decoded_as/RDP"
+      },
+      "SSH": {
+        "$ref": "public_schema_info.json#/decoded_as/SSH"
+      },
+      "Stratum": {
+        "$ref": "public_schema_info.json#/decoded_as/Stratum"
+      }
+    },
+    "default_columns": [
+      "recv_time",
+      "subscriber_id",
+      "client_ip",
+      "client_port",
+      "server_ip",
+      "server_port",
+      "decoded_as",
+      "server_fqdn"
+    ],
+    "internal_columns": [
+      "recv_time",
+      "log_id",
+      "flags_identify_info",
+      "encapsulation",
+      "app_debug_info",
+      "app_content",
+      "packet_capture_file",
+      "tunnel_endpoint_a_desc",
+      "tunnel_endpoint_b_desc"
+    ],
+    "sensitive_columns": [
+      "subscriber_id",
+      "phone_number"
+    ],
+    "tunnel_type": {
+      "$ref": "public_schema_info.json#/tunnel_type"
+    },
+    "measurements": {
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes"
+        },
+        "RATE": {
+          "sent_pkts": "pps",
+          "received_pkts": "pps",
+          "sent_bytes": "Bps",
+          "received_bytes": "Bps",
+          "tcp_c2s_lost_bytes": "Bps",
+          "tcp_s2c_lost_bytes": "Bps",
+          "tcp_c2s_o3_pkts": "pps",
+          "tcp_s2c_o3_pkts": "pps",
+          "tcp_c2s_rtx_pkts": "pps",
+          "tcp_s2c_rtx_pkts": "pps",
+          "tcp_c2s_rtx_bytes": "Bps",
+          "tcp_s2c_rtx_bytes": "Bps",
+          "http_request_content_length": "Bps",
+          "http_response_content_length": "Bps"
+        },
+        "BITRATE": {
+          "sent_bytes": "bps",
+          "received_bytes": "bps",
+          "tcp_c2s_lost_bytes": "bps",
+          "tcp_s2c_lost_bytes": "bps",
+          "tcp_c2s_rtx_bytes": "bps",
+          "tcp_s2c_rtx_bytes": "bps",
+          "http_request_content_length": "bps",
+          "http_response_content_length": "bps"
+        },
+        "MAX": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "MIN": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "AVG": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "MEDIAN": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "P95_PERCENTILE": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        },
+        "P99_PERCENTILE": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
+        }
+      },
+      "field_discovery_metric": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "log_id",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "sent_bytes + received_bytes",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(flags, 8) = 8, received_bytes, sent_bytes)",
+            "value": "incoming_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(flags, 8) = 8, sent_bytes, received_bytes)",
+            "value": "outgoing_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          }
+        ]
+      }
+    },
+    "expression_fields": [
+      {
+        "name": "internal_ip_list",
+        "label": "Internal IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_ip,''), if(bitAnd(flags, 16)=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "external_ip_list",
+        "label": "External IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_ip,''), if(bitAnd(flags, 16)!=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "internal_port_list",
+        "label": "Internal Port List",
+        "type": {
+          "type": "array",
+          "items": "int",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_port, null), if(bitAnd(flags, 16)=16, server_port, null))"
+        }
+      },
+      {
+        "name": "external_port_list",
+        "label": "External Port List",
+        "type": {
+          "type": "array",
+          "items": "int",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_port, null), if(bitAnd(flags, 16)!=16, server_port, null))"
+        }
+      },
+      {
+        "name": "internal_asn_list",
+        "label": "Internal ASN List",
+        "type": {
+          "type": "array",
+          "items": "long",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_asn, null), if(bitAnd(flags, 16)=16, server_asn, null))"
+        }
+      },
+      {
+        "name": "external_asn_list",
+        "label": "External ASN List",
+        "type": {
+          "type": "array",
+          "items": "long",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_asn, null), if(bitAnd(flags, 16)!=16, server_asn, null))"
+        }
+      },
+      {
+        "name": "monitor_rule_id",
+        "label": "Monitor Rule ID(Deprecated)",
+        "type": "long",
+        "doc": {
+          "allow_query": false,
+          "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
+        }
+      },
+      {
+        "name": "monitor_rule_uuid",
+        "label": "Monitor Rule UUID",
+        "type": "string",
+        "doc": {
+          "allow_query": false,
+          "expression": "arrayJoin(IF(empty(monitor_rule_uuid_list), arrayPushFront(monitor_rule_uuid_list, null),monitor_rule_uuid_list))"
+        }
+      },
+      {
+        "name": "client_ip_tag",
+        "label": "Client IP Tag",
+        "type": "string",
+        "doc": {
+          "allow_query": false,
+          "expression": "arrayJoin(IF(empty(client_ip_tags), arrayPushFront(client_ip_tags, null),client_ip_tags))"
+        }
+      },
+      {
+        "name": "server_ip_tag",
+        "label": "Server IP Tag",
+        "type": "string",
+        "doc": {
+          "allow_query": false,
+          "expression": "arrayJoin(IF(empty(server_ip_tags), arrayPushFront(server_ip_tags, null),server_ip_tags))"
+        }
+      },
+      {
+        "name": "server_fqdn_tag",
+        "label": "Server FQDN Tag",
+        "type": "string",
+        "doc": {
+          "allow_query": false,
+          "expression": "arrayJoin(IF(empty(server_fqdn_tags), arrayPushFront(server_fqdn_tags, null),server_fqdn_tags))"
+        }
+      }
+    ]
+  },
+  "fields": [
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "decoded_as",
+      "label": "Decoded AS",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": [
+          {
+            "code": "BASE",
+            "value": "BASE"
+          },
+          {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
+            "code": "DNS",
+            "value": "DNS"
+          },
+          {
+            "code": "HTTP",
+            "value": "HTTP"
+          },
+          {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
+            "code": "DTLS",
+            "value": "DTLS"
+          },
+          {
+            "code": "QUIC",
+            "value": "QUIC"
+          },
+          {
+            "code": "FTP",
+            "value": "FTP"
+          },
+          {
+            "code": "SSH",
+            "value": "SSH"
+          },
+          {
+            "code": "Stratum",
+            "value": "Stratum"
+          },
+          {
+            "code": "RDP",
+            "value": "RDP"
+          },
+          {
+            "code": "SIP",
+            "value": "SIP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "session_id",
+      "label": "Session ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "start_timestamp_ms",
+      "label": "Start Time",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime64"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      }
+    },
+    {
+      "name": "end_timestamp_ms",
+      "label": "End Time",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime64"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      }
+    },
+    {
+      "name": "duration_ms",
+      "label": "Duration(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tcp_handshake_latency_ms",
+      "label": "TCP Handshake Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "processing_time",
+      "label": "Processing Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "ingestion_time",
+      "label": "Ingestion Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "insert_time",
+      "label": "Insert Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "out_link_id",
+      "label": "Outgoing Link ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "in_link_id",
+      "label": "Incoming Link ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "device_tag",
+      "label": "Device Tag",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sled_ip",
+      "label": "Sled IP",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "address_type",
+      "label": "Address Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/address_type/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/direction/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "t_vsys_id",
+      "label": "Traffic Vsys ID",
+      "doc": {
+        "allow_query": false,
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "flags",
+      "label": "Flags",
+      "doc": {
+        "constraints": {
+          "type": "bit",
+          "operator_functions": "=,!=,bitAnd"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/flags/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "bit"
+      }
+    },
+    {
+      "name": "flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "c2s_ttl",
+      "label": "Client-to-Server TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "s2c_ttl",
+      "label": "Server-to-Client TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "security_rule_list",
+      "label": "Security Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "security_rule_uuid_list",
+      "label": "Security Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "security_action",
+      "label": "Security Action",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/security_action/data"
+        },
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "monitor_rule_list",
+      "label": "Monitor Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "monitor_rule_uuid_list",
+      "label": "Monitor Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rule_list",
+      "label": "Service Chaining Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rule_uuid_list",
+      "label": "Service Chaining Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "statistics_rule_list",
+      "label": "Statistics Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "statistics_rule_uuid_list",
+      "label": "Statistics Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_raw",
+      "label": "Service Chaining Rendered Service Path(Raw)(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_raw_uuid_list",
+      "label": "Service Chaining Rendered Service Path(Raw)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_decrypted",
+      "label": "Service Chaining Rendered Service Path(Decrypted)(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_decrypted_uuid_list",
+      "label": "Service Chaining Rendered Service Path(Decrypted)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "shaping_rule_list",
+      "label": "Shaping Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "shaping_rule_uuid_list",
+      "label": "Shaping Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "proxy_rule_list",
+      "label": "Proxy Rule List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "proxy_rule_uuid_list",
+      "label": "Proxy Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "proxy_action",
+      "label": "Proxy Action",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": [
+          {
+            "code": "Intercept",
+            "value": "Intercept"
+          },
+          {
+            "code": "No Intercept",
+            "value": "No Intercept"
+          }
+        ],
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "proxy_pinning_status",
+      "label": "Proxy Pinning Status",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/proxy_pinning_status/data"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "proxy_intercept_status",
+      "label": "Proxy Intercept Status",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/proxy_intercept_status/data"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "proxy_passthrough_reason",
+      "label": "Proxy Passthrough Reason",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "proxy_server_side_latency_ms",
+      "label": "Proxy Server-Side Latency(ms)",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "proxy_client_side_latency_ms",
+      "label": "Proxy Client-Side Latency(ms)",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "proxy_client_side_version",
+      "label": "Proxy Client-Side Version",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "proxy_server_side_version",
+      "label": "Proxy Server-Side Version",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "proxy_cert_verify",
+      "label": "Proxy Certificate Verify",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "proxy_intercept_error",
+      "label": "Proxy Intercept Error",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "monitor_mirrored_pkts",
+      "label": "Monitor Mirrored Packets",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "monitor_mirrored_bytes",
+      "label": "Monitor Mirrored Bytes",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "client_ip",
+      "label": "Client IP",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip_tags",
+      "label": "Client IP Tags",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "client_port",
+      "label": "Client Port",
+      "doc": {
+        "constraints": {
+          "type": "port",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "client_os_desc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Client OS Description"
+    },
+    {
+      "name": "client_geolocation",
+      "label": "Client Geolocation(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_country",
+      "label": "Client Country",
+      "doc": {
+        "constraints": {
+          "type": "country"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_super_administrative_area",
+      "label": "Client Super Administrative Area(Deprecated)",
+      "doc": {
+        "constraints": {
+          "type": "super_administrative_area"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_administrative_area",
+      "label": "Client Administrative Area(Deprecated)",
+      "doc": {
+        "constraints": {
+          "type": "administrative_area"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_sub_administrative_area",
+      "label": "Client SubAdministrative Area(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_asn",
+      "label": "Client ASN",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "subscriber_id",
+      "label": "Subscriber ID",
+      "doc": {
+        "visibility": "enabled",
+        "is_encrypted": true,
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "subscriber_id_hmac",
+      "label": "Subscriber ID HMAC",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "imei",
+      "label": "IMEI",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "imsi",
+      "label": "IMSI",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "apn",
+      "label": "APN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "phone_number",
+      "label": "Phone Number",
+      "doc": {
+        "visibility": "enabled",
+        "is_encrypted": true,
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "phone_number_hmac",
+      "label": "Phone Number HMAC",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mobile_identify",
+      "label": "Mobile Identify",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip",
+      "label": "Server IP",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip_tags",
+      "label": "Server IP Tags",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "server_port",
+      "label": "Server Port",
+      "doc": {
+        "constraints": {
+          "type": "port",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "server_os_desc",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Server OS Description"
+    },
+    {
+      "name": "server_geolocation",
+      "label": "Server Geolocation(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_country",
+      "label": "Server Country",
+      "doc": {
+        "constraints": {
+          "type": "country"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_super_administrative_area",
+      "label": "Server Super Administrative Area(Deprecated)",
+      "doc": {
+        "constraints": {
+          "type": "super_administrative_area"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_administrative_area",
+      "label": "Server Administrative Area(Deprecated)",
+      "doc": {
+        "constraints": {
+          "type": "administrative_area"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_sub_administrative_area",
+      "label": "Server SubAdministrative Area(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_asn",
+      "label": "Server ASN",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "constraints": {
+          "type": "fqdn"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_fqdn_tags",
+      "label": "Server FQDN Tags",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "constraints": {
+          "type": "domain"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_transition",
+      "label": "Application Transition",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "app",
+      "label": "Application",
+      "doc": {
+        "constraints": {
+          "type": "app"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_category",
+      "label": "Application Category",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_debug_info",
+      "label": "Application Debug Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_content",
+      "label": "Application Content",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_extra_info",
+      "label": "Application Extra Info",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ip_protocol",
+      "label": "IP Protocol",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in,notEmpty,empty"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ip_protocol/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "decoded_path",
+      "label": "Decoded Path",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "fqdn_category_list",
+      "label": "FQDN Category List(Deprecated)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "dict_location": {
+          "path": "/v1/policy/object?type=fqdn_category",
+          "key": "category_id",
+          "value": "category_name"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sent_pkts",
+      "label": "Packets Sent",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "received_pkts",
+      "label": "Packets Received",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "sent_bytes",
+      "label": "Bytes Sent",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "received_bytes",
+      "label": "Bytes Received",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_c2s_ip_fragments",
+      "label": "Client-to-Server IP Fragments",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_s2c_ip_fragments",
+      "label": "Server-to-Client IP Fragments",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_c2s_lost_bytes",
+      "label": "Client-to-Server Lost Bytes",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_s2c_lost_bytes",
+      "label": "Server-to-Client Lost Bytes",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_c2s_o3_pkts",
+      "label": "Client-to-Server Out-of-Order Packets",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_s2c_o3_pkts",
+      "label": "Server-to-Client Out-of-Order Packets",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_c2s_rtx_pkts",
+      "label": "Client-to-Server Retransmission Packets",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_s2c_rtx_pkts",
+      "label": "Server-to-Client Retransmission Packets",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_c2s_rtx_bytes",
+      "label": "Client-to-Server Retransmission Bytes",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_s2c_rtx_bytes",
+      "label": "Server-to-Client Retransmission Bytes",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_rtt_ms",
+      "label": "Round-trip Time(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tcp_client_isn",
+      "label": "Client ISN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "tcp_server_isn",
+      "label": "Server ISN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "packet_capture_file",
+      "label": "Packet Capture File",
+      "doc": {
+        "allow_query": false,
+        "visibility": "enabled",
+        "constraints": {
+          "type": "file"
+        },
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "in_src_mac",
+      "label": "Incoming Source MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "out_src_mac",
+      "label": "Outgoing Source MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "in_dest_mac",
+      "label": "Incoming Destination MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "out_dest_mac",
+      "label": "Outgoing Destination MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "encapsulation",
+      "label": "Encapsulation",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dup_traffic_flag",
+      "label": "Duplicate Traffic Flag",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dup_traffic_flag/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tunnel_id_list",
+      "label": "Tunnel ID List(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "tunnel_uuid_list",
+      "label": "Tunnel UUID List",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "tunnel_endpoint_a_desc",
+      "label": "Tunnel Endpoint A Description(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "tunnel_endpoint_b_desc",
+      "label": "Tunnel Endpoint B Description(Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_url",
+      "label": "HTTP.URL",
+      "doc": {
+        "constraints": {
+          "type": "url"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_host",
+      "label": "HTTP.Host",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_line",
+      "label": "HTTP.Request Line",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_line",
+      "label": "HTTP.Response Line",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_content_length",
+      "label": "HTTP.Request Content-Length",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_request_content_type",
+      "label": "HTTP.Request Content-Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_content_length",
+      "label": "HTTP.Response Content-Length",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_response_content_type",
+      "label": "HTTP.Response Content Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_body",
+      "label": "HTTP.Request Body",
+      "doc": {
+        "allow_query": false,
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_body",
+      "label": "HTTP.Response Body",
+      "doc": {
+        "allow_query": false,
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_proxy_flag",
+      "label": "HTTP.Proxy Flag",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_sequence",
+      "label": "HTTP.Sequence",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_cookie",
+      "label": "HTTP.Cookie",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_referer",
+      "label": "HTTP.Referer",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_user_agent",
+      "label": "HTTP.User-Agent",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_set_cookie",
+      "label": "HTTP.Set-Cookie",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_version",
+      "label": "HTTP.Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_status_code",
+      "label": "HTTP.Status Code",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY",
+          "type": "http_code"
+        },
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_response_latency_ms",
+      "label": "HTTP.Response Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_action_file_size",
+      "label": "HTTP.Action File Size",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_session_duration_ms",
+      "label": "HTTP.Session Duration(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "mail_protocol_type",
+      "label": "MAIL.Protocol Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_account",
+      "label": "MAIL.Account",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_from_cmd",
+      "label": "MAIL.From CMD",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_to_cmd",
+      "label": "MAIL.To CMD",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_from",
+      "label": "MAIL.From",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_password",
+      "label": "MAIL.Password",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_to",
+      "label": "MAIL.To",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_cc",
+      "label": "MAIL.CC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_bcc",
+      "label": "MAIL.BCC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_subject",
+      "label": "MAIL.Subject",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_subject_charset",
+      "label": "MAIL.Subject Charset",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name",
+      "label": "MAIL.Attachment Name",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name_charset",
+      "label": "MAIL.Attachment Name Charset",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_eml_file",
+      "label": "MAIL.EML File",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_starttls_flag",
+      "label": "MAIL.STARTTLS Flag",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/mail_starttls_flag/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_message_id",
+      "label": "DNS.Message ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qr",
+      "label": "DNS.QR",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_qr/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_opcode",
+      "label": "DNS.OPCODE",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_opcode/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_aa",
+      "label": "DNS.AA",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_tc",
+      "label": "DNS.TC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rd",
+      "label": "DNS.RD",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_ra",
+      "label": "DNS.RA",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rcode",
+      "label": "DNS.RCODE",
+      "doc": {
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_rcode/data"
+        },
+        "visibility": "enabled",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qdcount",
+      "label": "DNS.QDCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_ancount",
+      "label": "DNS.ANCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_nscount",
+      "label": "DNS.NSCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_arcount",
+      "label": "DNS.ARCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qname",
+      "label": "DNS.QNAME",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_qtype",
+      "label": "DNS.QTYPE",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_qtype/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qclass",
+      "label": "DNS.QCLASS",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "operator_functions": "=,!=,in,not in",
+          "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
+        },
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_cname",
+      "label": "DNS.CNAME",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_sub",
+      "label": "DNS.SUB",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_sub/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rr",
+      "label": "DNS.RR",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_response_latency_ms",
+      "label": "DNS.Response Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_version",
+      "label": "SSL.Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL.SNI",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_san",
+      "label": "SSL.SAN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cn",
+      "label": "SSL.CN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_handshake_latency_ms",
+      "label": "SSL.Handshake Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "label": "SSL.JA3 Hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_hash",
+      "label": "SSL.JA3S Hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja4_fingerprint",
+      "label": "SSL.JA4",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja4s_fingerprint",
+      "label": "SSL.JA4S",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "label": "SSL.Issuer",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "label": "SSL.Subject",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_esni_flag",
+      "label": "SSL.ESNI Flag",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ssl_esni_flag/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ech_flag",
+      "label": " SSL.ECH Flag",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ssl_ech_flag/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dtls_cookie",
+      "label": "DTLS.Cookie",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_version",
+      "label": "DTLS.Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_sni",
+      "label": "DTLS.SNI",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_san",
+      "label": "DTLS.SAN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cn",
+      "label": "DTLS.CN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_handshake_latency_ms",
+      "label": "DTLS.Handshake Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dtls_ja3_fingerprint",
+      "label": "DTLS.JA3 Fingerprint",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_ja3_hash",
+      "label": "DTLS.JA3 Hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cert_issuer",
+      "label": "DTLS.Certificate Issuer",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cert_subject",
+      "label": "DTLS.Certificate Subject",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "quic_version",
+      "label": "QUIC.Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "quic_sni",
+      "label": "QUIC.SNI",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "quic_user_agent",
+      "label": "QUIC.User-Agent",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ftp_account",
+      "label": "FTP.Account",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ftp_url",
+      "label": "FTP.URL",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ftp_link_type",
+      "label": "FTP.Link Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_call_id",
+      "label": "SIP.Call-ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_description",
+      "label": "SIP.Originator",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_description",
+      "label": "SIP.Responder",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_user_agent",
+      "label": "SIP.User-Agent",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_server",
+      "label": "SIP.Server",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_connect_ip",
+      "label": "SIP.Originator IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_media_port",
+      "label": "SIP.Originator Port",
+      "doc": {
+        "constraints": {
+          "type": "port"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sip_originator_sdp_media_type",
+      "label": "SIP.Originator Media Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_content",
+      "label": "SIP.Originator Content",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_connect_ip",
+      "label": "SIP.Responder IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_media_port",
+      "label": "SIP.Responder Port",
+      "doc": {
+        "constraints": {
+          "type": "port"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sip_responder_sdp_media_type",
+      "label": "SIP.Responder Media Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_content",
+      "label": "SIP.Responder Content",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_duration_s",
+      "label": "SIP.Duration(s)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sip_bye",
+      "label": "SIP.Bye",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_bye_reason",
+      "label": "SIP.Bye Reason",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "label": "RTP.Payload Type(Client-to-Server)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_payload_type_c2s/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_payload_type_s2c",
+      "label": "RTP.Payload Type(Server-to-Client)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_payload_type_s2c/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_pcap_path",
+      "label": "RTP.PCAP",
+      "doc": {
+        "allow_query": false,
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rtp_originator_dir",
+      "label": "RTP.Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_originator_dir/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssh_version",
+      "label": "SSH.Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_auth_success",
+      "label": "SSH.Authentication Result",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_client_version",
+      "label": "SSH.Client Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_server_version",
+      "label": "SSH.Server Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_cipher_alg",
+      "label": "SSH.Encryption Algorithm",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_mac_alg",
+      "label": "SSH.Signing Algorithm",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_compression_alg",
+      "label": "SSH.Compression Algorithm",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_kex_alg",
+      "label": "SSH.Key Exchange Algorithm",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_host_key_alg",
+      "label": "SSH.Server Host Key Algorithm",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_host_key",
+      "label": "SSH.Server Key Fingerprint",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssh_hassh",
+      "label": "SSH.HASSH",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "stratum_cryptocurrency",
+      "label": "Stratum.Cryptocurrency",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "stratum_mining_pools",
+      "label": "Stratum.Mining Pools",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "stratum_mining_program",
+      "label": "Stratum.Mining Program",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "stratum_mining_subscribe",
+      "label": "Stratum.Mining Subscribe",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_cookie",
+      "label": "RDP.Cookie",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_security_protocol",
+      "label": "RDP.Security Protocol",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_channels",
+      "label": "RDP.Client Channels",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_keyboard_layout",
+      "label": "RDP.Keyboard Layout",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_version",
+      "label": "RDP.Client Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_name",
+      "label": "RDP.Client Name",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_product_id",
+      "label": "RDP.Client Product ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_desktop_width",
+      "label": "RDP.Desktop Width",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_desktop_height",
+      "label": "RDP.Desktop Height",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_requested_color_depth",
+      "label": "RDP.Requested Color Depth",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_certificate_type",
+      "label": "RDP.Certificate Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_certificate_count",
+      "label": "RDP.Certificate Count",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "rdp_certificate_permanent",
+      "label": "RDP.Certificate Permanent",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "rdp_encryption_level",
+      "label": "RDP.Encryption Level",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_encryption_method",
+      "label": "RDP.Encryption Method",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    }
+  ]
+}

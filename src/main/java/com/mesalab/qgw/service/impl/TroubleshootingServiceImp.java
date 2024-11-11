@@ -75,6 +75,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
+    private StarRocksHttpSource starRocksHttpSource;
+    @Autowired
     private HBaseAPISource hBaseAPISource;
 
     @Autowired
@@ -239,7 +241,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getInstance();
             for (String tableName : databaseService.getAllTable()) {
                 Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
-                if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE)))
+                if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE))
+                        && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE))
+                        && !starRocksHttpSource.getDbname().equals(schemaMap.get(NAMESPACE)))
                     continue;
                 jsonSchemaValidator
                         .addRule(SCHEMA_SYNTAX_RULE, "schema")
@@ -445,7 +449,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             String dbName = String.valueOf(schemaMap.get(NAMESPACE));
             if (!clickHouseHttpSource.getDbName().equals(dbName)
                     && !druidIoHttpSource.getDbname().equals(dbName)
-                    && !hBaseAPISource.getDbName().equals(dbName)) continue;
+                    && !hBaseAPISource.getDbName().equals(dbName)
+                    && !starRocksHttpSource.getDbname().equals(dbName)) continue;
             BaseResult baseResult = getBaseResultByEngine(SQLQueryContext.builder().option(QueryOption.REAL_TIME.getValue()).originalSQL("describe " + tableName).build());
             if (HttpStatusCodeEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
