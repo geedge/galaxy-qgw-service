@@ -5,141 +5,121 @@
         "name": "COUNT",
         "label": "COUNT",
         "function": "count(expr)",
-        "metric_type": "count",
-        "unit": "short"
+        "metric_type": "count"
       },
       {
         "name": "COUNT_DISTINCT",
         "label": "COUNT_DISTINCT",
         "function": "COUNT_DISTINCT(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "UNIQUE_COUNT",
         "label": "UNIQUE_COUNT",
         "function": "UNIQUE_COUNT(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "AVG",
         "label": "AVG",
         "function": "avg(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "SUM",
         "label": "SUM",
         "function": "sum(expr)",
-        "metric_type": "count",
-        "unit": "short"
+        "metric_type": "count"
       },
       {
         "name": "MAX",
         "label": "MAX",
         "function": "max(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "MIN",
         "label": "MIN",
         "function": "min(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "MEDIAN",
         "label": "MEDIAN",
         "function": "MEDIAN(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "MEDIAN_HDR",
         "label": "MEDIAN_HDR",
         "function": "MEDIAN_HDR(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "QUANTILE",
         "label": "QUANTILE",
         "function": "QUANTILE(expr, level)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "P95_PERCENTILE",
         "label": "P95_PERCENTILE",
         "function": "QUANTILE(expr, 0.95)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "P99_PERCENTILE",
         "label": "P99_PERCENTILE",
         "function": "QUANTILE(expr, 0.99)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "QUANTILE_HDR",
         "label": "QUANTILE_HDR",
         "function": "QUANTILE_HDR(expr, level)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "P95_PERCENTILE_HDR",
         "label": "P95_PERCENTILE_HDR",
         "function": "QUANTILE_HDR(expr, 0.95)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "P99_PERCENTILE_HDR",
         "label": "P99_PERCENTILE_HDR",
         "function": "QUANTILE_HDR(expr, 0.99)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "PERCENTILES_HDR",
         "label": "PERCENTILES_HDR",
         "function": "PERCENTILES_HDR(expr)",
-        "metric_type": "histogram",
-        "unit": "short"
+        "metric_type": "histogram"
       },
       {
         "name": "APPROX_COUNT_DISTINCT_HLLD",
         "label": "COUNT_DISTINCT_HLLD",
         "function": "APPROX_COUNT_DISTINCT_HLLD(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "APPROX_COUNT_DISTINCT_DS_HLL",
         "label": "COUNT_DISTINCT_DS_HLL",
         "function": "APPROX_COUNT_DISTINCT_DS_HLL(expr)",
-        "metric_type": "gauge",
-        "unit": "short"
+        "metric_type": "gauge"
       },
       {
         "name": "RATE",
         "label": "RATE",
         "function": "RATE(<expr>, <duration>, [interval])",
-        "metric_type": "gauge",
-        "unit": "sps"
+        "metric_type": "gauge"
       },
       {
         "name": "BITRATE",
         "label": "BITRATE",
         "function": "RATE(<expr>, <duration>, [interval]) * 8",
-        "metric_type": "gauge",
-        "unit": "bps"
+        "metric_type": "gauge"
       }
     ],
     "date": [
