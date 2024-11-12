@@ -151,7 +151,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
                 return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
             }
-            return BaseResultGenerator.error(baseResult.getMessage());
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), job.getOrDefault(JobConfig.REASON, baseResult.getMessage())));
         } else if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
             execAdnWaitFieldDiscoveryDone(request.getId(), request);
             QueryCache queryCache = rebuildFieldDiscoveryQueryCache(Objects.requireNonNull(getAdhocQueryCacheAndRefresh(request.getId())));
@@ -163,7 +164,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
                 return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
             }
-            return BaseResultGenerator.error(baseResult.getMessage());
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), job.getOrDefault(JobConfig.REASON, baseResult.getMessage())));
         } else if (JobConfig.LOG_QUERY.equals(request.getName())) {
             return jobExecuteService.addDslExecutorLogQueryWithoutCache(request);
         } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
