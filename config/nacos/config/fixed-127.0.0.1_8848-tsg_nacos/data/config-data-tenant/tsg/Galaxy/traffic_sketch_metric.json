@@ -86,6 +86,7 @@
         "s2c_tcp_retransmitted_pkts"
       ],
       "filters": [
+        "log_uuid",
         "log_id",
         "vsys_id",
         "device_id",
@@ -147,8 +148,20 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT"

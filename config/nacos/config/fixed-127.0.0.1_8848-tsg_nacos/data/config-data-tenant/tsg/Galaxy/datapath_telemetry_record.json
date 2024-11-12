@@ -37,8 +37,16 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "visibility": "enabled"
       },

@@ -3,13 +3,13 @@
   "name": "transaction_record",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "primary_key": "session_id",
+    "primary_key": "session_uuid",
     "partition_key": "recv_time",
     "ttl": null,
     "default_ttl": 2592000,
     "index_key": [
       "vsys_id",
-      "session_id",
+      "session_uuid",
       "recv_time"
     ],
     "functions": {
@@ -23,6 +23,7 @@
         "insert_time"
       ],
       "dimensions": [
+        "session_uuid",
         "session_id",
         "address_type",
         "decoded_as",
@@ -95,6 +96,7 @@
         "sip_bye_reason"
       ],
       "metrics": [
+        "log_uuid",
         "log_id",
         "address_type",
         "decoded_as",
@@ -177,6 +179,7 @@
         "sip_bye_reason"
       ],
       "filters": [
+        "session_uuid",
         "session_id",
         "processing_time",
         "ingestion_time",
@@ -269,8 +272,10 @@
       "BASE": {
         "columns": [
           "recv_time",
+          "log_uuid",
           "log_id",
           "decoded_as",
+          "session_uuid",
           "session_id",
           "ingestion_time",
           "processing_time",
@@ -297,8 +302,10 @@
       "DNS": {
         "columns": [
           "recv_time",
+          "log_uuid",
           "log_id",
           "decoded_as",
+          "session_uuid",
           "session_id",
           "ingestion_time",
           "processing_time",
@@ -347,8 +354,10 @@
       "HTTP": {
         "columns": [
           "recv_time",
+          "log_uuid",
           "log_id",
           "decoded_as",
+          "session_uuid",
           "session_id",
           "ingestion_time",
           "processing_time",
@@ -397,8 +406,10 @@
       "MAIL": {
         "columns": [
           "recv_time",
+          "log_uuid",
           "log_id",
           "decoded_as",
+          "session_uuid",
           "session_id",
           "ingestion_time",
           "processing_time",
@@ -443,8 +454,10 @@
       "SIP": {
         "columns": [
           "recv_time",
+          "log_uuid",
           "log_id",
           "decoded_as",
+          "session_uuid",
           "session_id",
           "ingestion_time",
           "processing_time",
@@ -498,6 +511,7 @@
     ],
     "internal_columns": [
       "recv_time",
+      "log_uuid",
       "log_id"
     ],
     "tunnel_type": {
@@ -519,6 +533,18 @@
         "type": "long",
         "logicalType": "unix_timestamp"
       }
+    },
+    {
+      "name": "log_uuid",
+      "label": "Log UUID(Deprecated)",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "log_id",
@@ -567,8 +593,17 @@
       "type": "string"
     },
     {
+      "name": "session_uuid",
+      "label": "Session UUID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "session_id",
-      "label": "Session ID",
+      "label": "Session ID(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
