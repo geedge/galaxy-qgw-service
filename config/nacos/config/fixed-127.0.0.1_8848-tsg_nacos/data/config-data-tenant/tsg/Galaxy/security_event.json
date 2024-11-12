@@ -29,6 +29,7 @@
         "insert_time"
       ],
       "dimensions": [
+        "session_uuid",
         "session_id",
         "device_id",
         "out_link_id",
@@ -226,6 +227,7 @@
         "security_rule_uuid"
       ],
       "metrics": [
+        "log_uuid",
         "log_id",
         "c2s_ttl",
         "s2c_ttl",
@@ -333,6 +335,7 @@
         "ssh_hassh"
       ],
       "filters": [
+        "session_uuid",
         "session_id",
         "start_timestamp_ms",
         "end_timestamp_ms",
@@ -779,6 +782,7 @@
     ],
     "internal_columns": [
       "recv_time",
+      "log_uuid",
       "log_id",
       "flags_identify_info",
       "encapsulation",
@@ -1178,8 +1182,20 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT"
@@ -1256,8 +1272,17 @@
       "type": "string"
     },
     {
+      "name": "session_uuid",
+      "label": "Session UUID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "session_id",
-      "label": "Session ID",
+      "label": "Session ID(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null

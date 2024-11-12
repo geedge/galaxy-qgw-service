@@ -3,7 +3,7 @@
   "name": "dos_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "primary_key": "log_id",
+    "primary_key": "log_uuid",
     "partition_key": "recv_time",
     "ttl": null,
     "default_ttl": 2592000,
@@ -11,7 +11,7 @@
       "vsys_id",
       "destination_ip",
       "recv_time",
-      "log_id"
+      "log_uuid"
     ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
@@ -27,6 +27,7 @@
       }
     },
     "default_columns": [
+      "log_uuid",
       "log_id",
       "rule_uuid",
       "attack_type",
@@ -41,6 +42,7 @@
     ],
     "internal_columns": [
       "recv_time",
+      "log_uuid",
       "log_id"
     ],
     "measurements": {
@@ -48,7 +50,7 @@
         "sessions": [
           {
             "fn": "count",
-            "column": "log_id",
+            "column": "log_uuid",
             "value": "sessions",
             "label": "Sessions",
             "unit": "sessions"
@@ -104,8 +106,20 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT"
