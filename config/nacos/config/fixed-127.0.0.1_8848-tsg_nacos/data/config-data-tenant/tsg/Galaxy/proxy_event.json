@@ -1145,21 +1145,6 @@
       "type": "string"
     },
     {
-      "name": "security_action",
-      "label": "Security Action",
-      "doc": {
-        "visibility": "hidden",
-        "constraints": {
-          "operator_functions": "=,!=,in,not in,notEmpty,empty"
-        },
-        "data": {
-          "$ref": "public_schema_info.json#/fields/security_action/data"
-        },
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "monitor_rule_list",
       "label": "Monitor Rule List(Deprecated)",
       "doc": {
