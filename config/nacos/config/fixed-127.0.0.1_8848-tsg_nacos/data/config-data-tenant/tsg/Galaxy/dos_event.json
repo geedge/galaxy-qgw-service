@@ -10,8 +10,7 @@
     "index_key": [
       "vsys_id",
       "destination_ip",
-      "recv_time",
-      "log_uuid"
+      "recv_time"
     ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"

@@ -7,8 +7,7 @@
     "partition_key": "recv_time",
     "index_key": [
       "vsys_id",
-      "recv_time",
-      "log_uuid"
+      "recv_time"
     ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
