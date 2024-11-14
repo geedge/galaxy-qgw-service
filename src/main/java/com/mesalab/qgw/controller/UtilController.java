@@ -11,6 +11,7 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.AuditLog;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.job.DataDecryptionRequest;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.service.UtilService;
@@ -22,9 +23,9 @@ import org.springframework.web.bind.annotation.*;
 public class UtilController {
 
     private static final Log log = LogFactory.get();
-    private final static int CIPHERTEXT_LIST_MAX_SIZE = 100;
     private UtilService utilService;
     private VaultConfiguration vaultConfiguration;
+    private EngineConfigSource engineConfigSource;
 
     @GetMapping(value = "/sql-parser", consumes = "application/x-www-form-urlencoded")
     @AuditLog("UtilController.getSQLSyntaxTree")
@@ -46,10 +47,10 @@ public class UtilController {
     @PostMapping(value = "/kms/data-decryption", consumes = "application/json")
     @AuditLog("UtilController.decryptWithKMS")
     public BaseResult decryptWithKMS(@RequestBody DataDecryptionRequest param) {
-        log.info("Decrypt with KMS, param is : {}", param);
-        if (StringUtil.isEmpty(param.getCiphertextList()) || param.getCiphertextList().size() > CIPHERTEXT_LIST_MAX_SIZE) {
+        log.debug("Decrypt with KMS, param is : {}", param);
+        if (StringUtil.isEmpty(param.getCiphertextList()) || param.getCiphertextList().size() > engineConfigSource.getDefaultResultNum()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "This ciphertext_list cannot be empty and must contain at most 100 items."));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "This ciphertext_list cannot be empty and must contain at most " + engineConfigSource.getDefaultResultNum() + " items."));
         }
         if (StringUtil.isEmpty(param.getEncryptionAlgorithm())) {
             param.setEncryptionAlgorithm(vaultConfiguration.getIdentifier());
@@ -69,6 +70,11 @@ public class UtilController {
     @Autowired
     public void setUtilService(UtilService utilService) {
         this.utilService = utilService;
+    }
+
+    @Autowired
+    public void setEngineConfigSource(EngineConfigSource engineConfigSource) {
+        this.engineConfigSource = engineConfigSource;
     }
 
 }
