@@ -1,12 +1,16 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.core.date.DateTime;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.*;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.support.IConvertor;
 import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
+import lombok.Getter;
 import org.nutz.lang.Lang;
+
 import java.util.*;
 
 /**
@@ -16,19 +20,17 @@ import java.util.*;
  * @date 2018/5/9
  */
 public class ConvertUtil {
-     public static final String GROUP_SEPARATOR = "__GALAXY__";
-      enum  Fill {
+    public static final String GROUP_SEPARATOR = "__GALAXY__";
 
-        NONE(""),  NULL("NULL"), ZERO("0"), PREVIOUS("previous"), NEXT("next");
+    @Getter
+    enum Fill {
+
+        NULL("NULL"), ZERO("zero"), PREVIOUS("previous"), NEXT("next");
 
         private final String value;
 
         Fill(String value) {
             this.value = value;
-        }
-
-        public String getValue() {
-            return value;
         }
 
     }
@@ -135,16 +137,16 @@ public class ConvertUtil {
     /**
      * 将时序特征的数据，转换成层级结构；
      * 例如：Map<groupKey, timeseries Map>
-     *         Map<timeGran,Metrics Map>
-     *             Map<metric,value>
+     * Map<timeGran,Metrics Map>
+     * Map<metric,value>
      *
      * @param sources
      * @param groupLabels
      * @param timeGranLabel
      * @return
      */
-    public static  Map<String, Map<String, Map<String, Object>>> convertResultListToTimeSeries(Collection<Object> sources,
-                                                                                               List<String> groupLabels, String timeGranLabel) {
+    public static Map<String, Map<String, Map<String, Object>>> convertResultListToTimeSeries(Collection<Object> sources,
+                                                                                              List<String> groupLabels, String timeGranLabel) {
         Map<String, Map<String, Map<String, Object>>> resultMap = Maps.newLinkedHashMap();
         for (Object source : sources) {
 
@@ -155,7 +157,7 @@ public class ConvertUtil {
             if (StringUtil.isEmpty(groupLabels)) {
                 groupValues.add("default");
             } else {
-                for(String groupLabel : groupLabels) {
+                for (String groupLabel : groupLabels) {
                     groupValues.add(String.valueOf(sourceMap.get(groupLabel)));
                     sourceMap.remove(groupLabel);
                 }
@@ -169,7 +171,7 @@ public class ConvertUtil {
             if (StringUtil.isEmpty(groupMap)) {
                 groupMap = Maps.newTreeMap();
                 groupMap.put(timeGran, sourceMap);
-                resultMap.put(groupKey,groupMap);
+                resultMap.put(groupKey, groupMap);
 
             } else {
 
@@ -184,19 +186,18 @@ public class ConvertUtil {
     }
 
 
-
     public static List<Map<String, Object>> convertTimeSeriesToList(Map<String, Map<String, Map<String, Object>>> target, List<String> groupLabels, String timeGranLabel) {
         List<Map<String, Object>> results = Lists.newArrayList();
         List<String> groupValues;
-        for(String groupKey : target.keySet()) {
+        for (String groupKey : target.keySet()) {
 
-            Map<String, Map<String, Object>> timeSeriesValueMap =  target.get(groupKey);
-            for (Map.Entry<String, Map<String,Object>> entry: timeSeriesValueMap.entrySet()) {
+            Map<String, Map<String, Object>> timeSeriesValueMap = target.get(groupKey);
+            for (Map.Entry<String, Map<String, Object>> entry : timeSeriesValueMap.entrySet()) {
 
                 Map<String, Object> resultMap = Maps.newLinkedHashMap();
                 resultMap.put(timeGranLabel, entry.getKey());
                 if (StringUtil.isNotEmpty(groupLabels)) {
-                    groupValues= Splitter.on(GROUP_SEPARATOR).splitToList(groupKey);
+                    groupValues = Splitter.on(GROUP_SEPARATOR).splitToList(groupKey);
                     for (int i = 0; i < groupLabels.size(); i++) {
                         resultMap.put(groupLabels.get(i), StringUtil.isBlank(groupKey) ? StringUtil.EMPTY : groupValues.get(i));
                     }
@@ -215,35 +216,32 @@ public class ConvertUtil {
     }
 
 
-
-
-
     /**
      * 时序数据补全操作
-     * @param sources TreeMap<timeGran, metricMap>
+     *
+     * @param sources  TreeMap<timeGran, metricMap>
      * @param dateList
      * @param fill
      * @return
      */
-    public static Map<String, Map<String, Object>> completeTimeseries(TreeMap<String, Map<String, Object>> sources,
-                                                               List<Date> dateList, String fill) {
+    public static Map<String, Map<String, Object>> completeTimeseries(TreeMap<String, Map<String, Object>> sources, List<Date> dateList, List<Map<String, String>> metaList, String fill) {
 
         Map<String, Object> defaultElement = Maps.newHashMap(sources.firstEntry().getValue());
 
-
-        if (fill.equalsIgnoreCase(Fill.ZERO.name())){
-            for(String key: defaultElement.keySet()){
-                defaultElement.put(key, Integer.valueOf(Fill.ZERO.getValue()));
+        if (fill.equalsIgnoreCase(Fill.ZERO.getValue())) {
+            Map<String, String> nameTypeMap = new HashMap<>();
+            for (Map<String, String> stringStringMap : metaList) {
+                nameTypeMap.put(stringStringMap.get("name"), stringStringMap.get("type"));
             }
-
-        } else if (fill.equalsIgnoreCase(Fill.NULL.name())){
-            for(String key: defaultElement.keySet()) {
-                defaultElement.put(key, Fill.NULL.value);
+            for (String key : defaultElement.keySet()) {
+                String type = nameTypeMap.get(key);
+                if (type != null) {
+                    Object zeroValue = getZeroValueByType(type);
+                    defaultElement.put(key, zeroValue);
+                }
             }
-        } else if (fill.equalsIgnoreCase(Fill.NONE.name())) {
-            for(String key: defaultElement.keySet()) {
-                defaultElement.put(key, Fill.NONE.value);
-            }
+        } else if (fill.equalsIgnoreCase(Fill.NULL.getValue())) {
+            defaultElement.replaceAll((k, v) -> null);
         } else {
             defaultElement.clear();
         }
@@ -251,15 +249,14 @@ public class ConvertUtil {
         TreeMap<String, Map<String, Object>> target = Maps.newTreeMap(sources);
 
         boolean isTimestamp = StringUtil.isNumeric(sources.firstKey());
-        for(Date date : dateList) {
+        for (Date date : dateList) {
 
             String timeKey;
             if (isTimestamp) {
-                timeKey = String.valueOf(date.getTime()/1000);
+                timeKey = String.valueOf(date.getTime() / 1000);
             } else {
                 timeKey = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
             }
-
             Map<String, Object> metricsMap = sources.get(timeKey);
             if (StringUtil.isEmpty(metricsMap)) {
                 target.put(timeKey, defaultElement);
@@ -267,76 +264,67 @@ public class ConvertUtil {
         }
 
 
-
         if (StringUtil.isEmpty(defaultElement)) {
-
             defaultElement = getDefaultElement(sources.get(sources.firstKey()));
-
             for (String key : target.keySet()) {
-
                 if (StringUtil.isEmpty(target.get(key))) {
-
-                    Map<String, Object> element=  getPositionElement(target, key, fill);
-
+                    Map<String, Object> element = getPositionElement(target, key, fill);
                     if (StringUtil.isEmpty(element)) {
                         target.put(key, defaultElement);
                     } else {
                         target.put(key, element);
                     }
-
-
                 }
-
-
             }
-
         }
-
-
         return target;
     }
 
-
-
+    private static Object getZeroValueByType(String type) {
+        Object defaultValue = null;
+        if (type.startsWith(DataTypeMapping.ARRAY)) {
+            defaultValue = Lists.newArrayList();
+        } else if (DataTypeMapping.STRING.equalsIgnoreCase(type)) {
+            defaultValue = "";
+        } else if (DataTypeMapping.INT.equalsIgnoreCase(type) || DataTypeMapping.LONG.equalsIgnoreCase(type)) {
+            defaultValue = 0;
+        } else if (DataTypeMapping.FLOAT.equalsIgnoreCase(type) || DataTypeMapping.DOUBLE.equalsIgnoreCase(type)) {
+            defaultValue = 0.0;
+        } else if (DataTypeMapping.BOOLEAN.equalsIgnoreCase(type)) {
+            defaultValue = false;
+        } else if (DataTypeMapping.DATE.equalsIgnoreCase(type) || DataTypeMapping.TIMESTAMP.equalsIgnoreCase(type)) {
+            defaultValue = new DateTime(0);
+        }
+        return defaultValue;
+    }
 
 
     private static Map<String, Object> getPositionElement(TreeMap<String, Map<String, Object>> target,
-                                                   String key, String fill) {
+                                                          String key, String fill) {
         Map<String, Object> element = Maps.newHashMap();
 
-        if (fill.equalsIgnoreCase(Fill.PREVIOUS.name())) {
+        if (fill.equalsIgnoreCase(Fill.PREVIOUS.getValue())) {
             if (StringUtil.isNotEmpty(target.lowerEntry(key))) {
                 element = target.lowerEntry(key).getValue();
             }
-
-
-        } else if (fill.equalsIgnoreCase(Fill.NEXT.name())) {
+        } else if (fill.equalsIgnoreCase(Fill.NEXT.getValue())) {
             if (StringUtil.isNotEmpty(target.higherEntry(key))) {
                 element = target.higherEntry(key).getValue();
             }
-
-
         }
         return element;
     }
-
 
 
     private static Map<String, Object> getDefaultElement(Map<String, Object> firstElement) {
         Map<String, Object> element = Maps.newHashMap(firstElement);
 
         for (String key : element.keySet()) {
-            element.put(key, Fill.NONE.getValue());
+            element.put(key, null);
         }
 
         return element;
     }
-
-
-
-
-
-
 
 
 }

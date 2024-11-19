@@ -19,3 +19,4 @@ Release 383 (TSG-24.10)
 * 适配DoS Threat Map 业务相关Datasets及Schema(TSG-22745)
 * 完善 TIME_FLOOR_WITH_FILL 补全函数对结果数据的排序
 * 完善数据集，策略流量趋势数据集增加 bps 指标
+* 完善补全函数，规范TIME_FLOOR_WITH_FILL填充值(TSG-23775)

@@ -48,6 +48,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private static final Pattern pNullable = Pattern.compile("^Nullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pDateTime = Pattern.compile("\\b(DateTime|DateTime64|Date)\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pArray = Pattern.compile("^Array\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pIn = Pattern.compile("(?<!\\bnot|global)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pNotIn = Pattern.compile("(?<!\\bnot|global)\\s+not\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
@@ -213,8 +214,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             return metaList;
         }
         metaList = JsonPath.read(meta, "$");
-        metaList.forEach(x ->
-        {
+        metaList.forEach(x -> {
             String type = x.get("type");
             Matcher matcher = pNullable.matcher(type);
             if (matcher.find()) {
@@ -224,7 +224,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (matcher.find()) {
                 type = matcher.group(1);
             }
-            x.put("type", META_MAP.getOrDefault(type, DataTypeMapping.STRING));
+
+            matcher = pArray.matcher(type);
+            if (matcher.find()) {
+                String innerType = matcher.group(1);
+                String innerTypeMapped = META_MAP.get(innerType) == null ? DataTypeMapping.STRING : META_MAP.get(innerType);
+                x.put("type", DataTypeMapping.ARRAY + "(" + innerTypeMapped + ")");
+            } else {
+                x.put("type", META_MAP.get(type) == null ? DataTypeMapping.STRING : META_MAP.get(type));
+            }
         });
         return metaList;
     }
@@ -829,7 +837,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             SelectItemHelper.AliasColumn aliasColumn = (SelectItemHelper.AliasColumn) aliasObject;
             String fieldName = aliasColumn.getFieldName();
             meta.put(MetaConst.META_FIELD_NAME, fieldName);
-            meta.put(MetaConst.IS_ARRAY, String.valueOf(aliasColumn.isArray()));
             Map schemaInfo = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
             Object dateType = JSONPath.extract(JSON.toJSONString(schemaInfo), "$.fields[?(@.name == \"" + fieldName + "\")].doc.constraints.type");
             if (dateType instanceof List && ((List<?>) dateType).size() > 0) {
@@ -896,7 +903,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private String  convertSampleSql(String sql) throws JSQLParserException {
+    private String convertSampleSql(String sql) throws JSQLParserException {
         return new SampleSQLHelper(sql, " 1 != 1 ", false, null).build();
     }
 

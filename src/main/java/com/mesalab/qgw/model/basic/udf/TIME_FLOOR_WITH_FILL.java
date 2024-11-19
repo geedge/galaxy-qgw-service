@@ -97,6 +97,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
         if (isDryRun) {
             return results;
         }
+        List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
         List<Map<String, Object>> targetResult = Lists.newArrayList();
         List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
@@ -133,7 +134,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
             WhereTimeRange whereTimeRange = getWhereTimeRange(selectStatement);
             Date benchmarkDate = getBenchmarkDate(resultsFirst, timeGranLabel);
 
-            targetResult = fillResultBasedOnTimeSeries(results, groupLabels, timeGranLabel);
+            targetResult = fillResultBasedOnTimeSeries(results, metaList, groupLabels, timeGranLabel);
 
             List<Date> dateRangeList = null;
 
@@ -173,7 +174,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
                     groupLabels, timeGranLabel);
             if (StringUtil.isNotEmpty(dateRangeList)) {
                 for (String key : targetTimeSeriesMap.keySet()) {
-                    targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill));
+                    targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, metaList, fill));
                 }
             }
             targetResult = ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
@@ -287,7 +288,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
         return targetResult;
     }
 
-    private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
+    private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<Map<String, String>> metaList, List<String> groupLabels, String timeGranLabel) {
         Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(results,
                 groupLabels, timeGranLabel);
         Set<Date> dateSet = Sets.newHashSet();
@@ -302,7 +303,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF {
         Collections.sort(dateRangeList);
         if (StringUtil.isNotEmpty(dateRangeList)) {
             for (String key : targetTimeSeriesMap.keySet()) {
-                targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill));
+                targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, metaList, fill));
             }
         }
         return ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
