@@ -128,7 +128,6 @@ public class SelectItemHelper {
                         AliasColumn aliasColumn = new AliasColumn();
                         aliasColumn.setName(name);
                         aliasColumn.setFieldName(column.getColumnName());
-                        aliasColumn.setArray(true);
                         this.aliasExpr = aliasColumn;
                         return null;
                     } else if ((expr1 instanceof ParenthesedExpressionList) && ((ParenthesedExpressionList) expr1).get(0) instanceof Column) {
@@ -136,7 +135,6 @@ public class SelectItemHelper {
                         AliasColumn aliasColumn = new AliasColumn();
                         aliasColumn.setName(name);
                         aliasColumn.setFieldName(column.getColumnName());
-                        aliasColumn.setArray(true);
                         this.aliasExpr = aliasColumn;
                         return null;
                     }/* else if (expr1 instanceof RowConstructor
@@ -144,7 +142,6 @@ public class SelectItemHelper {
                             && ((RowConstructor) expr1).getExprList().getExpressions().get(0) instanceof Column) {
                         AliasColumn aliasColumn = new AliasColumn();
                         aliasColumn.setName(name);
-                        aliasColumn.setArray(true);
                         this.aliasExpr = aliasColumn;
                         return null;
                     }*/
@@ -168,7 +165,6 @@ public class SelectItemHelper {
     public static class AliasObject {
         private String name;
         private int index;
-        private boolean isArray;
     }
 
     @Data
