@@ -3,7 +3,6 @@ package com.mesalab.common.utils.sqlparser;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.CharsetUtil;
 import com.alibaba.fastjson2.JSONPath;
 import com.google.common.collect.Lists;
@@ -39,7 +38,7 @@ public class ExampleDataHelper {
     public static final String QUERY_TYPE_GROUP_BY = "GroupBy";
     public static final String QUERY_TYPE_AGG_STATISTICS = "AggStatistics";
     public static final String QUERY_TYPE_OTHER = "Other";
-    private static final String[] JSONPATH_SPECIAL_CHARS = {"/", ".", "[", "]", "'", "\""};
+    private static final String[] JSONPATH_SPECIAL_CHARS = {"/", ".", "[", "]", "'", "\"", "(", ")"};
 
     private ExampleDataHelper() {
     }
@@ -214,11 +213,10 @@ public class ExampleDataHelper {
     }
 
     private static List getExampleValue(Map<String, String> meta, Object initValue, Boolean isDesc, boolean repeatable, int size, Map<String, List<Object>> schemaDataDict) {
-        boolean isArray = BooleanUtil.toBoolean(meta.get(MetaConst.IS_ARRAY));
         List result = inExampleData(meta, schemaDataDict)
                 ? getExampleDataValues(meta, repeatable, size, schemaDataDict)
-                : getOtherExampleValues(meta, isDesc, size);
-        return isArray ? convertToArrayList(result) : result;
+                : getExampleValuesByType(meta, isDesc, size);
+        return meta.get("type").startsWith(DataTypeMapping.ARRAY) ? convertToArrayList(result) : result;
     }
 
     private static List<List<Object>> convertToArrayList(List<Object> result) {
@@ -227,7 +225,7 @@ public class ExampleDataHelper {
                 .collect(Collectors.toList());
     }
 
-    private static List getOtherExampleValues(Map<String, String> meta, Boolean isDesc, int size) {
+    private static List getExampleValuesByType(Map<String, String> meta, Boolean isDesc, int size) {
         String dataType = meta.get(MetaConst.META_DATA_TYPE) == null ? meta.get(MetaConst.META_TYPE) : meta.get(MetaConst.META_DATA_TYPE);
         if (DataTypeMapping.LONG.equals(dataType) || DataTypeMapping.INT.equals(dataType)) {
             return getExampleIntegerValues(null, isDesc, size);
