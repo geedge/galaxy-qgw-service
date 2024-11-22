@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mesalab</groupId>
     <artifactId>galaxy-qgw-service</artifactId>
-    <version>384</version>
+    <version>385</version>
     <packaging>jar</packaging>
     <name>galaxy-qgw-service</name>
     <repositories>
