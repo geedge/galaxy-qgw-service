@@ -37,6 +37,8 @@
         "client_port",
         "server_port",
         "ssl_ja3_hash",
+        "ssl_ja4_fingerprint",
+        "ssl_ja4s_fingerprint",
         "http_host",
         "ssl_sni",
         "subscriber_id",
@@ -366,6 +368,22 @@
     {
       "name": "ssl_ja3_hash",
       "label": "SSL JA3 Hash",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja4_fingerprint",
+      "label": "SSL JA4 Fingerprint",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja4s_fingerprint",
+      "label": "SSL JA4S Fingerprint",
       "doc": {
         "visibility": "enabled"
       },
