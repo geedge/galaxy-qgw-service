@@ -28,10 +28,10 @@
         "address_type",
         "decoded_as",
         "vsys_id",
-        "client_ip",
-        "client_port",
-        "server_ip",
-        "server_port",
+        "source_ip",
+        "source_port",
+        "destination_ip",
+        "destination_port",
         "http_url",
         "http_host",
         "http_request_line",
@@ -101,10 +101,10 @@
         "address_type",
         "decoded_as",
         "vsys_id",
-        "client_ip",
-        "client_port",
-        "server_ip",
-        "server_port",
+        "source_ip",
+        "source_port",
+        "destination_ip",
+        "destination_port",
         "sent_pkts",
         "received_pkts",
         "sent_bytes",
@@ -186,10 +186,10 @@
         "address_type",
         "decoded_as",
         "vsys_id",
-        "client_ip",
-        "client_port",
-        "server_ip",
-        "server_port",
+        "source_ip",
+        "source_port",
+        "destination_ip",
+        "destination_port",
         "sent_pkts",
         "received_pkts",
         "sent_bytes",
@@ -282,10 +282,10 @@
           "insert_time",
           "address_type",
           "vsys_id",
-          "client_ip",
-          "client_port",
-          "server_ip",
-          "server_port",
+          "source_ip",
+          "source_port",
+          "destination_ip",
+          "destination_port",
           "sent_pkts",
           "received_pkts",
           "sent_bytes",
@@ -293,10 +293,10 @@
         ],
         "default_columns": [
           "recv_time",
-          "client_ip",
-          "client_port",
-          "server_ip",
-          "server_port"
+          "source_ip",
+          "source_port",
+          "destination_ip",
+          "destination_port"
         ]
       },
       "DNS": {
@@ -312,10 +312,10 @@
           "insert_time",
           "address_type",
           "vsys_id",
-          "client_ip",
-          "client_port",
-          "server_ip",
-          "server_port",
+          "source_ip",
+          "source_port",
+          "destination_ip",
+          "destination_port",
           "sent_pkts",
           "received_pkts",
           "sent_bytes",
@@ -342,13 +342,13 @@
         ],
         "default_columns": [
           "recv_time",
-          "client_ip",
-          "client_port",
+          "source_ip",
+          "source_port",
           "dns_qr",
           "dns_qname",
           "dns_qtype",
-          "server_ip",
-          "server_port"
+          "destination_ip",
+          "destination_port"
         ]
       },
       "HTTP": {
@@ -364,10 +364,10 @@
           "insert_time",
           "address_type",
           "vsys_id",
-          "client_ip",
-          "client_port",
-          "server_ip",
-          "server_port",
+          "source_ip",
+          "source_port",
+          "destination_ip",
+          "destination_port",
           "sent_pkts",
           "received_pkts",
           "sent_bytes",
@@ -396,11 +396,11 @@
         ],
         "default_columns": [
           "recv_time",
-          "client_ip",
-          "client_port",
+          "source_ip",
+          "source_port",
           "http_url",
-          "server_ip",
-          "server_port"
+          "destination_ip",
+          "destination_port"
         ]
       },
       "MAIL": {
@@ -416,10 +416,10 @@
           "insert_time",
           "address_type",
           "vsys_id",
-          "client_ip",
-          "client_port",
-          "server_ip",
-          "server_port",
+          "source_ip",
+          "source_port",
+          "destination_ip",
+          "destination_port",
           "sent_pkts",
           "received_pkts",
           "sent_bytes",
@@ -442,13 +442,13 @@
         ],
         "default_columns": [
           "recv_time",
-          "client_ip",
-          "client_port",
+          "source_ip",
+          "source_port",
           "mail_from",
           "mail_to",
           "mail_subject",
-          "server_ip",
-          "server_port"
+          "destination_ip",
+          "destination_port"
         ]
       },
       "SIP": {
@@ -464,10 +464,10 @@
           "insert_time",
           "address_type",
           "vsys_id",
-          "client_ip",
-          "client_port",
-          "server_ip",
-          "server_port",
+          "source_ip",
+          "source_port",
+          "destination_ip",
+          "destination_port",
           "sent_pkts",
           "received_pkts",
           "sent_bytes",
@@ -491,22 +491,22 @@
         ],
         "default_columns": [
           "recv_time",
-          "client_ip",
-          "client_port",
+          "source_ip",
+          "source_port",
           "sip_originator_description",
           "sip_responder_description",
           "sip_call_id",
-          "server_ip",
-          "server_port"
+          "destination_ip",
+          "destination_port"
         ]
       }
     },
     "default_columns": [
       "recv_time",
-      "client_ip",
-      "client_port",
-      "server_ip",
-      "server_port",
+      "source_ip",
+      "source_port",
+      "destination_ip",
+      "destination_port",
       "decoded_as"
     ],
     "internal_columns": [
@@ -681,8 +681,8 @@
       "default": 1
     },
     {
-      "name": "client_ip",
-      "label": "Client IP",
+      "name": "source_ip",
+      "label": "Source IP",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
@@ -694,8 +694,8 @@
       "type": "string"
     },
     {
-      "name": "client_port",
-      "label": "Client Port",
+      "name": "source_port",
+      "label": "Source Port",
       "doc": {
         "constraints": {
           "type": "port"
@@ -706,8 +706,8 @@
       "type": "int"
     },
     {
-      "name": "server_ip",
-      "label": "Server IP",
+      "name": "destination_ip",
+      "label": "Destination IP",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
@@ -719,8 +719,8 @@
       "type": "string"
     },
     {
-      "name": "server_port",
-      "label": "Server Port",
+      "name": "destination_port",
+      "label": "Destination Port",
       "doc": {
         "constraints": {
           "type": "port"

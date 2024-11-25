@@ -3,8 +3,8 @@
     "name": "field-discovery",
     "data_source": "session_record",
     "fields": [
-      "client_ip",
-      "server_port"
+      "source_ip",
+      "destination_port"
     ],
     "filter": "vsys_id in (1) AND ( 1 = 1 )"
   },
@@ -12,8 +12,8 @@
     "name": "field-discovery",
     "data_source": "session_record",
     "fields": [
-      "client_ip",
-      "server_port"
+      "source_ip",
+      "destination_port"
     ],
     "filter": "vsys_id in (1) AND ( 1 = 1 )",
     "custom.statistics.metrics": [
@@ -29,8 +29,8 @@
     "name": "field-discovery",
     "data_source": "session_record",
     "fields": [
-      "client_ip",
-      "server_port"
+      "source_ip",
+      "destination_port"
     ],
     "filter": "vsys_id in (1) AND ( 1 = 1 )",
     "custom.statistics.metrics": [
@@ -46,8 +46,8 @@
     "name": "field-discovery",
     "data_source": "session_record",
     "fields": [
-      "client_ip",
-      "server_port"
+      "source_ip",
+      "destination_port"
     ],
     "filter": "vsys_id in (1) AND ( 1 = 1 )",
     "custom.statistics.metrics": [
@@ -63,8 +63,8 @@
     "name": "field-discovery",
     "data_source": "session_record",
     "fields": [
-      "client_ip",
-      "server_port"
+      "source_ip",
+      "destination_port"
     ],
     "filter": "vsys_id in (1) AND ( 1 = 1 )",
     "custom.statistics.metrics": [
