@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_server_countries",
+  "name": "top_destination_ip",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "server_country"
+        "destination_ip"
       ],
       "metrics": [
         "sessions",
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "server_country",
-      "label": "Server Country",
+      "name": "destination_ip",
+      "label": "Destination IP",
       "doc": {
         "constraints": {
-          "type": "country"
+          "type": "ip"
         },
         "visibility": "enabled"
       },

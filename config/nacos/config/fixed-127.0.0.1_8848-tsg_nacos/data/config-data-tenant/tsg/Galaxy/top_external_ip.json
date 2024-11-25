@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_server_ips",
+  "name": "top_external_ip",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "server_ip"
+        "external_ip"
       ],
       "metrics": [
         "sessions",
@@ -160,12 +160,9 @@
       "type": "string"
     },
     {
-      "name": "server_ip",
-      "label": "Server IP",
+      "name": "external_ip",
+      "label": "External IP",
       "doc": {
-        "constraints": {
-          "type": "ip"
-        },
         "visibility": "enabled"
       },
       "type": "string"

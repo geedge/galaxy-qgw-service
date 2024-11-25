@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_server_fqdns",
+  "name": "top_source_country",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "server_fqdn"
+        "source_country"
       ],
       "metrics": [
         "sessions",
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "server_fqdn",
-      "label": "Server FQDN",
+      "name": "source_country",
+      "label": "Source Country",
       "doc": {
         "constraints": {
-          "type": "fqdn"
+          "type": "country"
         },
         "visibility": "enabled"
       },

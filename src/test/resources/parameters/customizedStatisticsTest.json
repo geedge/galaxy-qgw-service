@@ -5,8 +5,8 @@
     "filter": "vsys_id in (1) AND rule_uuid = '1' AND template_uuid = '1' AND chart_uuid = '1' AND version = 1",
     "custom.statistics.dimensions": [
       {
-        "dimension_name": "server_fqdn",
-        "label": "Server FQDN"
+        "dimension_name": "destination_fqdn",
+        "label": "Destination FQDN"
       }
     ],
     "custom.statistics.metrics": [
@@ -30,7 +30,7 @@
         "function": {
           "name": "COUNT"
         },
-        "metric_name": "server_ip",
+        "metric_name": "destination_ip",
         "label": "Sessions"
       }
     ],
@@ -59,8 +59,8 @@
         "function": {
           "name": "UNIQUE_COUNT"
         },
-        "metric_name": "client_ip",
-        "label": "Client IPs"
+        "metric_name": "source_ip",
+        "label": "Source IPs"
       },
       {
         "function": {
@@ -89,8 +89,8 @@
         "label": "Stat Time"
       },
       {
-        "metric_name": "client_ip",
-        "label": "Client IP"
+        "dimension_name": "source_ip",
+        "label": "Source IP"
       }
     ],
     "custom.statistics.metrics": [
@@ -105,7 +105,7 @@
     ],
     "custom.statistics.subquery.topk": {
       "dimensions": [
-        "Client IP"
+        "Source IP"
       ],
       "metric": "Bytes",
       "limit": 10

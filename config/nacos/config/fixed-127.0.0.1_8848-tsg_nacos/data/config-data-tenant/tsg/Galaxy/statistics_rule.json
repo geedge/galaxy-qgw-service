@@ -20,22 +20,22 @@
         "template_uuid",
         "chart_uuid",
         "version",
-        "client_ip",
-        "server_ip",
-        "client_country",
-        "server_country",
-        "client_asn",
-        "server_asn",
-        "server_fqdn",
-        "server_domain",
+        "source_ip",
+        "destination_ip",
+        "source_country",
+        "destination_country",
+        "source_asn",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_domain",
         "app",
         "app_category",
         "c2s_ttl",
         "s2c_ttl",
         "c2s_link_id",
         "s2c_link_id",
-        "client_port",
-        "server_port",
+        "source_port",
+        "destination_port",
         "ssl_ja3_hash",
         "ssl_ja4_fingerprint",
         "ssl_ja4s_fingerprint",
@@ -187,35 +187,24 @@
       "type": "long"
     },
     {
-      "name": "client_ip_object_list",
-      "label": "Client IP Matched Objects",
+      "name": "source_ip_object_list",
+      "label": "Source IP Matched Objects",
       "doc": {
         "visibility": "enabled"
       },
       "type": "string"
     },
     {
-      "name": "server_ip_object_list",
-      "label": "Server IP Matched Objects",
+      "name": "destination_ip_object_list",
+      "label": "Destination IP Matched Objects",
       "doc": {
         "visibility": "enabled"
       },
       "type": "string"
     },
     {
-      "name": "fqdn_category_list",
-      "label": "WebSketch Categories",
-      "doc": {
-        "constraints": {
-          "type": "ip"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "client_ip",
-      "label": "Client IP",
+      "name": "source_ip",
+      "label": "Source IP",
       "doc": {
         "constraints": {
           "type": "ip"
@@ -225,8 +214,8 @@
       "type": "string"
     },
     {
-      "name": "server_ip",
-      "label": "Server IP",
+      "name": "destination_ip",
+      "label": "Destination IP",
       "doc": {
         "constraints": {
           "type": "ip"
@@ -236,8 +225,8 @@
       "type": "string"
     },
     {
-      "name": "client_country",
-      "label": "Client Country",
+      "name": "source_country",
+      "label": "Source Country",
       "doc": {
         "constraints": {
           "type": "country"
@@ -247,8 +236,8 @@
       "type": "string"
     },
     {
-      "name": "server_country",
-      "label": "Server Country",
+      "name": "destination_country",
+      "label": "Destination Country",
       "doc": {
         "constraints": {
           "type": "country"
@@ -258,24 +247,24 @@
       "type": "string"
     },
     {
-      "name": "client_asn",
-      "label": "Client ASN",
+      "name": "source_asn",
+      "label": "Source ASN",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "server_asn",
-      "label": "Server ASN",
+      "name": "destination_asn",
+      "label": "Destination ASN",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "server_fqdn",
-      "label": "Server FQDN",
+      "name": "destination_fqdn",
+      "label": "Destination FQDN",
       "doc": {
         "constraints": {
           "type": "fqdn"
@@ -285,8 +274,8 @@
       "type": "string"
     },
     {
-      "name": "server_domain",
-      "label": "Server Domain",
+      "name": "destination_domain",
+      "label": "Destination Domain",
       "doc": {
         "constraints": {
           "type": "domain"
@@ -350,16 +339,16 @@
       "type": "long"
     },
     {
-      "name": "client_port",
-      "label": "Client Port",
+      "name": "source_port",
+      "label": "Source Port",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "server_port",
-      "label": "Server Port",
+      "name": "destination_port",
+      "label": "Destination Port",
       "doc": {
         "visibility": "enabled"
       },
