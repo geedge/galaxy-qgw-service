@@ -285,6 +285,8 @@
         "tcp_c2s_rtx_bytes",
         "tcp_s2c_rtx_bytes",
         "tcp_rtt_ms",
+        "tcp_access_latency_ms",
+        "tcp_internet_latency_ms",
         "http_url",
         "http_host",
         "http_user_agent",
@@ -432,6 +434,8 @@
         "tcp_c2s_rtx_bytes",
         "tcp_s2c_rtx_bytes",
         "tcp_rtt_ms",
+        "tcp_access_latency_ms",
+        "tcp_internet_latency_ms",
         "http_url",
         "http_host",
         "http_request_line",
@@ -879,6 +883,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -903,6 +909,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -927,6 +935,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -951,6 +961,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -975,6 +987,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -999,6 +1013,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -2613,6 +2629,32 @@
     {
       "name": "tcp_rtt_ms",
       "label": "Round-trip Time(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tcp_access_latency_ms",
+      "label": "Access Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tcp_internet_latency_ms",
+      "label": "Internet latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
