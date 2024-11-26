@@ -732,7 +732,7 @@
     },
     {
       "name": "sent_pkts",
-      "label": "Packets Sent",
+      "label": "Sent Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -744,7 +744,7 @@
     },
     {
       "name": "received_pkts",
-      "label": "Packets Received",
+      "label": "Received Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -756,7 +756,7 @@
     },
     {
       "name": "sent_bytes",
-      "label": "Bytes Sent",
+      "label": "Sent Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -768,7 +768,7 @@
     },
     {
       "name": "received_bytes",
-      "label": "Bytes Received",
+      "label": "Received Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"

@@ -460,7 +460,7 @@
     },
     {
       "name": "sent_bytes",
-      "label": "Bytes Sent",
+      "label": "Sent Bytes",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -474,7 +474,7 @@
     },
     {
       "name": "received_bytes",
-      "label": "Bytes Received",
+      "label": "Received Bytes",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -502,7 +502,7 @@
     },
     {
       "name": "sent_pkts",
-      "label": "Packets Sent",
+      "label": "Sent Packets",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -516,7 +516,7 @@
     },
     {
       "name": "received_pkts",
-      "label": "Packets Received",
+      "label": "Received Packets",
       "doc": {
         "constraints": {
           "metric_type": "count",
