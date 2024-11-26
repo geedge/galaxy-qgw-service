@@ -28,6 +28,7 @@
         "insert_time"
       ],
       "dimensions": [
+        "session_uuid",
         "session_id",
         "device_id",
         "out_link_id",
@@ -42,30 +43,22 @@
         "proxy_rule_list",
         "proxy_rule_uuid_list",
         "proxy_action",
-        "client_ip",
-        "client_ip_tags",
-        "client_port",
-        "client_os_desc",
-        "client_geolocation",
-        "client_country",
-        "client_super_administrative_area",
-        "client_administrative_area",
-        "client_sub_administrative_area",
-        "client_asn",
+        "source_ip",
+        "source_ip_tags",
+        "source_port",
+        "source_os_desc",
+        "source_country",
+        "source_asn",
         "subscriber_id",
-        "server_ip",
-        "server_ip_tags",
-        "server_port",
-        "server_os_desc",
-        "server_geolocation",
-        "server_country",
-        "server_super_administrative_area",
-        "server_administrative_area",
-        "server_sub_administrative_area",
-        "server_asn",
-        "server_fqdn",
-        "server_fqdn_tags",
-        "server_domain",
+        "destination_ip",
+        "destination_ip_tags",
+        "destination_port",
+        "destination_os_desc",
+        "destination_country",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_fqdn_tags",
+        "destination_domain",
         "ip_protocol",
         "tunnel_id_list",
         "tunnel_uuid_list",
@@ -126,29 +119,24 @@
         "proxy_rule_uuid"
       ],
       "metrics": [
+        "log_uuid",
         "log_id",
-        "client_ip",
-        "client_port",
-        "client_geolocation",
-        "client_country",
-        "client_super_administrative_area",
-        "client_administrative_area",
-        "client_sub_administrative_area",
-        "client_asn",
+        "source_ip",
+        "source_port",
+        "source_country",
+        "source_asn",
         "subscriber_id",
-        "server_ip",
-        "server_port",
-        "server_geolocation",
-        "server_country",
-        "server_super_administrative_area",
-        "server_administrative_area",
-        "server_sub_administrative_area",
-        "server_asn",
-        "server_fqdn",
-        "server_domain",
+        "destination_ip",
+        "destination_port",
+        "destination_country",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_domain",
         "sent_bytes",
         "received_bytes",
         "tcp_rtt_ms",
+        "tcp_access_latency_ms",
+        "tcp_internet_latency_ms",
         "http_url",
         "http_host",
         "http_user_agent",
@@ -164,6 +152,7 @@
         "doh_qname"
       ],
       "filters": [
+        "session_uuid",
         "session_id",
         "start_timestamp_ms",
         "end_timestamp_ms",
@@ -182,34 +171,28 @@
         "proxy_rule_list",
         "proxy_rule_uuid_list",
         "proxy_action",
-        "client_ip",
-        "client_ip_tags",
-        "client_port",
-        "client_os_desc",
-        "client_geolocation",
-        "client_country",
-        "client_super_administrative_area",
-        "client_administrative_area",
-        "client_sub_administrative_area",
-        "client_asn",
+        "source_ip",
+        "source_ip_tags",
+        "source_port",
+        "source_os_desc",
+        "source_country",
+        "source_asn",
         "subscriber_id",
-        "server_ip",
-        "server_ip_tags",
-        "server_port",
-        "server_os_desc",
-        "server_geolocation",
-        "server_country",
-        "server_super_administrative_area",
-        "server_administrative_area",
-        "server_sub_administrative_area",
-        "server_asn",
-        "server_fqdn",
-        "server_fqdn_tags",
-        "server_domain",
+        "destination_ip",
+        "destination_ip_tags",
+        "destination_port",
+        "destination_os_desc",
+        "destination_country",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_fqdn_tags",
+        "destination_domain",
         "ip_protocol",
         "sent_bytes",
         "received_bytes",
         "tcp_rtt_ms",
+        "tcp_access_latency_ms",
+        "tcp_internet_latency_ms",
         "tunnel_id_list",
         "tunnel_uuid_list",
         "http_url",
@@ -363,23 +346,22 @@
     "default_columns": [
       "recv_time",
       "subscriber_id",
-      "client_ip",
-      "client_port",
-      "server_ip",
-      "server_port",
+      "source_ip",
+      "source_port",
+      "destination_ip",
+      "destination_port",
       "decoded_as",
-      "server_fqdn"
+      "destination_fqdn"
     ],
     "internal_columns": [
       "recv_time",
+      "log_uuid",
       "log_id",
       "flags_identify_info",
       "encapsulation",
       "app_debug_info",
       "app_content",
-      "packet_capture_file",
-      "tunnel_endpoint_a_desc",
-      "tunnel_endpoint_b_desc"
+      "packet_capture_file"
     ],
     "sensitive_columns": [
       "subscriber_id",
@@ -390,10 +372,10 @@
         "proxy_pinning_status",
         "proxy_intercept_status",
         "proxy_passthrough_reason",
-        "proxy_client_side_version",
-        "proxy_server_side_version",
-        "proxy_client_side_latency_ms",
-        "proxy_server_side_latency_ms",
+        "proxy_source_side_version",
+        "proxy_destination_side_version",
+        "proxy_source_side_latency_ms",
+        "proxy_destination_side_latency_ms",
         "proxy_cert_verify",
         "proxy_intercept_error"
       ]
@@ -461,6 +443,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -483,6 +467,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -504,6 +490,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -525,6 +513,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -546,6 +536,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -567,6 +559,8 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
+          "tcp_access_latency_ms": "ms",
+          "tcp_internet_latency_ms": "ms",
           "http_request_content_length": "bytes",
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
@@ -625,7 +619,7 @@
           "constraints": {
             "operator_functions": "has,notEmpty,empty"
           },
-          "expression": "array(if(bitAnd(flags, 8)=8, client_ip,''), if(bitAnd(flags, 16)=16, server_ip,''))"
+          "expression": "array(if(bitAnd(flags, 8)=8, source_ip,''), if(bitAnd(flags, 16)=16, destination_ip,''))"
         }
       },
       {
@@ -640,7 +634,7 @@
           "constraints": {
             "operator_functions": "has,notEmpty,empty"
           },
-          "expression": "array(if(bitAnd(flags, 8)!=8, client_ip,''), if(bitAnd(flags, 16)!=16, server_ip,''))"
+          "expression": "array(if(bitAnd(flags, 8)!=8, source_ip,''), if(bitAnd(flags, 16)!=16, destination_ip,''))"
         }
       },
       {
@@ -655,7 +649,7 @@
           "constraints": {
             "operator_functions": "has,notEmpty,empty"
           },
-          "expression": "array(if(bitAnd(flags, 8)=8, client_port, null), if(bitAnd(flags, 16)=16, server_port, null))"
+          "expression": "array(if(bitAnd(flags, 8)=8, source_port, null), if(bitAnd(flags, 16)=16, destination_port, null))"
         }
       },
       {
@@ -670,7 +664,7 @@
           "constraints": {
             "operator_functions": "has,notEmpty,empty"
           },
-          "expression": "array(if(bitAnd(flags, 8)!=8, client_port, null), if(bitAnd(flags, 16)!=16, server_port, null))"
+          "expression": "array(if(bitAnd(flags, 8)!=8, source_port, null), if(bitAnd(flags, 16)!=16, destination_port, null))"
         }
       },
       {
@@ -685,7 +679,7 @@
           "constraints": {
             "operator_functions": "has,notEmpty,empty"
           },
-          "expression": "array(if(bitAnd(flags, 8)=8, client_asn, null), if(bitAnd(flags, 16)=16, server_asn, null))"
+          "expression": "array(if(bitAnd(flags, 8)=8, source_asn, null), if(bitAnd(flags, 16)=16, destination_asn, null))"
         }
       },
       {
@@ -700,7 +694,7 @@
           "constraints": {
             "operator_functions": "has,notEmpty,empty"
           },
-          "expression": "array(if(bitAnd(flags, 8)!=8, client_asn, null), if(bitAnd(flags, 16)!=16, server_asn, null))"
+          "expression": "array(if(bitAnd(flags, 8)!=8, source_asn, null), if(bitAnd(flags, 16)!=16, destination_asn, null))"
         }
       },
       {
@@ -722,30 +716,30 @@
         }
       },
       {
-        "name": "client_ip_tag",
-        "label": "Client IP Tag",
+        "name": "source_ip_tag",
+        "label": "Source IP Tag",
         "type": "string",
         "doc": {
           "allow_query": false,
-          "expression": "arrayJoin(IF(empty(client_ip_tags), arrayPushFront(client_ip_tags, null),client_ip_tags))"
+          "expression": "arrayJoin(IF(empty(source_ip_tags), arrayPushFront(source_ip_tags, null),source_ip_tags))"
         }
       },
       {
-        "name": "server_ip_tag",
-        "label": "Server IP Tag",
+        "name": "destination_ip_tag",
+        "label": "Destination IP Tag",
         "type": "string",
         "doc": {
           "allow_query": false,
-          "expression": "arrayJoin(IF(empty(server_ip_tags), arrayPushFront(server_ip_tags, null),server_ip_tags))"
+          "expression": "arrayJoin(IF(empty(destination_ip_tags), arrayPushFront(destination_ip_tags, null),destination_ip_tags))"
         }
       },
       {
-        "name": "server_fqdn_tag",
-        "label": "Server FQDN Tag",
+        "name": "destination_fqdn_tag",
+        "label": "Destination FQDN Tag",
         "type": "string",
         "doc": {
           "allow_query": false,
-          "expression": "arrayJoin(IF(empty(server_fqdn_tags), arrayPushFront(server_fqdn_tags, null),server_fqdn_tags))"
+          "expression": "arrayJoin(IF(empty(destination_fqdn_tags), arrayPushFront(destination_fqdn_tags, null),destination_fqdn_tags))"
         }
       }
     ]
@@ -767,8 +761,20 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT"
@@ -805,8 +811,17 @@
       "type": "string"
     },
     {
+      "name": "session_uuid",
+      "label": "Session UUID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "session_id",
-      "label": "Session ID",
+      "label": "Session ID(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1149,21 +1164,6 @@
       "type": "string"
     },
     {
-      "name": "security_action",
-      "label": "Security Action",
-      "doc": {
-        "visibility": "hidden",
-        "constraints": {
-          "operator_functions": "=,!=,in,not in,notEmpty,empty"
-        },
-        "data": {
-          "$ref": "public_schema_info.json#/fields/security_action/data"
-        },
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "monitor_rule_list",
       "label": "Monitor Rule List(Deprecated)",
       "doc": {
@@ -1477,8 +1477,8 @@
       "type": "string"
     },
     {
-      "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server-Side Latency(ms)",
+      "name": "proxy_destination_side_latency_ms",
+      "label": "Proxy Destination-Side Latency(ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1486,8 +1486,8 @@
       "type": "int"
     },
     {
-      "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client-Side Latency(ms)",
+      "name": "proxy_source_side_latency_ms",
+      "label": "Proxy Source-Side Latency(ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1495,8 +1495,8 @@
       "type": "int"
     },
     {
-      "name": "proxy_client_side_version",
-      "label": "Proxy Client-Side Version",
+      "name": "proxy_source_side_version",
+      "label": "Proxy Source-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1504,8 +1504,8 @@
       "type": "string"
     },
     {
-      "name": "proxy_server_side_version",
-      "label": "Proxy Server-Side Version",
+      "name": "proxy_destination_side_version",
+      "label": "Proxy Destination-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1555,8 +1555,8 @@
       }
     },
     {
-      "name": "client_ip",
-      "label": "Client IP",
+      "name": "source_ip",
+      "label": "Source IP",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
@@ -1568,8 +1568,8 @@
       "type": "string"
     },
     {
-      "name": "client_ip_tags",
-      "label": "Client IP Tags",
+      "name": "source_ip_tags",
+      "label": "Source IP Tags",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1584,8 +1584,8 @@
       }
     },
     {
-      "name": "client_port",
-      "label": "Client Port",
+      "name": "source_port",
+      "label": "Source Port",
       "doc": {
         "visibility": "enabled",
         "constraints": {
@@ -1597,26 +1597,17 @@
       "type": "int"
     },
     {
-      "name": "client_os_desc",
+      "name": "source_os_desc",
       "type": "string",
       "doc": {
         "visibility": "hidden",
         "ttl": null
       },
-      "label": "Client OS Description"
+      "label": "Source OS Description"
     },
     {
-      "name": "client_geolocation",
-      "label": "Client Geolocation(Deprecated)",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "client_country",
-      "label": "Client Country",
+      "name": "source_country",
+      "label": "Source Country",
       "doc": {
         "constraints": {
           "type": "country"
@@ -1627,41 +1618,8 @@
       "type": "string"
     },
     {
-      "name": "client_super_administrative_area",
-      "label": "Client Super Administrative Area(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "super_administrative_area"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "client_administrative_area",
-      "label": "Client Administrative Area(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "administrative_area"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "client_sub_administrative_area",
-      "label": "Client SubAdministrative Area(Deprecated)",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "client_asn",
-      "label": "Client ASN",
+      "name": "source_asn",
+      "label": "Source ASN",
       "doc": {
         "visibility": "enabled",
         "constraints": {
@@ -1746,8 +1704,8 @@
       "type": "string"
     },
     {
-      "name": "server_ip",
-      "label": "Server IP",
+      "name": "destination_ip",
+      "label": "Destination IP",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in,like,not like,notEmpty,empty,isIPAddressInRange",
@@ -1759,8 +1717,8 @@
       "type": "string"
     },
     {
-      "name": "server_ip_tags",
-      "label": "Server IP Tags",
+      "name": "destination_ip_tags",
+      "label": "Destination IP Tags",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1775,8 +1733,8 @@
       }
     },
     {
-      "name": "server_port",
-      "label": "Server Port",
+      "name": "destination_port",
+      "label": "Destination Port",
       "doc": {
         "visibility": "enabled",
         "constraints": {
@@ -1788,26 +1746,17 @@
       "type": "int"
     },
     {
-      "name": "server_os_desc",
+      "name": "destination_os_desc",
       "type": "string",
       "doc": {
         "visibility": "hidden",
         "ttl": null
       },
-      "label": "Server OS Description"
+      "label": "Destination OS Description"
     },
     {
-      "name": "server_geolocation",
-      "label": "Server Geolocation(Deprecated)",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_country",
-      "label": "Server Country",
+      "name": "destination_country",
+      "label": "Destination Country",
       "doc": {
         "constraints": {
           "type": "country"
@@ -1818,41 +1767,8 @@
       "type": "string"
     },
     {
-      "name": "server_super_administrative_area",
-      "label": "Server Super Administrative Area(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "super_administrative_area"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_administrative_area",
-      "label": "Server Administrative Area(Deprecated)",
-      "doc": {
-        "constraints": {
-          "type": "administrative_area"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_sub_administrative_area",
-      "label": "Server SubAdministrative Area(Deprecated)",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_asn",
-      "label": "Server ASN",
+      "name": "destination_asn",
+      "label": "Destination ASN",
       "doc": {
         "visibility": "enabled",
         "constraints": {
@@ -1863,8 +1779,8 @@
       "type": "long"
     },
     {
-      "name": "server_fqdn",
-      "label": "Server FQDN",
+      "name": "destination_fqdn",
+      "label": "Destination FQDN",
       "doc": {
         "constraints": {
           "type": "fqdn"
@@ -1875,8 +1791,8 @@
       "type": "string"
     },
     {
-      "name": "server_fqdn_tags",
-      "label": "Server FQDN Tags",
+      "name": "destination_fqdn_tags",
+      "label": "Destination FQDN Tags",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1891,8 +1807,8 @@
       }
     },
     {
-      "name": "server_domain",
-      "label": "Server Domain",
+      "name": "destination_domain",
+      "label": "Destination Domain",
       "doc": {
         "constraints": {
           "type": "domain"
@@ -1984,29 +1900,8 @@
       "type": "string"
     },
     {
-      "name": "fqdn_category_list",
-      "label": "FQDN Category List(Deprecated)",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "dict_location": {
-          "path": "/v1/policy/object?type=fqdn_category",
-          "key": "category_id",
-          "value": "category_name"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
       "name": "sent_pkts",
-      "label": "Packets Sent",
+      "label": "Sent Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2018,7 +1913,7 @@
     },
     {
       "name": "received_pkts",
-      "label": "Packets Received",
+      "label": "Received Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2030,7 +1925,7 @@
     },
     {
       "name": "sent_bytes",
-      "label": "Bytes Sent",
+      "label": "Sent Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -2042,7 +1937,7 @@
     },
     {
       "name": "received_bytes",
-      "label": "Bytes Received",
+      "label": "Received Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -2186,8 +2081,34 @@
       "type": "int"
     },
     {
-      "name": "tcp_client_isn",
-      "label": "Client ISN",
+      "name": "tcp_access_latency_ms",
+      "label": "Access Latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tcp_internet_latency_ms",
+      "label": "Internet latency(ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "tcp_source_isn",
+      "label": "Source ISN",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -2195,8 +2116,8 @@
       "type": "long"
     },
     {
-      "name": "tcp_server_isn",
-      "label": "Server ISN",
+      "name": "tcp_destination_isn",
+      "label": "Destination ISN",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -2301,24 +2222,6 @@
         "items": "string",
         "logicalType": "array"
       }
-    },
-    {
-      "name": "tunnel_endpoint_a_desc",
-      "label": "Tunnel Endpoint A Description(Deprecated)",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "tunnel_endpoint_b_desc",
-      "label": "Tunnel Endpoint B Description(Deprecated)",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
     },
     {
       "name": "http_url",

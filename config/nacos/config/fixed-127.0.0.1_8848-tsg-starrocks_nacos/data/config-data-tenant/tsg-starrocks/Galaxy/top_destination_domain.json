@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_client_countries",
+  "name": "top_destination_domain",
   "namespace": "tsg_olap",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "client_country"
+        "destination_domain"
       ],
       "metrics": [
         "sessions",
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "client_country",
-      "label": "Client Country",
+      "name": "destination_domain",
+      "label": "Destination Domain",
       "doc": {
         "constraints": {
-          "type": "country"
+          "type": "domain"
         },
         "visibility": "enabled"
       },

@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_external_ips",
+  "name": "top_source_country",
   "namespace": "tsg_olap",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "external_ip"
+        "source_country"
       ],
       "metrics": [
         "sessions",
@@ -160,9 +160,12 @@
       "type": "string"
     },
     {
-      "name": "external_ip",
-      "label": "External IP",
+      "name": "source_country",
+      "label": "Source Country",
       "doc": {
+        "constraints": {
+          "type": "country"
+        },
         "visibility": "enabled"
       },
       "type": "string"

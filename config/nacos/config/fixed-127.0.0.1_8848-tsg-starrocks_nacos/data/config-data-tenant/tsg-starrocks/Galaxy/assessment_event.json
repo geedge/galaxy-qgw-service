@@ -3,12 +3,11 @@
   "name": "assessment_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "primary_key": "log_id",
+    "primary_key": "log_uuid",
     "partition_key": "recv_time",
     "index_key": [
       "vsys_id",
-      "recv_time",
-      "log_id"
+      "recv_time"
     ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
@@ -36,8 +35,19 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT"

@@ -10,7 +10,7 @@
       "direction",
       "ip_protocol",
       "app",
-      "client_ip",
+      "source_ip",
       "recv_time"
     ],
     "ttl": null,
@@ -29,16 +29,16 @@
         "data_center",
         "direction",
         "ip_protocol",
-        "client_ip",
-        "server_ip",
+        "source_ip",
+        "destination_ip",
         "internal_ip",
         "external_ip",
-        "client_country",
-        "server_country",
-        "client_asn",
-        "server_asn",
-        "server_fqdn",
-        "server_domain",
+        "source_country",
+        "destination_country",
+        "source_asn",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_domain",
         "app",
         "app_category",
         "c2s_ttl",
@@ -53,16 +53,16 @@
         "data_center",
         "direction",
         "ip_protocol",
-        "client_ip",
-        "server_ip",
+        "source_ip",
+        "destination_ip",
         "internal_ip",
         "external_ip",
-        "client_country",
-        "server_country",
-        "client_asn",
-        "server_asn",
-        "server_fqdn",
-        "server_domain",
+        "source_country",
+        "destination_country",
+        "source_asn",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_domain",
         "app",
         "app_category",
         "c2s_ttl",
@@ -86,6 +86,7 @@
         "s2c_tcp_retransmitted_pkts"
       ],
       "filters": [
+        "log_uuid",
         "log_id",
         "vsys_id",
         "device_id",
@@ -93,16 +94,16 @@
         "data_center",
         "direction",
         "ip_protocol",
-        "client_ip",
-        "server_ip",
+        "source_ip",
+        "destination_ip",
         "internal_ip",
         "external_ip",
-        "client_country",
-        "server_country",
-        "client_asn",
-        "server_asn",
-        "server_fqdn",
-        "server_domain",
+        "source_country",
+        "destination_country",
+        "source_asn",
+        "destination_asn",
+        "destination_fqdn",
+        "destination_domain",
         "app",
         "app_category",
         "c2s_ttl",
@@ -147,8 +148,20 @@
       }
     },
     {
+      "name": "log_uuid",
+      "label": "Log UUID",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "log_id",
-      "label": "Log ID",
+      "label": "Log ID(Deprecated)",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT"
@@ -236,8 +249,8 @@
       "type": "string"
     },
     {
-      "name": "client_ip",
-      "label": "Client IP",
+      "name": "source_ip",
+      "label": "Source IP",
       "doc": {
         "constraints": {
           "type": "ip"
@@ -248,8 +261,8 @@
       "type": "string"
     },
     {
-      "name": "server_ip",
-      "label": "Server IP",
+      "name": "destination_ip",
+      "label": "Destination IP",
       "doc": {
         "constraints": {
           "type": "ip"
@@ -284,8 +297,8 @@
       "type": "string"
     },
     {
-      "name": "client_country",
-      "label": "Client Country",
+      "name": "source_country",
+      "label": "Source Country",
       "doc": {
         "constraints": {
           "type": "country"
@@ -296,8 +309,8 @@
       "type": "string"
     },
     {
-      "name": "server_country",
-      "label": "Server Country",
+      "name": "destination_country",
+      "label": "Destination Country",
       "doc": {
         "constraints": {
           "type": "country"
@@ -308,8 +321,8 @@
       "type": "string"
     },
     {
-      "name": "client_asn",
-      "label": "Client ASN",
+      "name": "source_asn",
+      "label": "Source ASN",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
@@ -320,8 +333,8 @@
       "type": "long"
     },
     {
-      "name": "server_asn",
-      "label": "Server ASN",
+      "name": "destination_asn",
+      "label": "Destination ASN",
       "doc": {
         "constraints": {
           "aggregation_functions": "COUNT, UNIQUE_COUNT, UNIQUE_ARRAY"
@@ -332,8 +345,8 @@
       "type": "long"
     },
     {
-      "name": "server_fqdn",
-      "label": "Server FQDN",
+      "name": "destination_fqdn",
+      "label": "Destination FQDN",
       "doc": {
         "constraints": {
           "type": "fqdn"
@@ -344,8 +357,8 @@
       "type": "string"
     },
     {
-      "name": "server_domain",
-      "label": "Server Domain",
+      "name": "destination_domain",
+      "label": "Destination Domain",
       "doc": {
         "constraints": {
           "type": "domain"
@@ -447,7 +460,7 @@
     },
     {
       "name": "sent_bytes",
-      "label": "Bytes Sent",
+      "label": "Sent Bytes",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -461,7 +474,7 @@
     },
     {
       "name": "received_bytes",
-      "label": "Bytes Received",
+      "label": "Received Bytes",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -489,7 +502,7 @@
     },
     {
       "name": "sent_pkts",
-      "label": "Packets Sent",
+      "label": "Sent Packets",
       "doc": {
         "constraints": {
           "metric_type": "count",
@@ -503,7 +516,7 @@
     },
     {
       "name": "received_pkts",
-      "label": "Packets Received",
+      "label": "Received Packets",
       "doc": {
         "constraints": {
           "metric_type": "count",

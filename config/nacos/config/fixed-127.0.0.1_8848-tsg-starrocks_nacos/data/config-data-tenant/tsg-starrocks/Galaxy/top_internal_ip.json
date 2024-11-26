@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_server_ips",
+  "name": "top_internal_ip",
   "namespace": "tsg_olap",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "server_ip"
+        "internal_ip"
       ],
       "metrics": [
         "sessions",
@@ -33,7 +33,7 @@
       }
     },
     "measurements": {
-     "retentions": "1m:1800d",
+      "retentions": "1m:1800d",
       "ingestion_delay": 15,
       "aggregated_metric_unit": {
         "SUM": {
@@ -160,8 +160,8 @@
       "type": "string"
     },
     {
-      "name": "server_ip",
-      "label": "Server IP",
+      "name": "internal_ip",
+      "label": "Internal IP",
       "doc": {
         "constraints": {
           "type": "ip"

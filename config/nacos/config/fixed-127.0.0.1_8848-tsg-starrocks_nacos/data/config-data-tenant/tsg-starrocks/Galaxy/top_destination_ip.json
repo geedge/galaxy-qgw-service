@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_client_ips",
+  "name": "top_destination_ip",
   "namespace": "tsg_olap",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "client_ip"
+        "destination_ip"
       ],
       "metrics": [
         "sessions",
@@ -160,8 +160,8 @@
       "type": "string"
     },
     {
-      "name": "client_ip",
-      "label": "Client IP",
+      "name": "destination_ip",
+      "label": "Destination IP",
       "doc": {
         "constraints": {
           "type": "ip"

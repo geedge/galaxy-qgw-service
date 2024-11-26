@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_server_fqdns",
+  "name": "top_destination_country",
   "namespace": "tsg_olap",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "server_fqdn"
+        "destination_country"
       ],
       "metrics": [
         "sessions",
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "server_fqdn",
-      "label": "Server FQDN",
+      "name": "destination_country",
+      "label": "Destination Country",
       "doc": {
         "constraints": {
-          "type": "fqdn"
+          "type": "country"
         },
         "visibility": "enabled"
       },

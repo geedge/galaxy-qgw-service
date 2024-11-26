@@ -96,7 +96,7 @@
     "default": 86400
   },
   {
-    "key": "client_ip",
+    "key": "source_ip",
     "default": "120.242.132.200"
   },
   {
@@ -129,7 +129,7 @@
   },
   {
     "key": "column_name",
-    "default": "client_ip"
+    "default": "source_ip"
   },
   {
     "key": "column_name_long",
@@ -141,7 +141,7 @@
   },
   {
     "key": "column_name_array",
-    "default": "fqdn_category_list"
+    "default": "destination_fqdn_tags"
   },
   {
     "key": "source",
@@ -178,7 +178,7 @@
   {
     "key": "dimension_list",
     "default": {
-      "dimension_name": "client_ip"
+      "dimension_name": "source_ip"
     }
   }
 ]
