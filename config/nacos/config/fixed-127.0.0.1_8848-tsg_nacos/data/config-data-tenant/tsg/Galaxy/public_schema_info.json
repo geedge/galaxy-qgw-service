@@ -207,6 +207,11 @@
         "function": "has(expr, value)"
       },
       {
+        "name": "hasAll",
+        "label": "HAS ALL",
+        "function": "hasAll(expr, value)"
+      },
+      {
         "name": "in",
         "label": "IN",
         "function": "expr in (values)"
@@ -345,7 +350,7 @@
         },
         {
           "type": "array",
-          "functions": "has,notEmpty,empty"
+          "functions": "hasAll,has,notEmpty,empty"
         },
         {
           "type": "bit",
