@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_internal_ips",
+  "name": "top_destination_country",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "internal_ip"
+        "destination_country"
       ],
       "metrics": [
         "sessions",
@@ -33,7 +33,7 @@
       }
     },
     "measurements": {
-      "retentions": "1m:1800d",
+     "retentions": "1m:1800d",
       "ingestion_delay": 15,
       "aggregated_metric_unit": {
         "SUM": {
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "internal_ip",
-      "label": "Internal IP",
+      "name": "destination_country",
+      "label": "Destination Country",
       "doc": {
         "constraints": {
-          "type": "ip"
+          "type": "country"
         },
         "visibility": "enabled"
       },

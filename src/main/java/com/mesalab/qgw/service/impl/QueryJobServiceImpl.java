@@ -171,10 +171,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
             return jobExecuteService.addDslExecutorPacketCombineWithoutCache(request);
         } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
-                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_SOURCE_AND_DESTINATION_IPS.equals(request.getName())
                 || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                 || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
-                || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                || JobConfig.TRAFFIC_SPECTRUM_SOURCE_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
             QueryCache queryCache = new QueryCache(request.getId(), request.getName());
             HazelcastInstanceMapUtil.put(request.getId(), queryCache);
             CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -223,10 +223,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             HazelcastInstanceMapUtil.put(request.getId(), queryCache);
             jobExecuteService.addExecutorDslPacketCombineWithCache(request, null);
         } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
-                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_SOURCE_AND_DESTINATION_IPS.equals(request.getName())
                 || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                 || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
-                || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                || JobConfig.TRAFFIC_SPECTRUM_SOURCE_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
             queryCache.setType(request.getName());
             HazelcastInstanceMapUtil.put(request.getId(), queryCache);
             jobExecuteService.addDslExecutorTrafficSpectrumWithCache(request, null);
@@ -285,10 +285,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 handleInterruptedExceptionAndThrowQGWBusinessException(e);
             }
         } else if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(request.getName())
-                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(request.getName())
+                || JobConfig.TRAFFIC_SPECTRUM_UNIQUE_SOURCE_AND_DESTINATION_IPS.equals(request.getName())
                 || JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(request.getName())
                 || JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(request.getName())
-                || JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
+                || JobConfig.TRAFFIC_SPECTRUM_SOURCE_IP_CONNECT_APPLICATION_USAGE.equals(request.getName())) {
             QueryCache queryCache = new QueryCache(request.getId(), request.getName());
             HazelcastInstanceMapUtil.put(request.getId(), queryCache);
             CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -370,7 +370,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         } else if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
-        } else if (JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(queryCache.getType())) {
+        } else if (JobConfig.TRAFFIC_SPECTRUM_SOURCE_IP_CONNECT_APPLICATION_USAGE.equals(queryCache.getType())) {
             queryCache = rebuildTrafficSpectrumCIPConnectAppUsageQueryCache(queryCache);
         } else if (JobConfig.SLICING_OPTIMIZATION.equals(queryCache.getType())) {
             queryCache = rebuildSlicingQueryCache(queryCache);

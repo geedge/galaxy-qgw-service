@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_server_domains",
+  "name": "top_source_ip",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "server_domain"
+        "source_ip"
       ],
       "metrics": [
         "sessions",
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "server_domain",
-      "label": "Server Domain",
+      "name": "source_ip",
+      "label": "Source IP",
       "doc": {
         "constraints": {
-          "type": "domain"
+          "type": "ip"
         },
         "visibility": "enabled"
       },

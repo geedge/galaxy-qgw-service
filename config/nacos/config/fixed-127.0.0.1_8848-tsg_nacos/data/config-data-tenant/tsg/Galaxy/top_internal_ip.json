@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_external_ips",
+  "name": "top_internal_ip",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "external_ip"
+        "internal_ip"
       ],
       "metrics": [
         "sessions",
@@ -33,7 +33,7 @@
       }
     },
     "measurements": {
-     "retentions": "1m:1800d",
+      "retentions": "1m:1800d",
       "ingestion_delay": 15,
       "aggregated_metric_unit": {
         "SUM": {
@@ -160,9 +160,12 @@
       "type": "string"
     },
     {
-      "name": "external_ip",
-      "label": "External IP",
+      "name": "internal_ip",
+      "label": "Internal IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"

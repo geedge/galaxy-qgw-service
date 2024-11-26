@@ -27,7 +27,6 @@ import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.TrafficSpectrumDslService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -67,11 +66,11 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
     public BaseResult run(DSLQueryRequestParam dslQueryRequestParam) {
         if (JobConfig.TRAFFIC_SPECTRUM_SUMMARY.equals(dslQueryRequestParam.getName())) {
             return BaseResultGenerator.success(summary(dslQueryRequestParam));
-        } else if (JobConfig.TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS.equals(dslQueryRequestParam.getName())) {
+        } else if (JobConfig.TRAFFIC_SPECTRUM_UNIQUE_SOURCE_AND_DESTINATION_IPS.equals(dslQueryRequestParam.getName())) {
             return BaseResultGenerator.success(uniqIpsStat(dslQueryRequestParam));
         } else if (JobConfig.TRAFFIC_SPECTRUM_APP_DISTRIBUTION.equals(dslQueryRequestParam.getName())) {
             return BaseResultGenerator.success(topServerIpAndServerDomain(dslQueryRequestParam));
-        } else if (JobConfig.TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE.equals(dslQueryRequestParam.getName())) {
+        } else if (JobConfig.TRAFFIC_SPECTRUM_SOURCE_IP_CONNECT_APPLICATION_USAGE.equals(dslQueryRequestParam.getName())) {
             return BaseResultGenerator.success(internalExternalDimensionMetricsStat(dslQueryRequestParam));
         } else if (JobConfig.TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND.equals(dslQueryRequestParam.getName())) {
             return BaseResultGenerator.success(networkThroughputTrend(dslQueryRequestParam));
@@ -136,15 +135,15 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                         .build());
         if (baseResult.isSuccess()) {
             baseResult.getData().forEach(map -> {
-                long internalUniqClientIp = Long.parseLong(String.valueOf(map.get("internal_uniq_client_ip") == null ? 0 : map.get("internal_uniq_client_ip")));
-                long internalUniqServerIp = Long.parseLong(String.valueOf(map.get("internal_uniq_server_ip") == null ? 0 : map.get("internal_uniq_server_ip")));
-                long externalUniqClientIp = Long.parseLong(String.valueOf(map.get("external_uniq_client_ip") == null ? 0 : map.get("external_uniq_client_ip")));
-                long externalUniqServerIp = Long.parseLong(String.valueOf(map.get("external_uniq_server_ip") == null ? 0 : map.get("external_uniq_server_ip")));
+                long internalUniqClientIp = Long.parseLong(String.valueOf(map.get("internal_uniq_source_ip") == null ? 0 : map.get("internal_uniq_source_ip")));
+                long internalUniqServerIp = Long.parseLong(String.valueOf(map.get("internal_uniq_destination_ip") == null ? 0 : map.get("internal_uniq_destination_ip")));
+                long externalUniqClientIp = Long.parseLong(String.valueOf(map.get("external_uniq_source_ip") == null ? 0 : map.get("external_uniq_source_ip")));
+                long externalUniqServerIp = Long.parseLong(String.valueOf(map.get("external_uniq_destination_ip") == null ? 0 : map.get("external_uniq_destination_ip")));
                 HashMap<String, Object> item = Maps.newLinkedHashMap();
-                item.put(TrafficSpectrumConstants.INTERNAL_UNIQ_CLIENT_IP, internalUniqClientIp);
-                item.put(TrafficSpectrumConstants.INTERNAL_UNIQ_SERVER_IP, internalUniqServerIp);
-                item.put(TrafficSpectrumConstants.EXTERNAL_UNIQ_CLIENT_IP, externalUniqClientIp);
-                item.put(TrafficSpectrumConstants.EXTERNAL_UNIQ_SERVER_IP, externalUniqServerIp);
+                item.put(TrafficSpectrumConstants.INTERNAL_UNIQ_SOURCE_IP, internalUniqClientIp);
+                item.put(TrafficSpectrumConstants.INTERNAL_UNIQ_DESTINATION_IP, internalUniqServerIp);
+                item.put(TrafficSpectrumConstants.EXTERNAL_UNIQ_SOURCE_IP, externalUniqClientIp);
+                item.put(TrafficSpectrumConstants.EXTERNAL_UNIQ_DESTINATION_IP, externalUniqServerIp);
                 map.clear();
                 map.putAll(item);
             });
@@ -186,8 +185,8 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 return Lists.newArrayList();
             }
             Map<String, Object> map = Maps.newHashMap();
-            map.put(TrafficSpectrumConstants.TOP_SERVER_IPS, baseResultIp.getData());
-            map.put(TrafficSpectrumConstants.TOP_SERVER_DOMAINS, baseResultDomain.getData());
+            map.put(TrafficSpectrumConstants.TOP_DESTINATION_IPS, baseResultIp.getData());
+            map.put(TrafficSpectrumConstants.TOP_DESTINATION_DOMAINS, baseResultDomain.getData());
             return Lists.newArrayList(map);
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
@@ -228,9 +227,9 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 long packets = Long.parseLong(String.valueOf(x.get("packets") == null ? 0 : x.get("packets")));
                 long maxRate = Long.parseLong(String.valueOf(x.get("max_rate") == null ? 0 : x.get("max_rate")));
                 long avgRate = Long.parseLong(String.valueOf(x.get("avg_rate") == null ? 0 : x.get("avg_rate")));
-                String clientIp = String.valueOf(x.get("client_ip"));
+                String sourceIp = String.valueOf(x.get("source_ip"));
                 String app = String.valueOf(x.get("app"));
-                String clientCountry = String.valueOf(x.get("client_country"));
+                String sourceCountry = String.valueOf(x.get("source_country"));
                 String appCategory = String.valueOf(x.get("app_category"));
 
                 Map<String, Object> internalNode = Maps.newHashMap();
@@ -238,11 +237,11 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                 String uuidInternal;
                 String uuidExternal;
                 if (TrafficSpectrumConstants.OUTBOUND.equalsIgnoreCase(direction)) {
-                    uuidInternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.INTERNAL_NODE, String.valueOf(clientIp), String.valueOf(clientCountry), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
+                    uuidInternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.INTERNAL_NODE, String.valueOf(sourceIp), String.valueOf(sourceCountry), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
                     internalNode.put(TrafficSpectrumConstants.ID, uuidInternal);
                     internalNode.put(TrafficSpectrumConstants.OBJECT_TYPE, TrafficSpectrumConstants.OBJECT_TYPE_IP);
-                    internalNode.put(TrafficSpectrumConstants.NAME, clientIp);
-                    internalNode.put(TrafficSpectrumConstants.CATEGORY, getIpCategory(clientIp, clientCountry));
+                    internalNode.put(TrafficSpectrumConstants.NAME, sourceIp);
+                    internalNode.put(TrafficSpectrumConstants.CATEGORY, getIpCategory(sourceIp, sourceCountry));
                     internalNodes.put(uuidInternal, internalNode);
 
                     uuidExternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.EXTERNAL_NODE, String.valueOf(app), String.valueOf(appCategory), TrafficSpectrumConstants.OBJECT_TYPE_APPLICATION).getBytes()).toString();
@@ -253,11 +252,11 @@ public class TrafficSpectrumDslServiceImpl implements TrafficSpectrumDslService 
                     externalNodes.put(uuidExternal, externalNode);
 
                 } else if (TrafficSpectrumConstants.INBOUND.equalsIgnoreCase(direction)) {
-                    uuidExternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.EXTERNAL_NODE, String.valueOf(clientIp), String.valueOf(clientCountry), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
+                    uuidExternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.EXTERNAL_NODE, String.valueOf(sourceIp), String.valueOf(sourceCountry), TrafficSpectrumConstants.OBJECT_TYPE_IP).getBytes()).toString();
                     externalNode.put(TrafficSpectrumConstants.ID, uuidExternal);
                     externalNode.put(TrafficSpectrumConstants.OBJECT_TYPE, TrafficSpectrumConstants.OBJECT_TYPE_IP);
-                    externalNode.put(TrafficSpectrumConstants.NAME, clientIp);
-                    externalNode.put(TrafficSpectrumConstants.CATEGORY, getIpCategory(clientIp, clientCountry));
+                    externalNode.put(TrafficSpectrumConstants.NAME, sourceIp);
+                    externalNode.put(TrafficSpectrumConstants.CATEGORY, getIpCategory(sourceIp, sourceCountry));
                     externalNodes.put(uuidExternal, externalNode);
 
                     uuidInternal = UUID.nameUUIDFromBytes(StrUtil.concat(false, TrafficSpectrumConstants.INTERNAL_NODE, String.valueOf(app), String.valueOf(appCategory), TrafficSpectrumConstants.OBJECT_TYPE_APPLICATION).getBytes()).toString();

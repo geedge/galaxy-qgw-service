@@ -60,9 +60,9 @@ public class JobConfig {
     public static final String LOG_QUERY = "log-query";
     public static final String DATAPATH_PACKET_COMBINE = "datapath_telemetry_packet_combine";
     public static final String TRAFFIC_SPECTRUM_SUMMARY = "traffic-spectrum-summary";
-    public static final String TRAFFIC_SPECTRUM_UNIQUE_CLIENT_AND_SERVER_IPS = "traffic-spectrum-unique-client-and-server-ips";
+    public static final String TRAFFIC_SPECTRUM_UNIQUE_SOURCE_AND_DESTINATION_IPS = "traffic-spectrum-unique-source-and-destination-ips";
     public static final String TRAFFIC_SPECTRUM_APP_DISTRIBUTION = "traffic-spectrum-app-distribution";
-    public static final String TRAFFIC_SPECTRUM_CLIENT_IP_CONNECT_APPLICATION_USAGE = "traffic-spectrum-client-ip-connect-application-usage";
+    public static final String TRAFFIC_SPECTRUM_SOURCE_IP_CONNECT_APPLICATION_USAGE = "traffic-spectrum-source-ip-connect-application-usage";
     public static final String SLICING_OPTIMIZATION = "slicing-optimization";
     public static final String TRAFFIC_SPECTRUM_NETWORK_THROUGHPUT_TREND = "traffic-spectrum-network-throughput-trend";
     public static final String CUSTOMIZED_STATISTICS = "customized-statistics";

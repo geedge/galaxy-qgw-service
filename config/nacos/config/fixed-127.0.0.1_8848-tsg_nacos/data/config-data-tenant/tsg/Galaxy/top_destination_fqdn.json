@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_client_ips",
+  "name": "top_destination_fqdn",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -12,7 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "client_ip"
+        "destination_fqdn"
       ],
       "metrics": [
         "sessions",
@@ -160,11 +160,11 @@
       "type": "string"
     },
     {
-      "name": "client_ip",
-      "label": "Client IP",
+      "name": "destination_fqdn",
+      "label": "Destination FQDN",
       "doc": {
         "constraints": {
-          "type": "ip"
+          "type": "fqdn"
         },
         "visibility": "enabled"
       },

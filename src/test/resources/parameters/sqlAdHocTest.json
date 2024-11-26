@@ -23,7 +23,7 @@
     "output_mode": "csv"
   },
   "query_sql_oneshot_error_trigger_sub_query": {
-    "statement": "SELECT COUNT_DISTINCT(client_ip) AS \"Client IP\" FROM security_event WHERE ((security_action = 'Deny')) AND recv_time >= UNIX_TIMESTAMP('2024-03-12T00:00:00+08:00') AND recv_time < UNIX_TIMESTAMP('2024-03-12T23:59:59+08:00') AND security_event.vsys_id IN (1) ORDER BY \"Client IP\" DESC LIMIT 20",
+    "statement": "SELECT COUNT_DISTINCT(source_ip) AS \"Source IP\" FROM security_event WHERE ((security_action = 'Deny')) AND recv_time >= UNIX_TIMESTAMP('2024-03-12T00:00:00+08:00') AND recv_time < UNIX_TIMESTAMP('2024-03-12T23:59:59+08:00') AND security_event.vsys_id IN (1) ORDER BY \"Source IP\" DESC LIMIT 20",
     "execution_mode": "oneshot"
   }
 }
