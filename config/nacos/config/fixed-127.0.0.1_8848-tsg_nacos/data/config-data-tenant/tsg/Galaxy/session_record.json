@@ -1642,16 +1642,6 @@
       "default": 1
     },
     {
-      "name": "t_vsys_id",
-      "label": "Traffic Vsys ID",
-      "doc": {
-        "allow_query": false,
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
       "name": "flags",
       "label": "Flags",
       "doc": {
