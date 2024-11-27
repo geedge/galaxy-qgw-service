@@ -178,7 +178,6 @@
           "address_type",
           "direction",
           "vsys_id",
-          "t_vsys_id",
           "flags",
           "flags_identify_info"
         ],
@@ -253,7 +252,6 @@
           "address_type",
           "direction",
           "vsys_id",
-          "t_vsys_id",
           "flags",
           "flags_identify_info",
           "source_ip",
@@ -324,7 +322,6 @@
           "address_type",
           "direction",
           "vsys_id",
-          "t_vsys_id",
           "flags",
           "flags_identify_info",
           "source_ip",
@@ -382,7 +379,6 @@
           "address_type",
           "direction",
           "vsys_id",
-          "t_vsys_id",
           "flags",
           "flags_identify_info",
           "source_ip",
@@ -874,16 +870,6 @@
       },
       "type": "int",
       "default": 1
-    },
-    {
-      "name": "t_vsys_id",
-      "label": "Traffic Vsys ID",
-      "doc": {
-        "allow_query": false,
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "int"
     },
     {
       "name": "flags",
