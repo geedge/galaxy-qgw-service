@@ -102,8 +102,8 @@ public class LogQueryServiceImpl implements LogQueryService {
         DSLQueryContext dslQueryContextTemp = BeanUtil.copyProperties(requestParam, DSLQueryContext.class);
         List<String> intervals = dslQueryContextTemp.getIntervals();
         String[] split = intervals.get(0).split("/");
-        DateTime start = DateUtil.parse(split[0]);
-        DateTime end = DateUtil.parse(split[1]);
+        DateTime start = DateUtil.parse(split[0]).setTimeZone(TimeZone.getDefault());
+        DateTime end = DateUtil.parse(split[1]).setTimeZone(TimeZone.getDefault());
 
         int seconds = Period.parse(granularity).toStandardSeconds().getSeconds();
         DateTime dateTime = DateUtil.offsetSecond(cursorEndTime, seconds);
