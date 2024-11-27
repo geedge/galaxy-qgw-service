@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * TODO
@@ -54,7 +55,7 @@ public class DSLQueryRequestParam extends CommonRequestParam implements Serializ
     public DateTime getStart() {
         if (this.intervals != null && this.intervals.size() == 1) {
             String[] split = this.intervals.get(0).split("/");
-            return DateUtil.parse(split[0]);
+            return DateUtil.parse(split[0]).setTimeZone(TimeZone.getDefault());
         } else {
             return null;
         }
@@ -63,7 +64,7 @@ public class DSLQueryRequestParam extends CommonRequestParam implements Serializ
     public DateTime getEnd() {
         if (this.intervals != null && this.intervals.size() == 1) {
             String[] split = this.intervals.get(0).split("/");
-            return DateUtil.parse(split[1]);
+            return DateUtil.parse(split[1]).setTimeZone(TimeZone.getDefault());
         } else {
             return null;
         }
