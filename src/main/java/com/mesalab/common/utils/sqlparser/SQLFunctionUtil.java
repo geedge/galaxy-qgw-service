@@ -1,5 +1,6 @@
 package com.mesalab.common.utils.sqlparser;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -236,7 +237,7 @@ public class SQLFunctionUtil {
         sql = parseDateFormat(sql, dbType);
         sql = DBEngineType.STAR_ROCKS.getValue().equals(dbType) ? sql : parseDateRelative(sql, dbType);
         sql = parseFromUnixTimeMillis(sql, dbType);
-        sql = DBEngineType.STAR_ROCKS.getValue().equals(dbType) ? sql : parseUnixTime(sql, dbType);
+        sql = parseUnixTime(sql, dbType);
         sql = parseUnixTimeMillis(sql, dbType);
         sql = parseDate(sql, dbType);
         sql = DBEngineType.STAR_ROCKS.getValue().equals(dbType) ? sql : parseUnitFuncGetNum(sql, dbType);
@@ -1816,30 +1817,35 @@ public class SQLFunctionUtil {
     public static String parseUnixTimeReplaceByDB(String sqlParse, int num, String dbType) {
         Pattern pUnixTimeParse = Pattern.compile("(UNIX_TIMESTAMP)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pUnixTimeParse.matcher(sqlParse);
-        StringBuffer sb = new StringBuffer();
-        String innerValue = null;
+        StringBuilder sb = new StringBuilder();
         if (matcherParse.find()) {
+            String param = matcherParse.group(2);
+            String innerValue = "UNIX_TIMESTAMP#[ " + param + "#]";
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (param == null || param.trim().isEmpty()) {
                     innerValue = "toUnixTimestamp#[now#[#]#]";
                 } else {
-                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#], 'UTC'#]#]" : "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#]#]#]";
+                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + param + "#], 'UTC'#]#]" : "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + param + "#]#]#]";
                 }
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
-                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (param == null || param.trim().isEmpty()) {
                     innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]/1000";
                 } else {
-                    if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[ " + matcherParse.group(2) + "#]#]/1000";
+                    if (param.startsWith("'") && param.endsWith("'")) {
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[ " + param + "#]#]/1000";
                     } else {
-                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]/1000";
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + param + "#]/1000";
                     }
                 }
             } else if (DBEngineType.STAR_ROCKS.getValue().equals(dbType)) {
-                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (param == null || param.trim().isEmpty()) {
                     innerValue = "UNIX_TIMESTAMP#[#]";
                 } else {
-                    innerValue = "UNIX_TIMESTAMP#[ " + matcherParse.group(2) + "#]";
+                    if (param.startsWith("'") && param.endsWith("'")) {
+                        innerValue = "UNIX_TIMESTAMP#[ '" + DateUtil.parse(param.substring(1, param.length() - 1)).toString(TimeZone.getDefault()) + "'#]";
+                    } else {
+                        innerValue = "UNIX_TIMESTAMP#[ " + param + "#]";
+                    }
                 }
             }
             matcherParse.appendReplacement(sb, innerValue);
@@ -1859,30 +1865,35 @@ public class SQLFunctionUtil {
     public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType) {
         Pattern pUnixTimeMillisParse = Pattern.compile("(UNIX_TIMESTAMP_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pUnixTimeMillisParse.matcher(sqlParse);
-        StringBuffer sb = new StringBuffer();
-        String innerValue = null;
+        StringBuilder sb = new StringBuilder();
         if (matcherParse.find()) {
+            String param = matcherParse.group(2);
+            String innerValue = "UNIX_TIMESTAMP#[ " + param + "#]*1000";
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (param == null || param.trim().isEmpty()) {
                     innerValue = "toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#]";
                 } else {
-                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#], 'UTC'#] as DateTime64#]#]" : "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
+                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + param + "#], 'UTC'#] as DateTime64#]#]" : "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + param + "#]#] as DateTime64#]#]";
                 }
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
-                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (param == null || param.trim().isEmpty()) {
                     innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
                 } else {
-                    if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]", matcherParse.group(2));
+                    if (param.startsWith("'") && param.endsWith("'")) {
+                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]", param);
                     } else {
-                        innerValue = "TIMESTAMP_TO_MILLIS#[ " + matcherParse.group(2) + "#]";
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ " + param + "#]";
                     }
                 }
             } else if (DBEngineType.STAR_ROCKS.getValue().equals(dbType)) {
-                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (param == null || param.trim().isEmpty()) {
                     innerValue = "UNIX_TIMESTAMP#[#]*1000";
                 } else {
-                    innerValue = "UNIX_TIMESTAMP#[ " + matcherParse.group(2) + "#]*1000";
+                    if (param.startsWith("'") && param.endsWith("'")) {
+                        innerValue = "UNIX_TIMESTAMP#[ '" + DateUtil.parse(param.substring(1, param.length() - 1)).toString(TimeZone.getDefault()) + "'#]*1000";
+                    } else {
+                        innerValue = "UNIX_TIMESTAMP#[ " + param + "#]*1000";
+                    }
                 }
             }
             matcherParse.appendReplacement(sb, innerValue);
