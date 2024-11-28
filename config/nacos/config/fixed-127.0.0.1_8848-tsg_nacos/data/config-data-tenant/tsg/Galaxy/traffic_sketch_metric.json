@@ -3,7 +3,6 @@
   "name": "traffic_sketch_metric",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "primary_key": "log_id",
     "partition_key": "recv_time",
     "index_key": [
       "vsys_id",
@@ -86,8 +85,6 @@
         "s2c_tcp_retransmitted_pkts"
       ],
       "filters": [
-        "log_uuid",
-        "log_id",
         "vsys_id",
         "device_id",
         "device_group",
@@ -146,30 +143,6 @@
         "type": "long",
         "logicalType": "unix_timestamp"
       }
-    },
-    {
-      "name": "log_uuid",
-      "label": "Log UUID",
-      "doc": {
-        "constraints": {
-          "aggregation_functions": "COUNT"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "log_id",
-      "label": "Log ID(Deprecated)",
-      "doc": {
-        "constraints": {
-          "aggregation_functions": "COUNT"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
     },
     {
       "name": "vsys_id",
